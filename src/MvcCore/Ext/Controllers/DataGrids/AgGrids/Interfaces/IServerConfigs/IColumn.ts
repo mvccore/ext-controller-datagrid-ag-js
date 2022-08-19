@@ -1,4 +1,4 @@
-declare namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.IServerConfigs {
+declare namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Interfaces.IServerConfigs {
 	interface IColumn {
 		propName: string;
 		headingName: string;

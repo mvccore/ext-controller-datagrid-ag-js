@@ -1,20 +1,11 @@
-declare namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.IServerConfigs {
+declare namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Interfaces.IServerConfigs {
 	interface IUrlSegment {
 		urlDelimiterPrefix: string;
 		urlDelimiterSections: string;
 		urlDelimiterSubjectValue: string;
 		urlDelimiterSubjects: string;
 		urlDelimiterValues: string;
-		urlFilterOperators: {
-			"!=": string;
-			"<": string;
-			"<=": string;
-			"=": string;
-			">": string;
-			">=": string;
-			"LIKE": string;
-			"NOT LIKE": string;
-		};
+		urlFilterOperators: Map<Enums.Operator, string>;
 		urlPrefixCount: string;
 		urlPrefixFilter: string;
 		urlPrefixPage: string;
