@@ -11,6 +11,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 			//console.log(params);
 		}
 		public HandleFilterChanged (params: agGrid.FilterChangedEvent): void {
+			this.grid.SetTotalCount(null);
 			//console.log(params);
 		}
 		public HandleSortChanged (params: agGrid.SortChangedEvent): void {
