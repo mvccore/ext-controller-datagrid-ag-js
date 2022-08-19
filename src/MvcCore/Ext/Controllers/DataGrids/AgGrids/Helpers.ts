@@ -1,8 +1,24 @@
 namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 	export class Helpers {
 		protected grid: AgGrid;
+		protected touchDevice: boolean;
+		protected isChromeBrowser: boolean;
 		public constructor (grid: AgGrid) {
 			this.grid = grid;
+		}
+		public IsTouchDevice (): boolean {
+			return this.touchDevice ?? (this.touchDevice = (
+				('ontouchstart' in window) ||
+				(navigator.maxTouchPoints > 0) ||
+				///@ts-ignore
+				(navigator['msMaxTouchPoints'] > 0)
+			));
+		}
+		public IsChromeBrowser (): boolean {
+			return this.isChromeBrowser ?? (this.isChromeBrowser = (
+				/Chrome/.test(navigator.userAgent) && 
+				/Google Inc/.test(navigator.vendor)
+			));
 		}
 		public RetypeServerConfigObjects2Maps (serverConfig: Interfaces.IServerConfig): Interfaces.IServerConfig {
 			serverConfig.urlSegments.urlFilterOperators = this.convertObject2Map<Enums.Operator, string>(

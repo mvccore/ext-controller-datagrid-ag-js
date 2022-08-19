@@ -1,6 +1,6 @@
 declare namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Interfaces {
 	interface IServerConfig {
-		elementSelector: string;
+		contElementSelector: string;
 		renderConfig: MvcCore.Ext.Controllers.DataGrids.AgGrids.Interfaces.IServerConfigs.IRenderConfig;
 		columns: {
 			[columnUrlName: string]: MvcCore.Ext.Controllers.DataGrids.AgGrids.Interfaces.IServerConfigs.IColumn;
@@ -14,9 +14,10 @@ declare namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Interfaces {
 		rowSelection: Enums.RowSelection;
 		itemsPerPage: number;
 		page: number;
-		clientRowBuffer: number;
 		sortingMode: Enums.SortingMode;
 		filteringMode: Enums.FilteringMode;
 		controlsTexts: Map<Enums.ControlText, string>;
+		clientRowBuffer: number;
+		clientRowBufferMax: number;
 	}
 }

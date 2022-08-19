@@ -7,9 +7,10 @@ declare namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Interfaces.IServerCo
 		cssClasses: string[];
 		filter: number | boolean;
 		sort: number | boolean;
+		width: number | string | null;
 		maxWidth: number | string | null;
 		minWidth: number | string | null;
-		width: number | string | null;
+		flex: number | string | null;
 		columnIndex: number | null;
 		title: string | null;
 		disabled: boolean | null;

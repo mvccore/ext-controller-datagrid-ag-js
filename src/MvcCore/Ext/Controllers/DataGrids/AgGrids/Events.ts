@@ -20,7 +20,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 		public HandleGridSizeChanged (params: agGrid.ViewportChangedEvent<any> | agGrid.GridSizeChangedEvent<any>): void {
 			// get the current grids width
 			
-			var gridElm = this.grid.GetGridElement(),
+			var gridElm = this.grid.GetOptions().GetElements().agGridElement,
 				gridElmParent = gridElm.parentNode as HTMLElement;
 			var gridWidth = gridElmParent.offsetWidth;
 		
