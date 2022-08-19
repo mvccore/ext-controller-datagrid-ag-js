@@ -11,14 +11,16 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 		]);
 		protected grid: AgGrid;
 		protected events: AgGrids.Events;
-		public constructor (grid: AgGrid, events: AgGrids.Events) {
+		protected helpers: AgGrids.Helpers;
+		public constructor (grid: AgGrid, events: AgGrids.Events, helpers: AgGrids.Helpers) {
 			this.Static = new.target;
 			this.grid = grid;
 			this.events = events;
+			this.helpers = helpers;
 			document.addEventListener('DOMContentLoaded', this.init.bind(this));
 		}
 		protected init (): void {
-			var elmSelector = this.grid.GetServerConfig().ElementSelector,
+			var elmSelector = this.grid.GetServerConfig().elementSelector,
 				gridElement = document.querySelector<HTMLDivElement>(elmSelector);
 			if (gridElement == null) throw new Error(
 				`Element with selector '${elmSelector}' not found.`
@@ -30,22 +32,21 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 			this.initGridDataSource();
 		}
 		protected initGridColumns (): void {
-			var serverColumns = this.grid.GetServerConfig().Columns;
+			var serverColumns = this.grid.GetServerConfig().columns;
 			var gridColumns = <AgGrids.Types.GridColumn[]>[];
 			var gridColumn: AgGrids.Types.GridColumn;
-			var serverColumnCfg: AgGrids.IServerConfigs.IColumn;
-			for (var urlName in serverColumns) {
-				serverColumnCfg = serverColumns[urlName];
+			var serverColumnCfg: AgGrids.Interfaces.IServerConfigs.IColumn;
+			for (var columnUrlName in serverColumns) {
+				serverColumnCfg = serverColumns[columnUrlName];
 				if (serverColumnCfg.disabled === true) continue;
-				gridColumn = this.initGridColumn(urlName, serverColumnCfg);
+				gridColumn = this.initGridColumn(columnUrlName, serverColumnCfg);
 				gridColumns.push(gridColumn);
 			}
-			console.log(gridColumns);
 			this.grid.SetGridColumns(gridColumns);
 		}
-		protected initGridColumn (urlName: string, serverColumnCfg: AgGrids.IServerConfigs.IColumn): AgGrids.Types.GridColumn {
+		protected initGridColumn (columnUrlName: string, serverColumnCfg: AgGrids.Interfaces.IServerConfigs.IColumn): AgGrids.Types.GridColumn {
 			var column = <agGrid.ColDef>{
-				colId: serverColumnCfg.propName,
+				colId: columnUrlName,
 				field: serverColumnCfg.propName,
 				headerName: serverColumnCfg.headingName,
 				tooltipField: serverColumnCfg.propName,
@@ -96,11 +97,11 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 			
 			
 				// server inifinite loading:
-				rowBuffer: 10,
+				rowBuffer: this.grid.GetServerConfig().clientRowBuffer,
 				// tell grid we want virtual row model type
 				rowModelType: 'infinite',
 				// how big each page in our page cache will be, default is 100
-				cacheBlockSize: 100,
+				cacheBlockSize: this.grid.GetServerConfig().clientRowBuffer,
 				// how many extra blank rows to display to the user at the end of the dataset,
 				// which sets the vertical scroll and then allows the grid to request viewing more rows of data.
 				// default is 1, ie show 1 row.
@@ -110,16 +111,15 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 				maxConcurrentDatasourceRequests: 2,
 				// how many rows to initially show in the grid. having 1 shows a blank row, so it looks like
 				// the grid is loading from the users perspective (as we have a spinner in the first col)
-				infiniteInitialRowCount: 50,
+				infiniteInitialRowCount: Math.round(this.grid.GetServerConfig().clientRowBuffer / 2),
 				// how many pages to store in cache. default is undefined, which allows an infinite sized cache,
 				// pages are never purged. this should be set for large data to stop your browser from getting
 				// full of data
-				maxBlocksInCache: 100,
+				maxBlocksInCache: Math.round(10000 / this.grid.GetServerConfig().clientRowBuffer),
 			
 				debounceVerticalScrollbar: true,
 				//debug: true,
 			
-				
 				// localizations:
 				//localeText: agGridLocales['cs-CZ']
 			};
@@ -128,7 +128,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 			this.grid.SetGridOptions(gridOptions);
 		}
 		protected initGridOptionsRowSelection (gridOptions: agGrid.GridOptions<any>): void {
-			var rowSel = this.grid.GetServerConfig().RowSelection;
+			var rowSel = this.grid.GetServerConfig().rowSelection;
 			var rowSelectionNone = (rowSel & Enums.RowSelection.ROW_SELECTION_NONE) != 0;
 			if (
 				rowSelectionNone ||
@@ -164,44 +164,75 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 			this.grid.SetGrid(grid);
 		}
 		protected initGridDataSource () {
+			var pageLoaded = false;
 			var firstData = this.grid.GetInitialData();
 			var dataSource = <agGrid.IDatasource>{
 				rowCount: undefined,
 				getRows: (params: agGrid.IGetRowsParams): void => {
 		
-					console.log('asking for ' + params.startRow + ' to ' + params.endRow);
+					debugger;
+					console.log('asking for ' + params.startRow + ' to ' + params.endRow + ' by collection from ' + firstData.offset + ' to ' + (firstData.offset + firstData.dataCount));
 					
-					if (params.endRow <= firstData.RowCount) {
-						return params.successCallback(
-							firstData.Data.slice(params.startRow, params.endRow), 
-							firstData.TotalCount
+					var totalCount = this.grid.GetTotalCount();
+					if (
+						totalCount != null && 
+						params.startRow >= firstData.offset &&
+						(params.endRow <= firstData.offset + firstData.dataCount || totalCount < params.endRow)
+					) {
+						console.log("resolving by initial data");
+						params.successCallback(
+							firstData.data.slice(params.startRow - firstData.offset, params.endRow - firstData.offset), 
+							totalCount
 						);
+						if (!pageLoaded) {
+							pageLoaded = true;
+							var serverCfg = this.grid.GetServerConfig();
+							console.log("page", serverCfg.page);
+							if (serverCfg.page > 1) {
+								var scrollOffset = (serverCfg.page - 1) * serverCfg.clientRowBuffer;
+								console.log("scrolling top", scrollOffset);
+								this.grid.GetGridOptions().api.ensureIndexVisible(
+									scrollOffset, "top"
+								);
+							}
+						}
+						return;
 					}
 		
+					console.log("resolving by ajax request");
+
 					var startTime = +new Date;
 		
 					Ajax.get(
-						this.grid.GetServerConfig().DataUrl, {
-							startRow: params.startRow,
-							endRow: params.endRow
-						},
-						(response: AgGrids.IServerResponse) => {
+						this.grid.GetServerConfig().dataUrl, 
+						this.helpers.RetypeServerRequestMaps2Objects({
+							offset: params.startRow,
+							limit: params.endRow - params.startRow,
+							sorting: this.grid.GetSorting(),
+							filtering: this.grid.GetFiltering(),
+						}),
+						(response: AgGrids.Interfaces.IServerResponse) => {
 							var responseTime = +new Date;
-							params.successCallback(response.Data, response.TotalCount);
-							var renderedTime = +new Date;
-		
+							params.successCallback(response.data, response.totalCount);
+							
+							/*var renderedTime = +new Date;
 							console.log(
 								responseTime - startTime,
 								renderedTime - responseTime,
 								renderedTime - startTime
-							);
+							);*/
 						},
 						'jsonp'
 					);
 				}
 			};
+
+			console.log(firstData);
+			
 			this.grid.GetGridOptions().api.setDatasource(dataSource);
+			
 			this.grid.SetGridDataSource(dataSource);
+			
 		}
 		protected isTouchDevice (): boolean {
 			return (
