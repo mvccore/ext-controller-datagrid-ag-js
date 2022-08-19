@@ -1,7 +1,7 @@
 namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 	export class ToolTip {
 		protected eGui: HTMLDivElement;
-		init (params: MvcCore.Ext.Controllers.DataGrids.AgGrids.IToolTip.IParams): void {
+		init (params: MvcCore.Ext.Controllers.DataGrids.AgGrids.Interfaces.ITooltipParams): void {
 			const eGui = this.eGui = document.createElement('div');
 			const color = params.color || 'white';
 			const data = params.api.getDisplayedRowAtIndex(params.rowIndex)?.data;
