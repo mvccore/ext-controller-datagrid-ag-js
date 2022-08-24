@@ -5,24 +5,31 @@ namespace MvcCore.Ext.Controllers.DataGrids {
 		protected grid: agGrid.Grid;
 
 		protected helpers: AgGrids.Helpers;
-		protected events: AgGrids.Events;
+		protected eventsManager: AgGrids.EventsManager;
 		protected options: AgGrids.Options;
+		protected dataSource: AgGrids.DataSource;
 
 		protected sorting: [string, 0 | 1][];
 		protected filtering: Map<string, Map<AgGrids.Enums.Operator, string[]>>;
 		protected totalCount: number | null = null;
+		protected offset: number = 0;
 		
 		public constructor (serverConfig: AgGrids.Interfaces.IServerConfig, initialData: AgGrids.Interfaces.IServerResponse) {
-			console.log(serverConfig);
+			console.log("AgGrid.ctor - serverConfig", serverConfig);
+			console.log("AgGrid.ctor - initialData", initialData);
 			this
 				.initSubClasses()
-				.initServerConfig(serverConfig)
+				.initServerConfig(serverConfig);
+			this.options.InitElements()
+			this
+				.initPageModeSpecifics()
 				.initData(initialData);
 			document.addEventListener('DOMContentLoaded', () => {
 				this
-					.initOptions()
-					.initGrid();
-			})
+					.initAgOptions()
+					.initGrid()
+					.initDataSource();
+			});
 		}
 
 		public SetHelpers (helpers: AgGrids.Helpers): this {
@@ -32,12 +39,12 @@ namespace MvcCore.Ext.Controllers.DataGrids {
 		public GetHelpers (): AgGrids.Helpers {
 			return this.helpers;
 		}
-		public SetEvents (events: AgGrids.Events): this {
-			this.events = events;
+		public SetEvents (events: AgGrids.EventsManager): this {
+			this.eventsManager = events;
 			return this;
 		}
-		public GetEvents (): AgGrids.Events {
-			return this.events;
+		public GetEvents (): AgGrids.EventsManager {
+			return this.eventsManager;
 		}
 		public SetOptions (options: AgGrids.Options): this {
 			this.options = options;
@@ -45,6 +52,13 @@ namespace MvcCore.Ext.Controllers.DataGrids {
 		}
 		public GetOptions (): AgGrids.Options {
 			return this.options;
+		}
+		public SetDataSource (dataSource: AgGrids.DataSource): this {
+			this.dataSource = dataSource;
+			return this;
+		}
+		public GetDataSource (): AgGrids.DataSource {
+			return this.dataSource;
 		}
 		public SetServerConfig (serverConfig: AgGrids.Interfaces.IServerConfig): this {
 			this.serverConfig = serverConfig;
@@ -88,45 +102,69 @@ namespace MvcCore.Ext.Controllers.DataGrids {
 		public GetTotalCount (): number | null {
 			return this.totalCount;
 		}
+		public SetOffset (offset: number): this {
+			this.offset = offset;
+			return this;
+		}
+		public GetOffset (): number {
+			return this.offset;
+		}
 
 		protected initSubClasses (): this {
 			this.helpers = new AgGrids.Helpers(this);
-			this.events = new AgGrids.Events(this);
+			
 			this.options = new AgGrids.Options(this);
 			return this;
 		}
+		protected initPageModeSpecifics (): this {
+			if ((this.serverConfig.clientPageMode & AgGrids.Enums.ClientPageMode.CLIENT_PAGE_MODE_SINGLE) != 0) {
+				var emSinglePage = new AgGrids.EventsManagers.SinglePageMode(this);
+				this.eventsManager = emSinglePage;
+			} else if ((this.serverConfig.clientPageMode & AgGrids.Enums.ClientPageMode.CLIENT_PAGE_MODE_MULTI) != 0) {
+				var emMultiplePages = new AgGrids.EventsManagers.MultiplePagesMode(this);
+				this.eventsManager = emMultiplePages;
+				emMultiplePages
+					.AddPagingEvents()
+					.AddWindowPopStateChangeEvent();
+			}
+			return this;
+		}
 		protected initServerConfig (serverConfig: AgGrids.Interfaces.IServerConfig): this {
-			this.serverConfig = this.helpers.RetypeServerConfigObjects2Maps(serverConfig);
+			this.serverConfig = this.helpers.RetypeRawServerConfig(serverConfig);
 			return this;
 		}
 		protected initData (initialData: AgGrids.Interfaces.IServerResponse): this {
-			this.initialData = this.helpers.RetypeServerResponseObjects2Maps(initialData);
+			this.initialData = this.helpers.RetypeRawServerResponse(initialData);
 			this.sorting = this.initialData.sorting;
 			this.filtering = this.initialData.filtering;
 			this.totalCount = this.initialData.totalCount;
+			this.offset = this.initialData.offset;
 			return this;
 		}
-		protected initOptions (): this {
+		protected initAgOptions (): this {
 			this.options
-				.InitElements()
 				.InitAgBases()
 				.InitAgColumns()
 				.InitAgPageModeSpecifics();
 			return this;
 		}
-		protected initGrid(): this {
+		protected initGrid (): this {
 			var gridOptions = this.options.GetAgOptions();
 			this.grid = new agGrid.Grid(
 				this.options.GetElements().agGridElement, gridOptions
 			);
+			return this;
+		}
+		protected initDataSource (): this {
 			if ((this.serverConfig.clientPageMode & AgGrids.Enums.ClientPageMode.CLIENT_PAGE_MODE_SINGLE) != 0) {
-				gridOptions.api.setDatasource(
-					this.options.GetAgDataSource()
-				);
+				this.dataSource = new AgGrids.DataSources.SinglePageMode(this);
+				var gridOptions = this.options.GetAgOptions();
+				gridOptions.api.setDatasource(this.dataSource as any);
+			} else if ((this.serverConfig.clientPageMode & AgGrids.Enums.ClientPageMode.CLIENT_PAGE_MODE_MULTI) != 0) {
+				this.dataSource = new AgGrids.DataSources.MultiplePagesMode(this);
 			}
 			return this;
 		}
-
 	}
 }
 

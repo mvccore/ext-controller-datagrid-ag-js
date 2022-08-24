@@ -20,7 +20,12 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 				/Google Inc/.test(navigator.vendor)
 			));
 		}
-		public RetypeServerConfigObjects2Maps (serverConfig: Interfaces.IServerConfig): Interfaces.IServerConfig {
+		public GetHtmlElementFromString (htmlCode: string): HTMLElement {
+			var contDiv = document.createElement('div');
+			contDiv.innerHTML = htmlCode.trim();
+			return contDiv.firstChild as HTMLElement;
+		}
+		public RetypeRawServerConfig (serverConfig: Interfaces.IServerConfig): Interfaces.IServerConfig {
 			serverConfig.urlSegments.urlFilterOperators = this.convertObject2Map<Enums.Operator, string>(
 				serverConfig.urlSegments.urlFilterOperators
 			);
@@ -32,17 +37,32 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 			);
 			return serverConfig;
 		}
-		public RetypeServerResponseObjects2Maps (serverResponse: Interfaces.IServerResponse): Interfaces.IServerResponse {
+		public RetypeRawServerResponse (serverResponse: Interfaces.IServerResponse): Interfaces.IServerResponse {
 			serverResponse.filtering = this.convertObject2Map<string, Map<Enums.Operator, string[]>>(
 				serverResponse.filtering
 			);
 			return serverResponse;
 		}
-		public RetypeServerRequestMaps2Objects (serverRequest: Interfaces.IServerRequest): Interfaces.IServerRequest {
-			serverRequest.filtering = this.convertMap2Object<string, Map<Enums.Operator, string[]>>(
+		public RetypeRequest2RawRequest (serverRequest: Interfaces.IServerRequest): Interfaces.IServerRequestRaw {
+			var result: Interfaces.IServerRequestRaw = serverRequest as any;
+			result.filtering = this.convertMap2Object<string, Map<Enums.Operator, string[]>>(
 				serverRequest.filtering
 			) as any;
-			return serverRequest;
+			var serverConfig = this.grid.GetServerConfig();
+			result.id = serverConfig.id;
+			result.mode = serverConfig.clientPageMode;
+			if (serverConfig.clientPageMode & Enums.ClientPageMode.CLIENT_PAGE_MODE_MULTI) {
+				result.gridPath = serverConfig.gridPath;
+			}
+			return result;
+		}
+		public IsInstanceOfIServerRequestRaw (obj: any): boolean {
+			return (
+				obj != null &&
+				'id' in obj && 'mode' in obj &&
+				'offset' in obj && 'limit' in obj &&
+				'sorting' in obj && 'filtering' in obj
+			);
 		}
 		protected convertObject2Map<TKey, TValue> (obj: any): Map<TKey, TValue> {
 			var data: any[][] = [];

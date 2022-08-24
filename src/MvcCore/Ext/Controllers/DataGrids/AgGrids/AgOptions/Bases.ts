@@ -1,10 +1,10 @@
-namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.SubOptions {
+namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.AgOptions {
 	export class Bases {
 		public Static: typeof Bases;
 		
 		protected grid: AgGrid;
 		protected options: AgGrids.Options;
-		protected events: AgGrids.Events;
+		protected eventsManager: AgGrids.EventsManager;
 		protected helpers: AgGrids.Helpers;
 
 		protected agOptions: agGrid.GridOptions<any>;
@@ -13,7 +13,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.SubOptions {
 			this.Static = new.target;
 			this.grid = grid;
 			this.options = grid.GetOptions();
-			this.events = grid.GetEvents();
+			this.eventsManager = grid.GetEvents();
 			this.helpers = grid.GetHelpers();
 		}
 
@@ -67,18 +67,18 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.SubOptions {
 			return this;
 		}
 		protected initEvents (): this {
-			this.agOptions.onColumnResized = this.events.HandleColumnResized.bind(this.events);
-			this.agOptions.onColumnMoved = this.events.HandleColumnMoved.bind(this.events);
-			this.agOptions.onFilterChanged = this.events.HandleFilterChanged.bind(this.events);
-			this.agOptions.onSortChanged = this.events.HandleSortChanged.bind(this.events);
+			this.agOptions.onColumnResized = this.eventsManager.HandleColumnResized.bind(this.eventsManager);
+			this.agOptions.onColumnMoved = this.eventsManager.HandleColumnMoved.bind(this.eventsManager);
+			this.agOptions.onFilterChanged = this.eventsManager.HandleFilterChanged.bind(this.eventsManager);
+			this.agOptions.onSortChanged = this.eventsManager.HandleSortChanged.bind(this.eventsManager);
 			/*this.agOptions.onFirstDataRendered = (params: agGrid.FirstDataRenderedEvent) => {
 				params.api.sizeColumnsToFit();
 			},*/
-			this.agOptions.onViewportChanged = this.events.HandleGridSizeChanged.bind(this.events);
+			this.agOptions.onViewportChanged = this.eventsManager.HandleGridSizeChanged.bind(this.eventsManager);
 			/*this.agOptions.onGridReady = (params: agGrid.GridReadyEvent): void => {
 				params.api.sizeColumnsToFit();
 			},*/
-			this.agOptions.onGridSizeChanged = this.events.HandleGridSizeChanged.bind(this.events);
+			this.agOptions.onGridSizeChanged = this.eventsManager.HandleGridSizeChanged.bind(this.eventsManager);
 			return this;
 		}
 	}

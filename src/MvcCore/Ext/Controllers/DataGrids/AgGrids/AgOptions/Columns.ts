@@ -1,4 +1,4 @@
-namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.SubOptions {
+namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.AgOptions {
 	export class Columns {
 		public Static: typeof Columns;
 		protected static types: Map<string, string> = new Map<string, string>([
@@ -10,7 +10,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.SubOptions {
 		]);
 		protected grid: AgGrid;
 		protected options: AgGrids.Options;
-		protected events: AgGrids.Events;
+		protected eventsManager: AgGrids.EventsManager;
 		protected helpers: AgGrids.Helpers;
 
 		protected agColumns: AgGrids.Types.GridColumn[];
@@ -20,7 +20,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.SubOptions {
 			this.Static = new.target;
 			this.grid = grid;
 			this.options = grid.GetOptions();
-			this.events = grid.GetEvents();
+			this.eventsManager = grid.GetEvents();
 			this.helpers = grid.GetHelpers();
 		}
 

@@ -6,6 +6,7 @@ declare global {
 	namespace agGrid {
 		class Grid extends AgGridAll.Grid {}
 		interface GridOptions<TData> extends AgGridAll.GridOptions<TData> {}
+		interface GridApi<TData = any> extends AgGridAll.GridApi<TData> {}
 		interface ColDef<TData = any> extends AgGridAll.ColDef<TData> {}
 		interface ColGroupDef<TData = any> extends AgGridAll.ColGroupDef<TData> {}
 		interface ColumnResizedEvent <TData = any>extends AgGridAll.ColumnResizedEvent<TData> {}

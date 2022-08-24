@@ -3,9 +3,15 @@ declare namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Interfaces {
 		totalCount: number;
 		offset: number;
 		limit: number;
-		dataCount: number;
 		sorting: [string, 0 | 1][];
 		filtering: Map<string, Map<Enums.Operator, string[]>>;
+		controls: {
+			countScales?: string;
+			status?: string;
+			paging?: string;
+		};
+		url: string;
+		dataCount: number;
 		data: any[];
 	}
 }

@@ -1,5 +1,6 @@
 namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
-	export class Events {
+	export class EventsManager {
+		public Static: typeof EventsManager;
 		protected grid: AgGrid;
 		public constructor (grid: AgGrid) {
 			this.grid = grid;

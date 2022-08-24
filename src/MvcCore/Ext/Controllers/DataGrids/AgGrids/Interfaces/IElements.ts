@@ -3,9 +3,9 @@ declare namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Interfaces {
 		contElement: HTMLDivElement;
 		agGridElement: HTMLDivElement;
 		bottomControlsElement: HTMLDivElement;
-		paginationControl: HTMLElement;
+		pagingControl: HTMLElement;
 		countScalesControl: HTMLElement;
 		statusControl: HTMLElement;
-		paginationAnchors: HTMLAnchorElement[];
+		pagingAnchors: HTMLAnchorElement[];
 	}
 }

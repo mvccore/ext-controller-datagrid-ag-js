@@ -13,18 +13,14 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 		public static readonly SINGLE_PAGE_MODE = {
 			MAX_ROWS_2_SUPPRESS_ROW_VIRTUALIZATION: 500
 		};
-		public static readonly MULTI_PAGES_MODE = {
-			
-		};
 
 		public Static: typeof Options;
 		protected grid: AgGrid;
-		protected events: AgGrids.Events;
+		protected eventsManager: AgGrids.EventsManager;
 		protected helpers: AgGrids.Helpers;
 		
-		protected bases: SubOptions.Bases;
-		protected columns: AgGrids.SubOptions.Columns;
-		protected dataSource: AgGrids.SubOptions.DataSource | agGrid.IDatasource;
+		protected bases: AgOptions.Bases;
+		protected columns: AgGrids.AgOptions.Columns;
 
 		protected elements: AgGrids.Interfaces.IElements;
 		protected agOptions: agGrid.GridOptions<any>;
@@ -34,7 +30,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 		public constructor (grid: AgGrid) {
 			this.Static = new.target;
 			this.grid = grid;
-			this.events = grid.GetEvents();
+			this.eventsManager = grid.GetEvents();
 			this.helpers = grid.GetHelpers();
 		}
 
@@ -59,14 +55,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 		public GetAgColumns (): AgGrids.Types.GridColumn[] {
 			return this.agColumns;
 		}
-		public SetAgDataSource (dataSource: agGrid.IDatasource): this {
-			this.dataSource = dataSource;
-			return this;
-		}
-		public GetAgDataSource (): agGrid.IDatasource {
-			return this.dataSource;
-		}
-
+		
 		public InitElements (): this {
 			var contElementSelector = this.grid.GetServerConfig().contElementSelector,
 				contElement = document.querySelector<HTMLDivElement>(contElementSelector);
@@ -76,46 +65,44 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 			var sels = this.Static.SELECTORS,
 				bcSels = sels.BOTTOM_CONTROLS,
 				agGridElement = contElement.querySelector<HTMLDivElement>(sels.AG_GRID_SEL),
-				bottomControlsElement = contElement.querySelector<HTMLDivElement>(sels.BOTTOM_CONTROLS.CONT_SEL),
-				countScalesControl = null,
-				paginationControl = null,
-				statusControl = null;
-			if (bottomControlsElement != null) {
-				countScalesControl = bottomControlsElement.querySelector<HTMLElement>(bcSels.COUNT_SCALES_SEL);
-				paginationControl = bottomControlsElement.querySelector<HTMLElement>(bcSels.PAGING_SEL);
-				statusControl = bottomControlsElement.querySelector<HTMLElement>(bcSels.STATUS_SEL);
-			}
+				bottomControlsElement = contElement.querySelector<HTMLDivElement>(sels.BOTTOM_CONTROLS.CONT_SEL);
 			this.elements = <AgGrids.Interfaces.IElements>{
 				contElement: contElement,
 				agGridElement: agGridElement,
 				bottomControlsElement: bottomControlsElement,
-				countScalesControl: countScalesControl,
-				paginationControl: paginationControl,
-				statusControl: statusControl,
-				paginationAnchors: []
+				countScalesControl: null,
+				pagingControl: null,
+				statusControl: null,
+				pagingAnchors: []
 			}
 			if (bottomControlsElement != null) 
-				this.InitPagingAnchors();
+				this.InitBottomControls();
 			return this;
 		}
-		public InitPagingAnchors (): this {
-			this.elements.paginationAnchors = [];
-			var paginationAnchors = this.elements.paginationControl.querySelectorAll<HTMLAnchorElement>(
-				this.Static.SELECTORS.BOTTOM_CONTROLS.PAGING_ANCHOR_SEL
-			);
-			if (paginationAnchors.length > 0) {
-				this.elements.paginationAnchors = [].slice.apply(paginationAnchors);
+		public InitBottomControls (): this {
+			var bcSels = this.Static.SELECTORS.BOTTOM_CONTROLS,
+				bottomControlsElement = this.elements.bottomControlsElement;
+			this.elements.countScalesControl = bottomControlsElement.querySelector<HTMLElement>(bcSels.COUNT_SCALES_SEL);
+			this.elements.pagingControl = bottomControlsElement.querySelector<HTMLElement>(bcSels.PAGING_SEL);
+			this.elements.statusControl = bottomControlsElement.querySelector<HTMLElement>(bcSels.STATUS_SEL);
+			if (this.elements.pagingControl != null) {
+				var paginationAnchors = this.elements.pagingControl.querySelectorAll<HTMLAnchorElement>(
+					this.Static.SELECTORS.BOTTOM_CONTROLS.PAGING_ANCHOR_SEL
+				);
+				this.elements.pagingAnchors = (paginationAnchors.length > 0)
+					? [].slice.apply(paginationAnchors)
+					: [];
 			}
 			return this;
 		}
 		public InitAgBases (): this {
-			this.bases = new AgGrids.SubOptions.Bases(this.grid);
+			this.bases = new AgGrids.AgOptions.Bases(this.grid);
 			this.bases.Init();
 			this.agOptions = this.bases.GetAgOptions();
 			return this;
 		}
 		public InitAgColumns (): this {
-			this.columns = new AgGrids.SubOptions.Columns(this.grid);
+			this.columns = new AgGrids.AgOptions.Columns(this.grid);
 			this.columns.Init();
 			this.agOptions.columnDefs = this.columns.GetAgColumns();
 			this.agOptions.defaultColDef = this.columns.GetDefaultColDef();
@@ -137,7 +124,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 			// tell grid we want virtual row model type
 			this.agOptions.rowModelType = 'infinite';
 			// how big each page in our page cache will be, default is 100
-			this.agOptions.cacheBlockSize = serverConfig.clientRowBuffer * 10;
+			this.agOptions.cacheBlockSize = serverConfig.itemsPerPage;
 			// how many extra blank rows to display to the user at the end of the dataset,
 			// which sets the vertical scroll and then allows the grid to request viewing more rows of data.
 			// default is 1, ie show 1 row.
@@ -152,8 +139,6 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 			// pages are never purged. this should be set for large data to stop your browser from getting
 			// full of data
 			this.agOptions.maxBlocksInCache = Math.round(10000 / serverConfig.clientRowBuffer);
-			
-			this.dataSource = new AgGrids.SubOptions.DataSource(this.grid);
 			return this;
 		}
 		protected initMultiplePagesSpecifics (): this {
@@ -162,7 +147,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 			this.agOptions.rowModelType = 'clientSide';
 			this.agOptions.rowData = initialData.data;
 			var spm = this.Static.SINGLE_PAGE_MODE;
-			console.log(initialData);
+			//console.log(initialData);
 			if (initialData.dataCount >= serverConfig.clientRowBufferMax) {
 				// large single page - enable row buffer with 10 by default:
 				this.agOptions.rowBuffer = serverConfig.clientRowBuffer;
