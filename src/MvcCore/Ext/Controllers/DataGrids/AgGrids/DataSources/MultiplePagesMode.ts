@@ -3,6 +3,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.DataSources {
 		public Static: typeof MultiplePagesMode;
 
 		protected eventsManager: AgGrids.EventsManagers.MultiplePagesMode;
+		protected cache: MultiplePagesModes.Cache;
 
 		public constructor (grid: AgGrid) {
 			super(grid);
@@ -14,6 +15,25 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.DataSources {
 				filtering: this.grid.GetFiltering(),
 			});
 			history.replaceState(reqData, document.title, location.href);
+			this.initCache(reqData);
+			
+		}
+		protected initCache (reqData: Interfaces.IServerRequestRaw): void {
+			this.cache = new MultiplePagesModes.Cache(this.grid);
+			var initialData = this.grid.GetInitialData(),
+				elms = this.grid.GetOptions().GetElements(),
+				bottomControlsElement = elms.bottomControlsElement;
+			if (bottomControlsElement != null) {
+				initialData.controls = {};
+				if (elms.pagingControl != null)
+					initialData.controls.paging = elms.pagingControl.outerHTML;
+				if (elms.statusControl != null)
+					initialData.controls.status = elms.statusControl.outerHTML;
+				if (elms.countScalesControl != null)
+					initialData.controls.countScales = elms.countScalesControl.outerHTML;
+			}
+
+			this.cache.Add(this.cache.Key(reqData), initialData);
 		}
 
 		public Load (): this {
@@ -29,18 +49,35 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.DataSources {
 			var agGridApi: agGrid.GridApi<any> = this.options.GetAgOptions().api;
 			agGridApi.showLoadingOverlay();
 			var [reqDataUrl, reqMethod, reqType] = this.getReqUrlMethodAndType();
-			Ajax.load(<Ajax.LoadConfig>{
-				url: reqDataUrl,
-				method: reqMethod,
-				data: reqData,
-				type: reqType,
-				success: this.handleResponse.bind(this, reqData, changeUrl)
-			});
+			var cacheKey = this.cache.Key(reqData);
+			if (this.cache.Has(cacheKey)) {
+				this.handleResponse(
+					reqData,
+					changeUrl,
+					cacheKey,
+					true,
+					this.cache.Get(cacheKey)
+				);
+			} else {
+				Ajax.load(<Ajax.LoadConfig>{
+					url: reqDataUrl,
+					method: reqMethod,
+					data: reqData,
+					type: reqType,
+					success: this.handleResponse.bind(this, reqData, changeUrl, cacheKey, false)
+				});
+			}
 			return this;
 		}
-		protected handleResponse (reqData: Interfaces.IServerRequestRaw, changeUrl: boolean, response: AgGrids.Interfaces.IServerResponse): void {
+		protected handleResponse (reqData: Interfaces.IServerRequestRaw, changeUrl: boolean, cacheKey: string, cached: boolean, response: AgGrids.Interfaces.IServerResponse): void {
+			if (!cached) {
+				response = this.helpers.RetypeRawServerResponse(response);
+				this.cache.Add(cacheKey, response);
+			}
+
 			var agGridApi: agGrid.GridApi<any> = this.options.GetAgOptions().api;
 			agGridApi.setRowData(response.data);
+			agGridApi.hideOverlay();
 
 			if (response.controls != null) {
 				var elms = this.options.GetElements(),

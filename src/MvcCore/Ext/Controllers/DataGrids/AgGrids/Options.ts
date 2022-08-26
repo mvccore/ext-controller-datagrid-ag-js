@@ -63,7 +63,6 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 				`Element with selector '${contElementSelector}' not found.`
 			);
 			var sels = this.Static.SELECTORS,
-				bcSels = sels.BOTTOM_CONTROLS,
 				agGridElement = contElement.querySelector<HTMLDivElement>(sels.AG_GRID_SEL),
 				bottomControlsElement = contElement.querySelector<HTMLDivElement>(sels.BOTTOM_CONTROLS.CONT_SEL);
 			this.elements = <AgGrids.Interfaces.IElements>{
@@ -138,7 +137,11 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 			// how many pages to store in cache. default is undefined, which allows an infinite sized cache,
 			// pages are never purged. this should be set for large data to stop your browser from getting
 			// full of data
-			this.agOptions.maxBlocksInCache = Math.round(10000 / serverConfig.clientRowBuffer);
+			if (serverConfig.clientMaxRowsInCache > 0) {
+				this.agOptions.maxBlocksInCache = Math.round(serverConfig.clientMaxRowsInCache / serverConfig.itemsPerPage);
+			} else {
+				this.agOptions.maxBlocksInCache = 1;
+			}
 			return this;
 		}
 		protected initMultiplePagesSpecifics (): this {

@@ -4,9 +4,11 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.DataSources {
 		/** If you know up front how many rows are in the dataset, set it here. Otherwise leave blank. */
 		public rowCount?: number = undefined;
 		protected pageLoaded: boolean;
+		protected initDataCache: boolean;
 		public constructor (grid: AgGrid) {
 			super(grid);
 			this.pageLoaded = false;
+			this.initDataCache = grid.GetServerConfig().clientMaxRowsInCache > 0;
 		}
 		/** Optional destroy method, if your datasource has state it needs to clean up. */
 		public destroy (): void {
@@ -27,6 +29,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.DataSources {
 		}
 		protected possibleToResolveByInitData (params: agGrid.IGetRowsParams, totalCount: number): boolean {
 			return (
+				this.initDataCache &&
 				totalCount != null && 
 				params.startRow >= this.initialData.offset &&
 				(params.endRow <= this.initialData.offset + this.initialData.dataCount || totalCount < params.endRow)

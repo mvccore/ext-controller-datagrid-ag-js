@@ -10,7 +10,6 @@ declare namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Interfaces {
 		id: string;
 		clientPageMode: Enums.ClientPageMode;
 		dataUrl?: string;
-		gridPath: string;
 		dataRequestMethod: Enums.AjaxDataRequestMethod;
 		rowSelection: Enums.RowSelection;
 		itemsPerPage: number;
@@ -20,6 +19,7 @@ declare namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Interfaces {
 		filteringMode: Enums.FilteringMode;
 		controlsTexts: Map<Enums.ControlText, string>;
 		clientRowBuffer: number;
+		clientMaxRowsInCache: number;
 		clientRowBufferMax: number;
 	}
 }
