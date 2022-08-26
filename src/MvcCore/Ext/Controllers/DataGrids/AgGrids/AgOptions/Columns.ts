@@ -5,7 +5,6 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.AgOptions {
 			["string",		"textColumn"],
 			["int",			"numericColumn"],
 			["float",		"numericColumn"],
-			["\\Date",		"dateColumn"],
 			["\\DateTime",	"dateColumn"],
 		]);
 		protected grid: AgGrid;
@@ -64,15 +63,21 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.AgOptions {
 				field: serverColumnCfg.propName,
 				headerName: serverColumnCfg.headingName,
 				tooltipField: serverColumnCfg.propName,
+				floatingFilter: true,
+				suppressMenu: true,
 				resizable: true,
 				editable: false
 			};
-			var serverType = serverColumnCfg.types[0];
-			console.log(serverColumnCfg.types);
-			if (this.Static.types.has(serverType))
-				column.type = this.Static.types.get(serverType);
 			column.filter = !(serverColumnCfg.filter === false);
 			column.sortable = !(serverColumnCfg.sort === false);
+			var serverType = serverColumnCfg.types[0];
+			if (this.Static.types.has(serverType)) {
+				column.type = this.Static.types.get(serverType);
+				console.log(column.type);
+				if (column.type === '\\Date' && column.filter) {
+					column.filter = 'agDateColumnFilter';
+				}
+			}
 			if (serverColumnCfg.width != null && typeof(serverColumnCfg.width) == 'number')
 				column.width = serverColumnCfg.width;
 			if (serverColumnCfg.minWidth != null && typeof(serverColumnCfg.minWidth) == 'number')
@@ -88,15 +93,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.AgOptions {
 		protected initDefaultColDef (): this {
 			this.defaultColDef = <agGrid.ColDef>{
 				flex: 1,
-				//minWidth: 200,
-				filter: true,
 				resizable: true,
-				sortable: true,
-				floatingFilter: true,
-				suppressMenu: true,
-		
-				editable: true,
-				
 				tooltipComponent: AgGrids.ToolTip
 			}
 			return this;
