@@ -51,9 +51,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 			var serverConfig = this.grid.GetServerConfig();
 			result.id = serverConfig.id;
 			result.mode = serverConfig.clientPageMode;
-			if (serverConfig.clientPageMode & Enums.ClientPageMode.CLIENT_PAGE_MODE_MULTI) {
-				result.gridPath = serverConfig.gridPath;
-			}
+			result.path = this.grid.GetGridPath();
 			return result;
 		}
 		public IsInstanceOfIServerRequestRaw (obj: any): boolean {

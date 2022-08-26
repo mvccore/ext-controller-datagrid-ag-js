@@ -13,6 +13,7 @@ namespace MvcCore.Ext.Controllers.DataGrids {
 		protected filtering: Map<string, Map<AgGrids.Enums.Operator, string[]>>;
 		protected totalCount: number | null = null;
 		protected offset: number = 0;
+		protected gridPath: string = '';
 		
 		public constructor (serverConfig: AgGrids.Interfaces.IServerConfig, initialData: AgGrids.Interfaces.IServerResponse) {
 			console.log("AgGrid.ctor - serverConfig", serverConfig);
@@ -109,10 +110,16 @@ namespace MvcCore.Ext.Controllers.DataGrids {
 		public GetOffset (): number {
 			return this.offset;
 		}
+		public SetGridPath (gridPath: string): this {
+			this.gridPath = gridPath;
+			return this;
+		}
+		public GetGridPath (): string {
+			return this.gridPath;
+		}
 
 		protected initSubClasses (): this {
 			this.helpers = new AgGrids.Helpers(this);
-			
 			this.options = new AgGrids.Options(this);
 			return this;
 		}
@@ -139,6 +146,7 @@ namespace MvcCore.Ext.Controllers.DataGrids {
 			this.filtering = this.initialData.filtering;
 			this.totalCount = this.initialData.totalCount;
 			this.offset = this.initialData.offset;
+			this.gridPath = this.initialData.path;
 			return this;
 		}
 		protected initAgOptions (): this {

@@ -11,6 +11,7 @@ declare namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Interfaces {
 			paging?: string;
 		};
 		url: string;
+		path: string;
 		dataCount: number;
 		data: any[];
 	}
