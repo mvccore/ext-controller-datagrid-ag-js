@@ -64,9 +64,11 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.AgOptions {
 				field: serverColumnCfg.propName,
 				headerName: serverColumnCfg.headingName,
 				tooltipField: serverColumnCfg.propName,
-				resizable: true
+				resizable: true,
+				editable: false
 			};
 			var serverType = serverColumnCfg.types[0];
+			console.log(serverColumnCfg.types);
 			if (this.Static.types.has(serverType))
 				column.type = this.Static.types.get(serverType);
 			column.filter = !(serverColumnCfg.filter === false);
@@ -79,6 +81,8 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.AgOptions {
 				column.maxWidth = serverColumnCfg.maxWidth;
 			if (serverColumnCfg.flex != null && typeof(serverColumnCfg.flex) == 'number')
 				column.flex = serverColumnCfg.flex;
+			if (serverColumnCfg.editable != null && typeof(serverColumnCfg.editable) == 'boolean')
+				column.editable = serverColumnCfg.editable;
 			return column;
 		}
 		protected initDefaultColDef (): this {

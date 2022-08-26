@@ -13,6 +13,7 @@ declare namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Interfaces.IServerCo
 		flex: number | string | null;
 		columnIndex: number | null;
 		title: string | null;
+		editable: boolean | null;
 		disabled: boolean | null;
 	}
 }
