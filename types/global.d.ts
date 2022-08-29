@@ -1,11 +1,18 @@
 import * as AgGridAll from "ag-grid-community";
 
+import * as MomentAll from "moment";
+
 export {};
 
 declare global {
+	MomentAll.default
 	namespace agGrid {
+		declare var moment: MomentAll.default;
 		class Grid extends AgGridAll.Grid {}
-		interface GridOptions<TData> extends AgGridAll.GridOptions<TData> {}
+		interface IHeaderComp extends AgGridAll.IHeaderComp {}
+		interface IHeaderParams extends AgGridAll.IHeaderParams {}
+		interface ValueFormatterParams<TData = any, TValue = any> extends AgGridAll.ValueFormatterParams<TData, TValue> {}
+		interface GridOptions<TData = any> extends AgGridAll.GridOptions<TData> {}
 		interface GridApi<TData = any> extends AgGridAll.GridApi<TData> {}
 		interface ColDef<TData = any> extends AgGridAll.ColDef<TData> {}
 		interface ColGroupDef<TData = any> extends AgGridAll.ColGroupDef<TData> {}

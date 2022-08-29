@@ -1,6 +1,6 @@
-namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.AgOptions {
-	export class Bases {
-		public Static: typeof Bases;
+namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
+	export class AgOptionsBases {
+		public Static: typeof AgOptionsBases;
 		
 		protected grid: AgGrid;
 		protected options: AgGrids.Options;
@@ -36,6 +36,12 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.AgOptions {
 			this.agOptions = <agGrid.GridOptions<any>>{
 				//debug: true,
 				//localeText: agGridLocales['cs-CZ']
+				
+				components: {
+					agColumnHeader: AgGrids.ColumnsManagers.Header,
+				},
+				suppressMenuHide: true,
+
 				tooltipShowDelay: 0,
 				tooltipHideDelay: 2000,
 				animateRows: false,

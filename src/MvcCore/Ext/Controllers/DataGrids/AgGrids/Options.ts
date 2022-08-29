@@ -10,6 +10,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 				PAGING_ANCHOR_SEL: '.grid-page a',
 			}
 		}
+		public static readonly SYSTEM_LOCALE_SEPARATOR: string = '-';
 		public static readonly SINGLE_PAGE_MODE = {
 			MAX_ROWS_2_SUPPRESS_ROW_VIRTUALIZATION: 500
 		};
@@ -19,8 +20,8 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 		protected eventsManager: AgGrids.EventsManager;
 		protected helpers: AgGrids.Helpers;
 		
-		protected bases: AgOptions.Bases;
-		protected columns: AgGrids.AgOptions.Columns;
+		protected bases: AgGrids.AgOptionsBases;
+		protected columns: AgGrids.ColumnsManager;
 
 		protected elements: AgGrids.Interfaces.IElements;
 		protected agOptions: agGrid.GridOptions<any>;
@@ -95,13 +96,13 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 			return this;
 		}
 		public InitAgBases (): this {
-			this.bases = new AgGrids.AgOptions.Bases(this.grid);
+			this.bases = new AgGrids.AgOptionsBases(this.grid);
 			this.bases.Init();
 			this.agOptions = this.bases.GetAgOptions();
 			return this;
 		}
 		public InitAgColumns (): this {
-			this.columns = new AgGrids.AgOptions.Columns(this.grid);
+			this.columns = new AgGrids.ColumnsManager(this.grid);
 			this.columns.Init();
 			this.agOptions.columnDefs = this.columns.GetAgColumns();
 			this.agOptions.defaultColDef = this.columns.GetDefaultColDef();

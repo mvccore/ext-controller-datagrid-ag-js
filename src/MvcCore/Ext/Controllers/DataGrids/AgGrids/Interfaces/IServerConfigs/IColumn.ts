@@ -4,9 +4,11 @@ declare namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Interfaces.IServerCo
 		headingName: string;
 		urlName: string;
 		types: string[];
+		format: any[];
 		cssClasses: string[];
 		filter: number | boolean;
 		sort: number | boolean;
+		viewHelper: string | null;
 		width: number | string | null;
 		maxWidth: number | string | null;
 		minWidth: number | string | null;

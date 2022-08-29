@@ -6,6 +6,7 @@ declare namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Interfaces {
 			[columnUrlName: string]: MvcCore.Ext.Controllers.DataGrids.AgGrids.Interfaces.IServerConfigs.IColumn;
 		};
 		urlSegments: MvcCore.Ext.Controllers.DataGrids.AgGrids.Interfaces.IServerConfigs.IUrlSegment;
+		locales: MvcCore.Ext.Controllers.DataGrids.AgGrids.Interfaces.IServerConfigs.ILocales;
 		ajaxParamsNames: Map<Enums.AjaxParamName, string>;
 		id: string;
 		clientPageMode: Enums.ClientPageMode;
