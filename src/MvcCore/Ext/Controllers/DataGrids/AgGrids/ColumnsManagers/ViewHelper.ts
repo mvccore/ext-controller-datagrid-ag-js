@@ -87,6 +87,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.ColumnsManagers {
 				var propName = serverColumnCfg.propName,
 					formatArgs: string[] = serverColumnCfg.format;
 				agColumnCfg.valueFormatter = (params: agGrid.ValueFormatterParams<any, any>): string => {
+					if (params.data == null || params.data[propName] == null) return '';
 					return viewHelper.call(this, params, propName, formatArgs);
 				};
 			}

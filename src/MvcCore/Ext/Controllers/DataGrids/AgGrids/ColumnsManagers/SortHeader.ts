@@ -1,5 +1,5 @@
 namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.ColumnsManagers {
-	export class Header implements agGrid.IHeaderComp {
+	export class SortHeader implements agGrid.IHeaderComp {
 		eGui: HTMLDivElement;
 		agParams: any;
 		eMenuButton: HTMLDivElement;

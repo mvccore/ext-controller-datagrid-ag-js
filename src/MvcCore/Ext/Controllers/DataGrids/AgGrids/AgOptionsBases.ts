@@ -36,9 +36,9 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 			this.agOptions = <agGrid.GridOptions<any>>{
 				//debug: true,
 				//localeText: agGridLocales['cs-CZ']
-				
+
 				components: {
-					agColumnHeader: AgGrids.ColumnsManagers.Header,
+					agColumnHeader: AgGrids.ColumnsManagers.SortHeader,
 				},
 				suppressMenuHide: true,
 
