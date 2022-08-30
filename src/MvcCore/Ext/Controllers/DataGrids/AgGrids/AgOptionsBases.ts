@@ -35,13 +35,10 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 		protected initBases (): this {
 			this.agOptions = <agGrid.GridOptions<any>>{
 				//debug: true,
-				//localeText: agGridLocales['cs-CZ']
-
-				components: {
-					agColumnHeader: AgGrids.ColumnsManagers.SortHeader,
-				},
+				/*components: {
+					agColumnHeader: AgGrids.ColumnsManagers.SortHeader
+				},*/
 				suppressMenuHide: true,
-
 				tooltipShowDelay: 0,
 				tooltipHideDelay: 2000,
 				animateRows: false,
@@ -51,6 +48,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 			};
 			if (this.helpers.IsChromeBrowser())
 				this.agOptions.suppressAnimationFrame = true;
+			this.agOptions.localeText = this.grid.GetTranslator().GetStore();
 			return this;
 		}
 		protected initRowSelection (): this {
@@ -76,7 +74,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 			this.agOptions.onColumnResized = this.eventsManager.HandleColumnResized.bind(this.eventsManager);
 			this.agOptions.onColumnMoved = this.eventsManager.HandleColumnMoved.bind(this.eventsManager);
 			this.agOptions.onFilterChanged = this.eventsManager.HandleFilterChanged.bind(this.eventsManager);
-			this.agOptions.onSortChanged = this.eventsManager.HandleSortChanged.bind(this.eventsManager);
+			/*this.agOptions.onSortChanged = this.eventsManager.HandleSortChanged.bind(this.eventsManager);*/
 			/*this.agOptions.onFirstDataRendered = (params: agGrid.FirstDataRenderedEvent) => {
 				params.api.sizeColumnsToFit();
 			},*/

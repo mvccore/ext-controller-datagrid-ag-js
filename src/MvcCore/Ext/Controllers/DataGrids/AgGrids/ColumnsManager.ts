@@ -1,7 +1,7 @@
 namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 	export class ColumnsManager {
 		public Static: typeof ColumnsManager;
-		protected static types: Map<string, string> = new Map<string, string>([
+		protected static agColumnsTypes: Map<string, string> = new Map<string, string>([
 			[Enums.ServerType.INT,			"numericColumn"],
 			[Enums.ServerType.FLOAT,		"numericColumn"],
 			[Enums.ServerType.DATE,			"dateColumn"],
@@ -13,9 +13,10 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 		protected eventsManager: AgGrids.EventsManager;
 		protected helpers: AgGrids.Helpers;
 
-		protected agColumns: AgGrids.Types.GridColumn[];
+		protected agColumnsConfigs: Map<string, AgGrids.Types.GridColumn>;
 		protected defaultColDef: agGrid.ColDef<any>;
 		protected serverConfig: Interfaces.IServerConfig;
+		protected initData: Interfaces.IServerResponse;
 		protected viewHelper: ColumnsManagers.ViewHelper;
 
 		public constructor (grid: AgGrid) {
@@ -26,12 +27,12 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 			this.helpers = grid.GetHelpers();
 		}
 
-		public SetAgColumns (gridColumns: AgGrids.Types.GridColumn[]): this {
-			this.agColumns = gridColumns;
+		public SetAgColumnsConfigs (gridColumns: Map<string, AgGrids.Types.GridColumn>): this {
+			this.agColumnsConfigs = gridColumns;
 			return this;
 		}
-		public GetAgColumns (): AgGrids.Types.GridColumn[] {
-			return this.agColumns;
+		public GetAgColumnsConfigs (): Map<string, AgGrids.Types.GridColumn> {
+			return this.agColumnsConfigs;
 		}
 		
 		public SetDefaultColDef (defaultColDef: agGrid.ColDef): this {
@@ -50,19 +51,30 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 		}
 		protected initServerCfgAndViewHelper (): this {
 			this.serverConfig = this.grid.GetServerConfig();
+			this.initData = this.grid.GetInitialData();
 			this.viewHelper = new AgGrids.ColumnsManagers.ViewHelper(this.grid);
 			return this;
 		}
 		protected initColumns (): this {
-			this.agColumns = [];
+			this.agColumnsConfigs = new Map<string, AgGrids.Types.GridColumn>();
 			var agColumn: AgGrids.Types.GridColumn,
 				serverColumnCfg: AgGrids.Interfaces.IServerConfigs.IColumn,
 				serverColumns = this.serverConfig.columns;
+			this.grid.SetSortHeaders(new Map<string, AgGrids.ColumnsManagers.SortHeader>());
 			for (var columnUrlName in serverColumns) {
 				serverColumnCfg = serverColumns[columnUrlName];
 				if (serverColumnCfg.disabled === true) continue;
 				agColumn = this.initColumn(serverColumnCfg);
-				this.agColumns.push(agColumn);
+				this.agColumnsConfigs.set(columnUrlName, agColumn);
+			}
+			var sortIndex = 0;
+			for (var sortItem of this.initData.sorting) {
+				var [columnUrlName, sortDirection] = sortItem;
+				agColumn = this.agColumnsConfigs.get(columnUrlName) as agGrid.ColDef;
+				var headerComponentParams = agColumn.headerComponentParams as AgGrids.Interfaces.IHeaderParams;
+				headerComponentParams.direction = sortDirection;
+				headerComponentParams.sequence = sortIndex;
+				sortIndex++;
 			}
 			return this;
 		}
@@ -75,14 +87,65 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 			};
 			column.filter = !(serverColumnCfg.filter === false);
 			column.sortable = !(serverColumnCfg.sort === false);
+			var headerComponentParams = <AgGrids.Interfaces.IHeaderParams>{
+				grid: this.grid,
+				columnId: serverColumnCfg.urlName,
+				sortable: column.sortable
+			};
+
+			column.headerComponentParams = headerComponentParams;
 			var serverType = serverColumnCfg.types[serverColumnCfg.types.length - 1];
-			if (this.Static.types.has(serverType))
-				column.type = this.Static.types.get(serverType);
+			if (this.Static.agColumnsTypes.has(serverType))
+				column.type = this.Static.agColumnsTypes.get(serverType);
+			
+				
+
+			column.filterParams = {
+				suppressAndOrCondition: true,
+				/*filterOptions:[
+					'equals',
+					'notEqual',
+					'contains',
+					'notContains',
+					'startsWith',
+					'endsWith',
+					'lessThan',
+					'lessThanOrEqual',
+					'greaterThan',
+					'greaterThanOrEqual',
+					'inRange',
+
+					'blank',
+					'notBlank',
+					'empty'
+				],*/
+				buttons: [
+					'apply', 'clear', 'reset', 'cancel'
+				]
+			};
 
 			// TODO
 			if (column.type === 'dateColumn') {
 				if (column.filter)
 					column.filter = 'agDateColumnFilter';
+				
+				column.floatingFilterComponent = AgGrids.ColumnsManagers.FilterInput;
+				column.floatingFilterComponentParams = {
+					suppressFilterButton: false,
+					context: this.grid
+				};
+			}
+
+			if (column.type === 'numericColumn') {
+				column.filter = AgGrids.ColumnsManagers.FilterMenu;
+				column.filterParams = {
+					context: this.grid
+				};
+				column.floatingFilterComponent = AgGrids.ColumnsManagers.FilterInput;
+				column.floatingFilterComponentParams = {
+					suppressFilterButton: false,
+					context: this.grid
+				};
 			}
 			
 			this.viewHelper.SetUpColumnCfg(column, serverColumnCfg);
@@ -105,6 +168,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 				resizable: true,
 				editable: false,
 				flex: 1,
+				headerComponent: AgGrids.ColumnsManagers.SortHeader,
 				tooltipComponent: AgGrids.ToolTip
 			}
 			return this;

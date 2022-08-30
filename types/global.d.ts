@@ -5,10 +5,16 @@ import * as MomentAll from "moment";
 export {};
 
 declare global {
-	MomentAll.default
+	declare var moment: MomentAll.default;
+	declare var agGridLocales: {
+		[locale: string]: {
+			[key: string]: string;
+		}
+	}
 	namespace agGrid {
-		declare var moment: MomentAll.default;
 		class Grid extends AgGridAll.Grid {}
+		interface GridApi<TData = any> extends AgGridAll.GridApi<TData> {}
+		interface ColumnApi extends AgGridAll.ColumnApi {}
 		interface IHeaderComp extends AgGridAll.IHeaderComp {}
 		interface IHeaderParams<TData = any> extends AgGridAll.IHeaderParams<TData> {}
 		interface IFilterComp<TData = any> extends AgGridAll.IFilterComp<TData> {}
@@ -16,6 +22,9 @@ declare global {
 		class AgPromise<T> extends AgGridAll.AgPromise<T> {}
 		interface IDoesFilterPassParams extends AgGridAll.IDoesFilterPassParams {}
 		interface IAfterGuiAttachedParams extends AgGridAll.IAfterGuiAttachedParams {}
+		interface IFloatingFilterComp<P = any> extends AgGridAll.IFloatingFilterComp<P> {}
+		interface IFloatingFilterParams<P = InbuiltParentType, TData = any> extends AgGridAll.IFloatingFilterParams<P, TData> {}
+		interface FilterChangedEvent<TData = any> extends AgGridAll.FilterChangedEvent<TData> {}
 		interface ValueFormatterParams<TData = any, TValue = any> extends AgGridAll.ValueFormatterParams<TData, TValue> {}
 		interface GridOptions<TData = any> extends AgGridAll.GridOptions<TData> {}
 		interface GridApi<TData = any> extends AgGridAll.GridApi<TData> {}

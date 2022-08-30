@@ -3,24 +3,31 @@ namespace MvcCore.Ext.Controllers.DataGrids {
 		protected serverConfig: AgGrids.Interfaces.IServerConfig;
 		protected initialData: AgGrids.Interfaces.IServerResponse;
 		protected grid: agGrid.Grid;
+		protected agGridApi: agGrid.GridApi<any>;
+		protected agColumnApi: agGrid.ColumnApi;
 
 		protected helpers: AgGrids.Helpers;
+		protected translator: AgGrids.Translator;
 		protected eventsManager: AgGrids.EventsManager;
 		protected options: AgGrids.Options;
 		protected dataSource: AgGrids.DataSource;
+
+		protected sortHeaders: Map<string, AgGrids.ColumnsManagers.SortHeader>;
 
 		protected sorting: [string, 0 | 1][];
 		protected filtering: Map<string, Map<AgGrids.Enums.Operator, string[]>>;
 		protected totalCount: number | null = null;
 		protected offset: number = 0;
 		protected gridPath: string = '';
+		protected pageMode: AgGrids.Enums.ClientPageMode;
 		
 		public constructor (serverConfig: AgGrids.Interfaces.IServerConfig, initialData: AgGrids.Interfaces.IServerResponse) {
 			console.log("AgGrid.ctor - serverConfig", serverConfig);
 			console.log("AgGrid.ctor - initialData", initialData);
 			this
 				.initSubClasses()
-				.initServerConfig(serverConfig);
+				.initServerConfig(serverConfig)
+				.initTranslator();
 			this.options.InitElements()
 			this
 				.initPageModeSpecifics()
@@ -46,6 +53,13 @@ namespace MvcCore.Ext.Controllers.DataGrids {
 		}
 		public GetEvents (): AgGrids.EventsManager {
 			return this.eventsManager;
+		}
+		public SetTranslator (translator: AgGrids.Translator): this {
+			this.translator = translator;
+			return this;
+		}
+		public GetTranslator (): AgGrids.Translator {
+			return this.translator;
 		}
 		public SetOptions (options: AgGrids.Options): this {
 			this.options = options;
@@ -82,6 +96,20 @@ namespace MvcCore.Ext.Controllers.DataGrids {
 		public GetGrid (): agGrid.Grid {
 			return this.grid;
 		}
+		public SetGridApi (agGridApi: agGrid.GridApi<any>): this {
+			this.agGridApi = agGridApi;
+			return this;
+		}
+		public GetGridApi (): agGrid.GridApi<any> {
+			return this.agGridApi;
+		}
+		public SetGridColumnApi (agColumnApi: agGrid.ColumnApi): this {
+			this.agColumnApi = agColumnApi;
+			return this;
+		}
+		public GetGridColumnApi (): agGrid.ColumnApi {
+			return this.agColumnApi;
+		}
 		public SetSorting (sorting: [string, 0 | 1][]): this {
 			this.sorting = sorting;
 			return this;
@@ -103,6 +131,13 @@ namespace MvcCore.Ext.Controllers.DataGrids {
 		public GetTotalCount (): number | null {
 			return this.totalCount;
 		}
+		public SetPageMode (pageMode: AgGrids.Enums.ClientPageMode): this {
+			this.pageMode = pageMode;
+			return this;
+		}
+		public GetPageMode (): AgGrids.Enums.ClientPageMode {
+			return this.pageMode;
+		}
 		public SetOffset (offset: number): this {
 			this.offset = offset;
 			return this;
@@ -117,6 +152,13 @@ namespace MvcCore.Ext.Controllers.DataGrids {
 		public GetGridPath (): string {
 			return this.gridPath;
 		}
+		public SetSortHeaders (sortHeaders: Map<string, AgGrids.ColumnsManagers.SortHeader>): this {
+			this.sortHeaders = sortHeaders;
+			return this;
+		}
+		public GetSortHeaders (): Map<string, AgGrids.ColumnsManagers.SortHeader> {
+			return this.sortHeaders;
+		}
 
 		protected initSubClasses (): this {
 			this.helpers = new AgGrids.Helpers(this);
@@ -124,10 +166,10 @@ namespace MvcCore.Ext.Controllers.DataGrids {
 			return this;
 		}
 		protected initPageModeSpecifics (): this {
-			if ((this.serverConfig.clientPageMode & AgGrids.Enums.ClientPageMode.CLIENT_PAGE_MODE_SINGLE) != 0) {
+			if ((this.pageMode & AgGrids.Enums.ClientPageMode.CLIENT_PAGE_MODE_SINGLE) != 0) {
 				var emSinglePage = new AgGrids.EventsManagers.SinglePageMode(this);
 				this.eventsManager = emSinglePage;
-			} else if ((this.serverConfig.clientPageMode & AgGrids.Enums.ClientPageMode.CLIENT_PAGE_MODE_MULTI) != 0) {
+			} else if ((this.pageMode & AgGrids.Enums.ClientPageMode.CLIENT_PAGE_MODE_MULTI) != 0) {
 				var emMultiplePages = new AgGrids.EventsManagers.MultiplePagesMode(this);
 				this.eventsManager = emMultiplePages;
 				emMultiplePages
@@ -138,6 +180,11 @@ namespace MvcCore.Ext.Controllers.DataGrids {
 		}
 		protected initServerConfig (serverConfig: AgGrids.Interfaces.IServerConfig): this {
 			this.serverConfig = this.helpers.RetypeRawServerConfig(serverConfig);
+			this.pageMode = this.serverConfig.clientPageMode;
+			return this;
+		}
+		protected initTranslator (): this {
+			this.translator = new AgGrids.Translator(this);
 			return this;
 		}
 		protected initData (initialData: AgGrids.Interfaces.IServerResponse): this {
@@ -161,14 +208,17 @@ namespace MvcCore.Ext.Controllers.DataGrids {
 			this.grid = new agGrid.Grid(
 				this.options.GetElements().agGridElement, gridOptions
 			);
+			this.options.GetColumnManager().SetAgColumnsConfigs(null); // frees memory
+			this.agGridApi = gridOptions.api;
+			this.agColumnApi = gridOptions.columnApi;
 			return this;
 		}
 		protected initDataSource (): this {
-			if ((this.serverConfig.clientPageMode & AgGrids.Enums.ClientPageMode.CLIENT_PAGE_MODE_SINGLE) != 0) {
+			if ((this.pageMode & AgGrids.Enums.ClientPageMode.CLIENT_PAGE_MODE_SINGLE) != 0) {
 				this.dataSource = new AgGrids.DataSources.SinglePageMode(this);
 				var gridOptions = this.options.GetAgOptions();
 				gridOptions.api.setDatasource(this.dataSource as any);
-			} else if ((this.serverConfig.clientPageMode & AgGrids.Enums.ClientPageMode.CLIENT_PAGE_MODE_MULTI) != 0) {
+			} else if ((this.pageMode & AgGrids.Enums.ClientPageMode.CLIENT_PAGE_MODE_MULTI) != 0) {
 				this.dataSource = new AgGrids.DataSources.MultiplePagesMode(this);
 			}
 			return this;

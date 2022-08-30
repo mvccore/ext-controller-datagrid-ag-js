@@ -21,11 +21,10 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 		protected helpers: AgGrids.Helpers;
 		
 		protected bases: AgGrids.AgOptionsBases;
-		protected columns: AgGrids.ColumnsManager;
+		protected columnManager: AgGrids.ColumnsManager;
 
 		protected elements: AgGrids.Interfaces.IElements;
 		protected agOptions: agGrid.GridOptions<any>;
-		protected agColumns: AgGrids.Types.GridColumn[];
 		protected agDataSource: agGrid.IDatasource;
 		
 		public constructor (grid: AgGrid) {
@@ -49,12 +48,12 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 		public GetAgOptions (): agGrid.GridOptions<any> {
 			return this.agOptions;
 		}
-		public SetAgColumns (gridColumns: AgGrids.Types.GridColumn[]): this {
-			this.agColumns = gridColumns;
+		public SetColumnManager (columnManager: AgGrids.ColumnsManager): this {
+			this.columnManager = columnManager;
 			return this;
 		}
-		public GetAgColumns (): AgGrids.Types.GridColumn[] {
-			return this.agColumns;
+		public GetColumnManager (): AgGrids.ColumnsManager {
+			return this.columnManager;
 		}
 		
 		public InitElements (): this {
@@ -75,13 +74,13 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 				statusControl: null,
 				pagingAnchors: []
 			}
-			if (bottomControlsElement != null) 
-				this.InitBottomControls();
+			this.InitBottomControls();
 			return this;
 		}
 		public InitBottomControls (): this {
 			var bcSels = this.Static.SELECTORS.BOTTOM_CONTROLS,
 				bottomControlsElement = this.elements.bottomControlsElement;
+			if (bottomControlsElement == null) return this;
 			this.elements.countScalesControl = bottomControlsElement.querySelector<HTMLElement>(bcSels.COUNT_SCALES_SEL);
 			this.elements.pagingControl = bottomControlsElement.querySelector<HTMLElement>(bcSels.PAGING_SEL);
 			this.elements.statusControl = bottomControlsElement.querySelector<HTMLElement>(bcSels.STATUS_SEL);
@@ -102,10 +101,10 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 			return this;
 		}
 		public InitAgColumns (): this {
-			this.columns = new AgGrids.ColumnsManager(this.grid);
-			this.columns.Init();
-			this.agOptions.columnDefs = this.columns.GetAgColumns();
-			this.agOptions.defaultColDef = this.columns.GetDefaultColDef();
+			this.columnManager = new AgGrids.ColumnsManager(this.grid);
+			this.columnManager.Init();
+			this.agOptions.columnDefs = Array.from(this.columnManager.GetAgColumnsConfigs().values());
+			this.agOptions.defaultColDef = this.columnManager.GetDefaultColDef();
 			return this;
 		}
 		public InitAgPageModeSpecifics (): this {

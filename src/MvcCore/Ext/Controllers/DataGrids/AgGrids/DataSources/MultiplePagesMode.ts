@@ -80,6 +80,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.DataSources {
 			agGridApi.hideOverlay();
 
 			if (response.controls != null) {
+				this.options.InitBottomControls();
 				var elms = this.options.GetElements(),
 					controls = response.controls;
 				if (elms.countScalesControl != null && controls.countScales != null) {

@@ -1,5 +1,6 @@
 declare namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Interfaces.IServerConfigs {
 	interface ILocales {
+		locale: string[];
 		localeNumeric: string[];
 		localeMoney: string[];
 		localeDateTime: string[];
