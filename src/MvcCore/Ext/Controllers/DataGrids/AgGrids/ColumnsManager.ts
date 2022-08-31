@@ -101,7 +101,20 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 				headerName: serverColumnCfg.headingName,
 				tooltipField: serverColumnCfg.propName
 			};
-			column.filter = !(serverColumnCfg.filter === false);
+			this.initColumnType(column, serverColumnCfg);
+			this.initColumnSorting(column, serverColumnCfg);
+			this.initColumnFiltering(column, serverColumnCfg);
+			this.viewHelper.SetUpColumnCfg(column, serverColumnCfg);
+			this.initColumnStyles(column, serverColumnCfg);
+			return column;
+		}
+		protected initColumnType (column: agGrid.ColDef, serverColumnCfg: AgGrids.Interfaces.IServerConfigs.IColumn): this {
+			var serverType = serverColumnCfg.types[serverColumnCfg.types.length - 1];
+			if (this.Static.agColumnsTypes.has(serverType))
+				column.type = this.Static.agColumnsTypes.get(serverType);
+			return this;
+		}
+		protected initColumnSorting (column: agGrid.ColDef, serverColumnCfg: AgGrids.Interfaces.IServerConfigs.IColumn): this {
 			column.sortable = !(serverColumnCfg.sort === false);
 			var headerComponentParams = {
 				...this.sortHeaderDefaults,
@@ -112,12 +125,10 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 				}
 			};
 			column.headerComponentParams = headerComponentParams;
-			var serverType = serverColumnCfg.types[serverColumnCfg.types.length - 1];
-			if (this.Static.agColumnsTypes.has(serverType))
-				column.type = this.Static.agColumnsTypes.get(serverType);
-			
-				
-
+			return this;
+		}
+		protected initColumnFiltering (column: agGrid.ColDef, serverColumnCfg: AgGrids.Interfaces.IServerConfigs.IColumn): this {
+			column.filter = !(serverColumnCfg.filter === false);
 			column.filterParams = {
 				suppressAndOrCondition: true,
 				/*filterOptions:[
@@ -165,8 +176,9 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 					context: this.grid
 				};
 			}
-			
-			this.viewHelper.SetUpColumnCfg(column, serverColumnCfg);
+			return this;
+		}
+		protected initColumnStyles (column: agGrid.ColDef, serverColumnCfg: AgGrids.Interfaces.IServerConfigs.IColumn): this {
 			if (serverColumnCfg.width != null && typeof(serverColumnCfg.width) == 'number')
 				column.width = serverColumnCfg.width;
 			if (serverColumnCfg.minWidth != null && typeof(serverColumnCfg.minWidth) == 'number')
@@ -177,7 +189,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 				column.flex = serverColumnCfg.flex;
 			if (serverColumnCfg.editable != null && typeof(serverColumnCfg.editable) == 'boolean')
 				column.editable = serverColumnCfg.editable;
-			return column;
+			return this;
 		}
 	}
 }
