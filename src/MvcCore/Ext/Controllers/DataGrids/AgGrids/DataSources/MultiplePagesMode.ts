@@ -104,7 +104,6 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.DataSources {
 
 			// TODO: set up sorting and filtering from server
 			
-			// TODO: change url
 		}
 
 	}

@@ -42,10 +42,21 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.ColumnsManagers {
 			return this.elms.cont;
 		}
 
-		public SetSequence (sequence: number): this {
+		public SetSequence (sequence: number | null): this {
 			this.sequence = sequence;
 			if (this.params.renderSequence)
-				this.elms.sequence.innerHTML = Number(this.sequence + 1).toString();
+				this.elms.sequence.innerHTML = sequence == null
+					? ''
+					: Number(this.sequence + 1).toString();
+			return this;
+		}
+		public SetDirection (direction: 1 | 0 | null): this {
+			this.direction = direction;
+			if (direction == null) {
+				this.setSortInactive();
+			} else {
+				this.setSortActive();
+			}
 			return this;
 		}
 

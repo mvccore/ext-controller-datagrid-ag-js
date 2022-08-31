@@ -169,6 +169,8 @@ namespace MvcCore.Ext.Controllers.DataGrids {
 			if ((this.pageMode & AgGrids.Enums.ClientPageMode.CLIENT_PAGE_MODE_SINGLE) != 0) {
 				var emSinglePage = new AgGrids.EventsManagers.SinglePageMode(this);
 				this.eventsManager = emSinglePage;
+				emSinglePage
+					.AddWindowPopStateChangeEvent();
 			} else if ((this.pageMode & AgGrids.Enums.ClientPageMode.CLIENT_PAGE_MODE_MULTI) != 0) {
 				var emMultiplePages = new AgGrids.EventsManagers.MultiplePagesMode(this);
 				this.eventsManager = emMultiplePages;
