@@ -3,7 +3,6 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.DataSources {
 		public Static: typeof MultiplePagesMode;
 
 		protected eventsManager: AgGrids.EventsManagers.MultiplePagesMode;
-		protected cache: MultiplePagesModes.Cache;
 
 		public constructor (grid: AgGrid) {
 			super(grid);

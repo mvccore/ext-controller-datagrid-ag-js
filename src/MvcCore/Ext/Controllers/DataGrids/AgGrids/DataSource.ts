@@ -8,7 +8,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 		protected helpers: AgGrids.Helpers;
 
 		protected initialData: Interfaces.IServerResponse;
-		protected cache: DataSources.MultiplePagesModes.Cache;
+		protected cache: DataSources.Cache;
 		protected pageReqData?: Interfaces.IServerRequestRaw;
 
 		public constructor (grid: AgGrid) {
@@ -21,7 +21,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 		}
 
 		protected initPageReqDataAndCache (): void {
-			this.cache = new DataSources.MultiplePagesModes.Cache(this.grid);
+			this.cache = new DataSources.Cache(this.grid);
 			this.pageReqData = this.helpers.RetypeRequest2RawRequest({
 				offset: this.grid.GetOffset(),
 				limit: this.grid.GetServerConfig().itemsPerPage,

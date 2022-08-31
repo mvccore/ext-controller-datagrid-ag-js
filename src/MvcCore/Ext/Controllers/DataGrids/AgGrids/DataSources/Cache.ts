@@ -1,4 +1,4 @@
-namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.DataSources.MultiplePagesModes {
+namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.DataSources {
 	export class Cache {
 		public Static: typeof Cache;
 
@@ -14,6 +14,10 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.DataSources.MultiplePagesMod
 			this.store = new Map<string, Interfaces.IServerResponse>();
 			this.keys = [];
 			this.rowsCount = 0;
+		}
+		public SetEnabled (enabled: boolean): this {
+			this.enabled = enabled;
+			return this;
 		}
 		public Key (obj: any): string {
 			if (!this.enabled) return '';

@@ -5,10 +5,12 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.DataSources {
 		public rowCount?: number = undefined;
 		protected pageLoaded: boolean;
 		protected initDataCache: boolean;
+		protected requestCounter: number;
 		public constructor (grid: AgGrid) {
 			super(grid);
 			this.pageLoaded = false;
 			this.initDataCache = this.grid.GetServerConfig().clientMaxRowsInCache > 0;
+			this.requestCounter = 0;
 
 			this.initPageReqDataAndCache();
 			this.pageReqData = null;
@@ -16,6 +18,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.DataSources {
 
 		protected initPageReqDataAndCache (): void {
 			super.initPageReqDataAndCache();
+			this.cache.SetEnabled(true);
 			this.cache.Add(this.cache.Key(this.pageReqData), <Interfaces.IServerResponse>{});
 		}
 		/** Callback the grid calls that you implement to fetch rows from the server. */
@@ -33,7 +36,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.DataSources {
 		}
 		protected possibleToResolveByInitData (params: agGrid.IGetRowsParams, totalCount: number): boolean {
 			var result = (
-				this.initDataCache &&
+				(this.requestCounter++ === 0 || this.initDataCache) &&
 				totalCount != null && 
 				params.startRow >= this.initialData.offset &&
 				(params.endRow <= this.initialData.offset + this.initialData.dataCount || totalCount < params.endRow)
