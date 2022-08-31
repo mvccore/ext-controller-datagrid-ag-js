@@ -14,13 +14,13 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.ColumnsManagers {
 		};
 		public Static: typeof SortHeader;
 
-		protected params: AgGrids.Interfaces.IHeaderParams<any>;
+		protected params: AgGrids.Interfaces.ISortHeaderParams<any>;
 		protected grid: AgGrid;
 		protected columnId: string;
 		protected sortable: boolean;
 		protected sequence: number;
 		protected direction: 0 | 1 | null; // 1 means asc, 0 means desc
-		protected elms: AgGrids.Interfaces.IHeaderElements;
+		protected elms: AgGrids.Interfaces.ISortHeaderElements;
 		protected contBaseClass: string;
 		protected multiSort: boolean;
 		protected handlers: {
@@ -32,7 +32,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.ColumnsManagers {
 			this.Static = new.target;
 		}
 
-		public init (agParams: AgGrids.Interfaces.IHeaderParams<any>): void {
+		public init (agParams: AgGrids.Interfaces.ISortHeaderParams<any>): void {
 			this
 				.initParams(agParams)
 				.initElements()
@@ -60,7 +60,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.ColumnsManagers {
 			return this;
 		}
 
-		protected initParams (agParams: AgGrids.Interfaces.IHeaderParams<any>): this {
+		protected initParams (agParams: AgGrids.Interfaces.ISortHeaderParams<any>): this {
 			this.params = agParams;
 			this.grid = this.params.grid;
 			this.columnId = this.params.columnId;
@@ -92,7 +92,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.ColumnsManagers {
 			var itemsCountClass = sels.CONT_ITEMS_CLS_BASE + innerCode.length;
 			cont.className = this.contBaseClass = [sels.CONT_CLS, itemsCountClass].join(' ');
 			cont.innerHTML = innerCode.join('');
-			this.elms = <AgGrids.Interfaces.IHeaderElements>{
+			this.elms = <AgGrids.Interfaces.ISortHeaderElements>{
 				cont: cont,
 				label: cont.querySelector<HTMLDivElement>('.'+sels.LABEL_CLS)
 			};
@@ -135,7 +135,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.ColumnsManagers {
 			}
 			return this;
 		}
-		public refresh (agParams: AgGrids.Interfaces.IHeaderParams<any>): boolean {
+		public refresh (agParams: AgGrids.Interfaces.ISortHeaderParams<any>): boolean {
 			this.destroy();
 			this
 				.initParams(agParams)

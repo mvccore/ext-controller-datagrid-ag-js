@@ -23,7 +23,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 			headerComponent: AgGrids.ColumnsManagers.SortHeader,
 			tooltipComponent: AgGrids.ToolTip
 		};
-		protected sortHeaderDefaults: AgGrids.Interfaces.IHeaderParams = <AgGrids.Interfaces.IHeaderParams>{
+		protected sortHeaderDefaults: AgGrids.Interfaces.ISortHeaderParams = <AgGrids.Interfaces.ISortHeaderParams>{
 			renderDirection: true,
 			renderRemove: true,
 			renderSequence: true,
@@ -77,6 +77,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 				serverColumnCfg: AgGrids.Interfaces.IServerConfigs.IColumn,
 				serverColumns = this.serverConfig.columns;
 			this.grid.SetSortHeaders(new Map<string, AgGrids.ColumnsManagers.SortHeader>());
+			this.grid.SetFilterInputs(new Map<string, AgGrids.ColumnsManagers.FilterInput>());
 			for (var columnUrlName in serverColumns) {
 				serverColumnCfg = serverColumns[columnUrlName];
 				if (serverColumnCfg.disabled === true) continue;
@@ -87,7 +88,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 			for (var sortItem of this.initData.sorting) {
 				var [columnUrlName, sortDirection] = sortItem;
 				agColumn = this.agColumnsConfigs.get(columnUrlName) as agGrid.ColDef;
-				var headerComponentParams = agColumn.headerComponentParams as AgGrids.Interfaces.IHeaderParams;
+				var headerComponentParams = agColumn.headerComponentParams as AgGrids.Interfaces.ISortHeaderParams;
 				headerComponentParams.direction = sortDirection;
 				headerComponentParams.sequence = sortIndex;
 				sortIndex++;
@@ -118,7 +119,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 			column.sortable = !(serverColumnCfg.sort === false);
 			var headerComponentParams = {
 				...this.sortHeaderDefaults,
-				...<AgGrids.Interfaces.IHeaderParams>{
+				...<AgGrids.Interfaces.ISortHeaderParams>{
 					grid: this.grid,
 					columnId: serverColumnCfg.urlName,
 					sortable: column.sortable
@@ -159,21 +160,23 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 					column.filter = 'agDateColumnFilter';
 				
 				column.floatingFilterComponent = AgGrids.ColumnsManagers.FilterInput;
-				column.floatingFilterComponentParams = {
+				column.floatingFilterComponentParams = <AgGrids.Interfaces.IFilterInputParams>{
 					suppressFilterButton: false,
-					context: this.grid
+					grid: this.grid,
+					columnId: serverColumnCfg.urlName
 				};
 			}
 
 			if (column.type === 'numericColumn') {
 				column.filter = AgGrids.ColumnsManagers.FilterMenu;
 				column.filterParams = {
-					context: this.grid
+					grid: this.grid
 				};
 				column.floatingFilterComponent = AgGrids.ColumnsManagers.FilterInput;
-				column.floatingFilterComponentParams = {
+				column.floatingFilterComponentParams = <AgGrids.Interfaces.IFilterInputParams>{
 					suppressFilterButton: false,
-					context: this.grid
+					grid: this.grid,
+					columnId: serverColumnCfg.urlName
 				};
 			}
 			return this;

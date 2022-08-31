@@ -13,6 +13,9 @@ declare global {
 	}
 	namespace agGrid {
 		class Grid extends AgGridAll.Grid {}
+		declare type InbuiltParentType = AgGridAll.IFloatingFilterParent & AgGridAll.IFilter;
+		declare type IFloatingFilterParentCallback<P = InbuiltParentType> = AgGridAll.IFloatingFilterParentCallback<P>;
+
 		interface GridApi<TData = any> extends AgGridAll.GridApi<TData> {}
 		interface ColumnApi extends AgGridAll.ColumnApi {}
 		interface IHeaderComp extends AgGridAll.IHeaderComp {}

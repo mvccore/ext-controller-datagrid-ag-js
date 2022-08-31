@@ -35,9 +35,6 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 		protected initBases (): this {
 			this.agOptions = <agGrid.GridOptions<any>>{
 				//debug: true,
-				/*components: {
-					agColumnHeader: AgGrids.ColumnsManagers.SortHeader
-				},*/
 				suppressMenuHide: true,
 				tooltipShowDelay: 0,
 				tooltipHideDelay: 2000,

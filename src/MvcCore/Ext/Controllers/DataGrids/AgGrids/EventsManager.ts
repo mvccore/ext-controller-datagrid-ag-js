@@ -15,11 +15,37 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 			this.grid.SetTotalCount(null);
 			//console.log(event);
 		}
+		public HandleInputFilterChange (columnId: string, inputValue: string): void {
+			var newFiltering = new Map<string, Map<Enums.Operator, string[]>>();
+
+			// explode multiple values and set up new column filtering:
+
+			// set up filter menu if necessary:
+
+			newFiltering.set(
+				columnId, 
+				new Map<Enums.Operator, string[]>([
+					[Enums.Operator.LIKE, [inputValue]]
+				])
+			);
+
+
+debugger;
+			this.grid.SetFiltering(newFiltering);
+			var pageMode = this.grid.GetPageMode();
+			if ((pageMode & AgGrids.Enums.ClientPageMode.CLIENT_PAGE_MODE_SINGLE) != 0) {
+				var gridOptions = this.grid.GetOptions().GetAgOptions();
+				gridOptions.api.onFilterChanged();
+			} else if ((pageMode & AgGrids.Enums.ClientPageMode.CLIENT_PAGE_MODE_MULTI) != 0) {
+				var dataSourceMp: AgGrids.DataSources.MultiplePagesMode = this.grid.GetDataSource() as any;
+				dataSourceMp.Load();
+			}
+		}
 		public HandleSortChange (columnId: string, direction: 1 | 0 | null): void {
 			var oldSorting = this.grid.GetSorting(),
 				sortHeaders = this.grid.GetSortHeaders(),
 				newSorting: [string, 0 | 1 | null][] = [],
-				agColumnsState: agGrid.ColumnState[] = [],
+				//agColumnsState: agGrid.ColumnState[] = [],
 				sortRemoving = direction == null;
 			if (!sortRemoving)
 				newSorting.push([columnId, direction]);
@@ -29,28 +55,27 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 			}
 			for (var i = 0, sortColId = '', l = newSorting.length; i < l; i++) {
 				var [sortColId, sortDir] = newSorting[i];
-				agColumnsState.push(<agGrid.ColumnState>{
+				/*agColumnsState.push(<agGrid.ColumnState>{
 					colId: sortColId,
 					sort: sortDir === 1 ? 'asc' : 'desc',
 					sortIndex: i
-				});
+				});*/
 				if (sortColId === columnId) continue;
 				sortHeaders.get(sortColId).SetSequence(i);
 			}
 			this.grid.SetSorting(newSorting);
 			var pageMode = this.grid.GetPageMode();
 			if ((pageMode & AgGrids.Enums.ClientPageMode.CLIENT_PAGE_MODE_SINGLE) != 0) {
-				// for single page - TODO
 				var gridOptions = this.grid.GetOptions().GetAgOptions();
-				gridOptions.columnApi.applyColumnState(<agGrid.ApplyColumnStateParams>{
+				/*gridOptions.columnApi.applyColumnState(<agGrid.ApplyColumnStateParams>{
 					state: agColumnsState,
 					applyOrder: false,
 					defaultState: <agGrid.ColumnStateParams>{
 						sort: null
 					},
-				});
+				});*/
+				gridOptions.api.onSortChanged();
 			} else if ((pageMode & AgGrids.Enums.ClientPageMode.CLIENT_PAGE_MODE_MULTI) != 0) {
-				// for multiple pages - call ajax with new params completed later
 				var dataSourceMp: AgGrids.DataSources.MultiplePagesMode = this.grid.GetDataSource() as any;
 				dataSourceMp.Load();
 			}

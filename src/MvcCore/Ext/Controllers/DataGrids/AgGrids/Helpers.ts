@@ -44,9 +44,13 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 		}
 		public RetypeRequest2RawRequest (serverRequest: Interfaces.IServerRequest): Interfaces.IServerRequestRaw {
 			var result: Interfaces.IServerRequestRaw = serverRequest as any;
-			result.filtering = this.convertMap2Object<string, Map<Enums.Operator, string[]>>(
-				serverRequest.filtering
-			) as any;
+			var newFiltering: any = {};
+			for (var [idColumn, filterValues] of serverRequest.filtering.entries()) {
+				newFiltering[idColumn] = this.convertMap2Object<Enums.Operator, string[]>(
+					filterValues
+				) as any;
+			}
+			result.filtering = newFiltering;
 			var serverConfig = this.grid.GetServerConfig();
 			result.id = serverConfig.id;
 			result.mode = serverConfig.clientPageMode;
