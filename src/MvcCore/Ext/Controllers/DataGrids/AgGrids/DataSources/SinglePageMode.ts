@@ -8,11 +8,15 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.DataSources {
 		public constructor (grid: AgGrid) {
 			super(grid);
 			this.pageLoaded = false;
-			this.initDataCache = grid.GetServerConfig().clientMaxRowsInCache > 0;
-		}
-		/** Optional destroy method, if your datasource has state it needs to clean up. */
-		public destroy (): void {
+			this.initDataCache = this.grid.GetServerConfig().clientMaxRowsInCache > 0;
 
+			this.initPageReqDataAndCache();
+			this.pageReqData = null;
+		}
+
+		protected initPageReqDataAndCache (): void {
+			super.initPageReqDataAndCache();
+			this.cache.Add(this.cache.Key(this.pageReqData), <Interfaces.IServerResponse>{});
 		}
 		/** Callback the grid calls that you implement to fetch rows from the server. */
 		public getRows (params: agGrid.IGetRowsParams): void {
@@ -28,12 +32,23 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.DataSources {
 			}
 		}
 		protected possibleToResolveByInitData (params: agGrid.IGetRowsParams, totalCount: number): boolean {
-			return (
+			var result = (
 				this.initDataCache &&
 				totalCount != null && 
 				params.startRow >= this.initialData.offset &&
 				(params.endRow <= this.initialData.offset + this.initialData.dataCount || totalCount < params.endRow)
-			)
+			);
+			if (!result) return false;
+			var reqData: Interfaces.IServerRequestRaw = this.helpers.RetypeRequest2RawRequest({
+				offset: this.grid.GetOffset(),
+				limit: this.grid.GetServerConfig().itemsPerPage,
+				sorting: this.grid.GetSorting(),
+				filtering: this.grid.GetFiltering(),
+			});
+			var cacheKey = this.cache.Key(reqData);
+			if (this.cache.Has(cacheKey))
+				return true;
+			return false;
 		}
 		protected resolveByInitData (params: agGrid.IGetRowsParams, totalCount: number): void {
 			//console.log("resolving by initial data");
@@ -54,6 +69,8 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.DataSources {
 			}
 		}
 		protected resolveByAjaxRequest (params: agGrid.IGetRowsParams): void {
+			var agGridApi: agGrid.GridApi<any> = this.options.GetAgOptions().api;
+			agGridApi.showLoadingOverlay();
 			var [reqDataUrl, reqMethod, reqType] = this.getReqUrlMethodAndType();
 			Ajax.load(<Ajax.LoadConfig>{
 				url: reqDataUrl,
@@ -66,6 +83,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.DataSources {
 				}),
 				type: reqType,
 				success(response: AgGrids.Interfaces.IServerResponse) {
+					agGridApi.hideOverlay();
 					params.successCallback(response.data, response.totalCount);
 				}
 			});

@@ -17,6 +17,9 @@ declare global {
 		interface ColumnApi extends AgGridAll.ColumnApi {}
 		interface IHeaderComp extends AgGridAll.IHeaderComp {}
 		interface IHeaderParams<TData = any> extends AgGridAll.IHeaderParams<TData> {}
+		interface ColumnState extends AgGridAll.ColumnState {}
+		interface ColumnStateParams extends AgGridAll.ColumnStateParams {}
+		interface ApplyColumnStateParams extends AgGridAll.ApplyColumnStateParams {}
 		interface IFilterComp<TData = any> extends AgGridAll.IFilterComp<TData> {}
 		interface IFilterParams<TData = any> extends AgGridAll.IFilterParams<TData> {}
 		class AgPromise<T> extends AgGridAll.AgPromise<T> {}

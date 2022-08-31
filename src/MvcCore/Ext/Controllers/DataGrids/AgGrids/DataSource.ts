@@ -8,6 +8,8 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 		protected helpers: AgGrids.Helpers;
 
 		protected initialData: Interfaces.IServerResponse;
+		protected cache: DataSources.MultiplePagesModes.Cache;
+		protected pageReqData?: Interfaces.IServerRequestRaw;
 
 		public constructor (grid: AgGrid) {
 			this.Static = new.target;
@@ -18,6 +20,15 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 			this.initialData = grid.GetInitialData();
 		}
 
+		protected initPageReqDataAndCache (): void {
+			this.cache = new DataSources.MultiplePagesModes.Cache(this.grid);
+			this.pageReqData = this.helpers.RetypeRequest2RawRequest({
+				offset: this.grid.GetOffset(),
+				limit: this.grid.GetServerConfig().itemsPerPage,
+				sorting: this.grid.GetSorting(),
+				filtering: this.grid.GetFiltering(),
+			});
+		}
 		protected getReqUrlMethodAndType (): [string, string, string] {
 			var serverCfg = this.grid.GetServerConfig(),
 				cfgReqMethod = serverCfg.dataRequestMethod,

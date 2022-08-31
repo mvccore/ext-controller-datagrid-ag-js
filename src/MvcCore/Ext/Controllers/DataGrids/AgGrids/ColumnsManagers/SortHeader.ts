@@ -2,6 +2,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.ColumnsManagers {
 	export class SortHeader implements agGrid.IHeaderComp {
 		public static readonly SELECTORS = {
 			CONT_CLS: 'sort-header',
+			CONT_ITEMS_CLS_BASE: 'sort-header-items-',
 			SORTABLE_CLS: 'sortable',
 			LABEL_CLS: 'label',
 			ORDER_CLS: 'order',
@@ -20,8 +21,10 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.ColumnsManagers {
 		protected sequence: number;
 		protected direction: 0 | 1 | null; // 1 means asc, 0 means desc
 		protected elms: AgGrids.Interfaces.IHeaderElements;
+		protected contBaseClass: string;
+		protected multiSort: boolean;
 		protected handlers: {
-			handleLabelClick?: (e: MouseEvent) => void;
+			handleContClick?: (e: MouseEvent) => void;
 			handleRemoveClick?: (e: MouseEvent) => void;
 		};
 
@@ -41,7 +44,8 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.ColumnsManagers {
 
 		public SetSequence (sequence: number): this {
 			this.sequence = sequence;
-			this.elms.order.innerHTML = Number(this.sequence + 1).toString();
+			if (this.params.renderSequence)
+				this.elms.sequence.innerHTML = Number(this.sequence + 1).toString();
 			return this;
 		}
 
@@ -52,42 +56,57 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.ColumnsManagers {
 			this.sortable = this.params.sortable;
 			this.sequence = this.params.sequence;
 			this.direction = this.params.direction;
+			this.multiSort = (
+				(this.grid.GetServerConfig().sortingMode & Enums.SortingMode.SORT_MULTIPLE_COLUMNS) != 0
+			);
 			this.grid.GetSortHeaders().set(this.columnId, this);
 			return this;
 		}
 		protected initElements (): this {
 			var sels = this.Static.SELECTORS,
-				cont = document.createElement('div');
-			cont.className = sels.CONT_CLS;
-			var innerCodeItems = [
-				`<div class="${sels.LABEL_CLS}">${this.params.displayName}</div>`,
-				`<div class="${sels.ORDER_CLS}"></div>`,
-				`<div class="${sels.DIRECTION_CLS}"></div>`,
-				`<div class="${sels.REMOVE_CLS}"></div>`,
-			];
-			if (!this.sortable) {
-				innerCodeItems = [innerCodeItems[0]];
+				cont = document.createElement('div'),
+				innerCode: string[] = [];
+			var innerCodes = {
+				label:	`<div class="${sels.LABEL_CLS}">${this.params.displayName}</div>`,
+				sequence:	`<div class="${sels.ORDER_CLS}"></div>`,
+				direction:	`<div class="${sels.DIRECTION_CLS}"></div>`,
+				remove:		`<div class="${sels.REMOVE_CLS}"></div>`,
+			};
+			innerCode = [innerCodes.label];
+			if (this.sortable) {
+				if (this.params.renderSequence) innerCode.push(innerCodes.sequence);
+				if (this.params.renderDirection) innerCode.push(innerCodes.direction);
+				if (this.params.renderRemove) innerCode.push(innerCodes.remove);
 			}
-			cont.innerHTML = innerCodeItems.join('');
+			var itemsCountClass = sels.CONT_ITEMS_CLS_BASE + innerCode.length;
+			cont.className = this.contBaseClass = [sels.CONT_CLS, itemsCountClass].join(' ');
+			cont.innerHTML = innerCode.join('');
 			this.elms = <AgGrids.Interfaces.IHeaderElements>{
 				cont: cont,
 				label: cont.querySelector<HTMLDivElement>('.'+sels.LABEL_CLS)
 			};
 			if (this.sortable) {
-				this.elms.order		= cont.querySelector<HTMLDivElement>('.'+sels.ORDER_CLS);
-				this.elms.direction	= cont.querySelector<HTMLDivElement>('.'+sels.DIRECTION_CLS);
-				this.elms.remove	= cont.querySelector<HTMLDivElement>('.'+sels.REMOVE_CLS);
+				if (this.params.renderSequence) 
+					this.elms.sequence	= cont.querySelector<HTMLDivElement>('.'+sels.ORDER_CLS);
+				if (this.params.renderDirection)
+					this.elms.direction	= cont.querySelector<HTMLDivElement>('.'+sels.DIRECTION_CLS);
+				if (this.params.renderRemove) 
+					this.elms.remove	= cont.querySelector<HTMLDivElement>('.'+sels.REMOVE_CLS);
+				this.contBaseClass = [sels.CONT_CLS, sels.SORTABLE_CLS, itemsCountClass].join(' ');
 				if (this.direction == null) {
-					this.elms.cont.className = [sels.CONT_CLS, sels.SORTABLE_CLS].join(' ');
+					this.elms.cont.className = this.contBaseClass;
 				} else {
-					this.elms.cont.className = [sels.CONT_CLS, sels.SORTABLE_CLS, sels.ACTIVE_CLS].join(' ');
-					this.elms.order.innerHTML = Number(this.sequence + 1).toString();
-					this.elms.direction.className = [
-						sels.DIRECTION_CLS,
-						this.direction === 1
-							? sels.ASC_CLS
-							: sels.DESC_CLS
-					].join(' ');
+					this.elms.cont.className = [this.contBaseClass, sels.ACTIVE_CLS].join(' ');
+					if (this.params.renderSequence) 
+						this.elms.sequence.innerHTML = Number(this.sequence + 1).toString();
+					if (this.params.renderDirection) {
+						this.elms.direction.className = [
+							sels.DIRECTION_CLS,
+							this.direction === 1
+								? sels.ASC_CLS
+								: sels.DESC_CLS
+						].join(' ');
+					}
 				}
 			}
 			return this;
@@ -95,12 +114,14 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.ColumnsManagers {
 		protected initEvents (): this {
 			if (!this.sortable) return this;
 			this.handlers = {};
-			this.elms.label.addEventListener(
-				'click', this.handlers.handleLabelClick = this.handleLabelClick.bind(this)
+			this.elms.cont.addEventListener(
+				'click', this.handlers.handleContClick = this.handleContClick.bind(this)
 			);
-			this.elms.remove.addEventListener(
-				'click', this.handlers.handleRemoveClick = this.handleRemoveClick.bind(this)
-			);
+			if (this.params.renderRemove) {
+				this.elms.remove.addEventListener(
+					'click', this.handlers.handleRemoveClick = this.handleRemoveClick.bind(this), true
+				);
+			}
 			return this;
 		}
 		public refresh (agParams: AgGrids.Interfaces.IHeaderParams<any>): boolean {
@@ -112,13 +133,13 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.ColumnsManagers {
 			return true;
 		}
 		public destroy (): void {
-			if (this.handlers.handleLabelClick)
+			if (this.handlers.handleContClick)
 				this.elms.label.removeEventListener(
-					'click', this.handlers.handleLabelClick
+					'click', this.handlers.handleContClick
 				);
-			if (this.handlers.handleRemoveClick)
+			if (this.params.renderRemove && this.handlers.handleRemoveClick)
 				this.elms.remove.removeEventListener(
-					'click', this.handlers.handleRemoveClick
+					'click', this.handlers.handleRemoveClick, true
 				);
 			if (this.elms.cont.parentNode != null)
 				this.elms.cont.parentNode.removeChild(this.elms.cont);
@@ -129,7 +150,34 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.ColumnsManagers {
 			this.direction = null;
 		}
 
-		protected handleLabelClick (e: MouseEvent): void {
+		protected handleContClick (e: MouseEvent): void {
+			if (this.params.renderRemove) {
+				this.switchDirectionByTwoStates();
+			} else {
+				this.switchDirectionByThreeStates();
+			}
+			this.grid.GetEvents().HandleSortChange(this.columnId, this.direction);
+		}
+		protected handleRemoveClick (e: MouseEvent): void {
+			e.preventDefault();
+			e.stopPropagation();
+			e.cancelBubble = true;
+			this.direction = null;
+			this.setSortInactive();
+			this.grid.GetEvents().HandleSortChange(
+				this.columnId, this.direction
+			);
+		}
+		protected switchDirectionByTwoStates (): this {
+			if (this.direction == null || this.direction === 0) {
+				this.direction = 1;
+			} else if (this.direction === 1) {
+				this.direction = 0;
+			}
+			this.setSortActive();
+			return this;
+		}
+		protected switchDirectionByThreeStates (): this {
 			if (this.direction === 0) {
 				this.direction = null;
 				this.setSortInactive();
@@ -139,70 +187,33 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.ColumnsManagers {
 				} else {
 					this.direction = 1;
 				}
-				this.setSortActive()
+				this.setSortActive();
 			}
-			this.grid.GetEvents().HandleSortChange(
-				this.columnId, this.direction
-			);
-		}
-		protected handleRemoveClick (e: MouseEvent): void {
-			this.direction = null;
-			this.setSortInactive();
-			this.grid.GetEvents().HandleSortChange(
-				this.columnId, this.direction
-			);
+			return this;
 		}
 		protected setSortActive (): this {
 			this.sequence = 0;
-			this.elms.order.innerHTML = '1';
+			if (this.params.renderSequence)
+				this.elms.sequence.innerHTML = '1';
 			var sels = this.Static.SELECTORS;
-			this.elms.cont.className = [sels.CONT_CLS, sels.SORTABLE_CLS, sels.ACTIVE_CLS].join(' ');
-			this.elms.direction.className = [
-				sels.DIRECTION_CLS,
-				this.direction === 1
-					? sels.ASC_CLS
-					: sels.DESC_CLS
-			].join(' ');
+			this.elms.cont.className = [this.contBaseClass, sels.ACTIVE_CLS].join(' ');
+			if (this.params.renderDirection) {
+				this.elms.direction.className = [
+					sels.DIRECTION_CLS,
+					this.direction === 1
+						? sels.ASC_CLS
+						: sels.DESC_CLS
+				].join(' ');
+			}
 			return this;
 		}
 		protected setSortInactive (): this {
 			this.sequence = null;
-			this.elms.order.innerHTML = '';
+			if (this.params.renderSequence)
+				this.elms.sequence.innerHTML = '';
 			var sels = this.Static.SELECTORS;
-			this.elms.cont.className = [sels.CONT_CLS, sels.SORTABLE_CLS].join(' ');
+			this.elms.cont.className = this.contBaseClass;
 			return this;
 		}
-
-		/*
-		public onSortChanged() {
-			const deactivate = (toDeactivateItems: any) => {
-				toDeactivateItems.forEach((toDeactivate: any) => {
-					toDeactivate.className = toDeactivate.className.split(' ')[0]
-				});
-			}
-	
-			const activate = (toActivate: any) => {
-				toActivate.className = toActivate.className + " active";
-			}
-	
-			if (this.params.column.isSortAscending()) {
-				deactivate([this.eSortUpButton, this.eSortRemoveButton]);
-				activate(this.eSortDownButton)
-			} else if (this.params.column.isSortDescending()) {
-				deactivate([this.eSortDownButton, this.eSortRemoveButton]);
-				activate(this.eSortUpButton)
-			} else {
-				deactivate([this.eSortUpButton, this.eSortDownButton]);
-				activate(this.eSortRemoveButton)
-			}
-		}
-		public onMenuClick() {
-			this.params.showColumnMenu(this.eMenuButton);
-		}
-		public onSortRequested(order: any, event: any) {
-			// TODO: tohle tady nebude, ale zavolá se něco v gridu, co nastaví jiný sort, pošle ajax a hotovo
-			this.params.setSort(order, event.shiftKey);
-		}
-		*/
 	}
 }

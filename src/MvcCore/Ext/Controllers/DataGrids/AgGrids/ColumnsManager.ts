@@ -14,7 +14,20 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 		protected helpers: AgGrids.Helpers;
 
 		protected agColumnsConfigs: Map<string, AgGrids.Types.GridColumn>;
-		protected defaultColDef: agGrid.ColDef<any>;
+		protected agColumnDefaults: agGrid.ColDef<any> = <agGrid.ColDef>{
+			floatingFilter: true,
+			suppressMenu: true,
+			resizable: true,
+			editable: false,
+			flex: 1,
+			headerComponent: AgGrids.ColumnsManagers.SortHeader,
+			tooltipComponent: AgGrids.ToolTip
+		};
+		protected sortHeaderDefaults: AgGrids.Interfaces.IHeaderParams = <AgGrids.Interfaces.IHeaderParams>{
+			renderDirection: true,
+			renderRemove: true,
+			renderSequence: true,
+		};
 		protected serverConfig: Interfaces.IServerConfig;
 		protected initData: Interfaces.IServerResponse;
 		protected viewHelper: ColumnsManagers.ViewHelper;
@@ -25,6 +38,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 			this.options = grid.GetOptions();
 			this.eventsManager = grid.GetEvents();
 			this.helpers = grid.GetHelpers();
+			this.sortHeaderDefaults.renderRemove = !this.helpers.IsTouchDevice();
 		}
 
 		public SetAgColumnsConfigs (gridColumns: Map<string, AgGrids.Types.GridColumn>): this {
@@ -35,24 +49,26 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 			return this.agColumnsConfigs;
 		}
 		
-		public SetDefaultColDef (defaultColDef: agGrid.ColDef): this {
-			this.defaultColDef = defaultColDef;
+		public SetAgColumnDefaults (defaultColDef: agGrid.ColDef): this {
+			this.agColumnDefaults = defaultColDef;
 			return this;
 		}
-		public GetDefaultColDef (): agGrid.ColDef {
-			return this.defaultColDef;
+		public GetAgColumnDefaults (): agGrid.ColDef {
+			return this.agColumnDefaults;
 		}
 		
 		public Init (): this {
 			return this
 				.initServerCfgAndViewHelper()
-				.initColumns()
-				.initDefaultColDef();
+				.initColumns();
 		}
 		protected initServerCfgAndViewHelper (): this {
 			this.serverConfig = this.grid.GetServerConfig();
 			this.initData = this.grid.GetInitialData();
 			this.viewHelper = new AgGrids.ColumnsManagers.ViewHelper(this.grid);
+			this.sortHeaderDefaults.renderSequence = (
+				(this.serverConfig.sortingMode & Enums.SortingMode.SORT_MULTIPLE_COLUMNS) != 0
+			);
 			return this;
 		}
 		protected initColumns (): this {
@@ -87,12 +103,14 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 			};
 			column.filter = !(serverColumnCfg.filter === false);
 			column.sortable = !(serverColumnCfg.sort === false);
-			var headerComponentParams = <AgGrids.Interfaces.IHeaderParams>{
-				grid: this.grid,
-				columnId: serverColumnCfg.urlName,
-				sortable: column.sortable
+			var headerComponentParams = {
+				...this.sortHeaderDefaults,
+				...<AgGrids.Interfaces.IHeaderParams>{
+					grid: this.grid,
+					columnId: serverColumnCfg.urlName,
+					sortable: column.sortable
+				}
 			};
-
 			column.headerComponentParams = headerComponentParams;
 			var serverType = serverColumnCfg.types[serverColumnCfg.types.length - 1];
 			if (this.Static.agColumnsTypes.has(serverType))
@@ -160,18 +178,6 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 			if (serverColumnCfg.editable != null && typeof(serverColumnCfg.editable) == 'boolean')
 				column.editable = serverColumnCfg.editable;
 			return column;
-		}
-		protected initDefaultColDef (): this {
-			this.defaultColDef = <agGrid.ColDef>{
-				floatingFilter: true,
-				suppressMenu: true,
-				resizable: true,
-				editable: false,
-				flex: 1,
-				headerComponent: AgGrids.ColumnsManagers.SortHeader,
-				tooltipComponent: AgGrids.ToolTip
-			}
-			return this;
 		}
 	}
 }

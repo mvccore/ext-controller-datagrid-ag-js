@@ -5,5 +5,8 @@ declare namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Interfaces {
 		sortable: boolean;
 		direction?: 1 | 0;
 		sequence?: number;
+		renderDirection: boolean;
+		renderRemove: boolean;
+		renderSequence: boolean;
 	}
 }

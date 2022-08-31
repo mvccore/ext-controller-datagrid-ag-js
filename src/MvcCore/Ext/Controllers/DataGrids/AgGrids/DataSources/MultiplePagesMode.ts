@@ -8,38 +8,32 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.DataSources {
 		public constructor (grid: AgGrid) {
 			super(grid);
 			this.eventsManager = grid.GetEvents() as AgGrids.EventsManagers.MultiplePagesMode;
-			var reqData: Interfaces.IServerRequestRaw = this.helpers.RetypeRequest2RawRequest({
-				offset: this.grid.GetOffset(),
-				limit: this.grid.GetServerConfig().count,
-				sorting: this.grid.GetSorting(),
-				filtering: this.grid.GetFiltering(),
-			});
-			history.replaceState(reqData, document.title, location.href);
-			this.initCache(reqData);
+
+			this.initPageReqDataAndCache();
+			history.replaceState(this.pageReqData, document.title, location.href);
+			this.pageReqData = null;
 			
 		}
-		protected initCache (reqData: Interfaces.IServerRequestRaw): void {
-			this.cache = new MultiplePagesModes.Cache(this.grid);
-			var initialData = this.grid.GetInitialData(),
-				elms = this.grid.GetOptions().GetElements(),
-				bottomControlsElement = elms.bottomControlsElement;
-			if (bottomControlsElement != null) {
-				initialData.controls = {};
-				if (elms.pagingControl != null)
-					initialData.controls.paging = elms.pagingControl.outerHTML;
-				if (elms.statusControl != null)
-					initialData.controls.status = elms.statusControl.outerHTML;
-				if (elms.countScalesControl != null)
-					initialData.controls.countScales = elms.countScalesControl.outerHTML;
-			}
 
-			this.cache.Add(this.cache.Key(reqData), initialData);
+		protected initPageReqDataAndCache (): void {
+			super.initPageReqDataAndCache();
+			var elms = this.grid.GetOptions().GetElements();
+			if (elms.bottomControlsElement != null) {
+				this.initialData.controls = {};
+				if (elms.pagingControl != null)
+					this.initialData.controls.paging = elms.pagingControl.outerHTML;
+				if (elms.statusControl != null)
+					this.initialData.controls.status = elms.statusControl.outerHTML;
+				if (elms.countScalesControl != null)
+					this.initialData.controls.countScales = elms.countScalesControl.outerHTML;
+			}
+			this.cache.Add(this.cache.Key(this.pageReqData), this.initialData);
 		}
 
 		public Load (): this {
 			var reqData: Interfaces.IServerRequestRaw = this.helpers.RetypeRequest2RawRequest({
 				offset: this.grid.GetOffset(),
-				limit: this.grid.GetServerConfig().count,
+				limit: this.grid.GetServerConfig().itemsPerPage,
 				sorting: this.grid.GetSorting(),
 				filtering: this.grid.GetFiltering(),
 			});

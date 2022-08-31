@@ -19,6 +19,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 			var oldSorting = this.grid.GetSorting(),
 				sortHeaders = this.grid.GetSortHeaders(),
 				newSorting: [string, 0 | 1 | null][] = [],
+				agColumnsState: agGrid.ColumnState[] = [],
 				sortRemoving = direction == null;
 			if (!sortRemoving)
 				newSorting.push([columnId, direction]);
@@ -27,7 +28,12 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 				newSorting.push([sortColId, sortDir]);
 			}
 			for (var i = 0, sortColId = '', l = newSorting.length; i < l; i++) {
-				var [sortColId] = newSorting[i];
+				var [sortColId, sortDir] = newSorting[i];
+				agColumnsState.push(<agGrid.ColumnState>{
+					colId: sortColId,
+					sort: sortDir === 1 ? 'asc' : 'desc',
+					sortIndex: i
+				});
 				if (sortColId === columnId) continue;
 				sortHeaders.get(sortColId).SetSequence(i);
 			}
@@ -35,20 +41,20 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 			var pageMode = this.grid.GetPageMode();
 			if ((pageMode & AgGrids.Enums.ClientPageMode.CLIENT_PAGE_MODE_SINGLE) != 0) {
 				// for single page - TODO
-				var dataSourceSp = this.grid.GetDataSource() as AgGrids.DataSources.SinglePageMode;
-				console.log(dataSourceSp);
+				var gridOptions = this.grid.GetOptions().GetAgOptions();
+				gridOptions.columnApi.applyColumnState(<agGrid.ApplyColumnStateParams>{
+					state: agColumnsState,
+					applyOrder: false,
+					defaultState: <agGrid.ColumnStateParams>{
+						sort: null
+					},
+				});
 			} else if ((pageMode & AgGrids.Enums.ClientPageMode.CLIENT_PAGE_MODE_MULTI) != 0) {
 				// for multiple pages - call ajax with new params completed later
-				var dataSourceMp = this.grid.GetDataSource() as AgGrids.DataSources.MultiplePagesMode;
+				var dataSourceMp: AgGrids.DataSources.MultiplePagesMode = this.grid.GetDataSource() as any;
 				dataSourceMp.Load();
 			}
-
 		}
-		/*public HandleSortChanged (event: agGrid.SortChangedEvent<any>): void {
-			
-			console.log(event, event.source);
-			//event.columnApi.
-		}*/
 		public HandleGridSizeChanged (event: agGrid.ViewportChangedEvent<any> | agGrid.GridSizeChangedEvent<any>): void {
 			// get the current grids width
 			var gridElm = this.grid.GetOptions().GetElements().agGridElement,

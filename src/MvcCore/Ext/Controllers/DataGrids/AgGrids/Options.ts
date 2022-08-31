@@ -104,7 +104,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 			this.columnManager = new AgGrids.ColumnsManager(this.grid);
 			this.columnManager.Init();
 			this.agOptions.columnDefs = Array.from(this.columnManager.GetAgColumnsConfigs().values());
-			this.agOptions.defaultColDef = this.columnManager.GetDefaultColDef();
+			this.agOptions.defaultColDef = this.columnManager.GetAgColumnDefaults();
 			return this;
 		}
 		public InitAgPageModeSpecifics (): this {

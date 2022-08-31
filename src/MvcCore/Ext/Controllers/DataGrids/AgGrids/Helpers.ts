@@ -9,7 +9,6 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 		public IsTouchDevice (): boolean {
 			return this.touchDevice ?? (this.touchDevice = (
 				('ontouchstart' in window) ||
-				(navigator.maxTouchPoints > 0) ||
 				///@ts-ignore
 				(navigator['msMaxTouchPoints'] > 0)
 			));
