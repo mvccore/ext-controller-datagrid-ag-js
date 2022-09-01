@@ -127,11 +127,6 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 			} else {
 				this.grid.GetFilterInputs().get(columnId).SetText(filtering.get(columnId));
 			}
-
-			// set up filter menu if necessary:
-			debugger;
-
-
 			this.grid
 				.SetFiltering(filtering)
 				.SetTotalCount(null);
@@ -217,7 +212,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 			// fill out any available space to ensure there are no gaps
 			event.api.sizeColumnsToFit();
 		}
-		public AddWindowPopStateChangeEvent (): this {
+		public AddUrlChangeEvent (): this {
 			window.addEventListener('popstate', (e: PopStateEvent): void => {
 				if (this.grid.GetHelpers().IsInstanceOfIServerRequestRaw(e.state))
 					this.HandleUrlChange(e);
@@ -228,7 +223,13 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 			var dataSource = this.grid.GetDataSource() as AgGrids.DataSource,
 				reqDataRaw = e.state as Interfaces.IServerRequestRaw,
 				reqData = AgGrids.DataSource.RetypeRequestObjects2Maps(reqDataRaw);
+			this.grid
+				.SetSorting(reqData.sorting)
+				.SetFiltering(reqData.filtering);
+			this.handleUrlChangeSortsFilters(reqData);
 			dataSource.ExecRequest(reqDataRaw, false);
+		}
+		protected handleUrlChangeSortsFilters (reqData: Interfaces.IServerRequest): this {
 			// set up sort headers:
 			var sortHeaders = this.grid.GetSortHeaders(),
 				activeSortItems = new Map<string, [AgGrids.Types.SortDir, number]>(),
@@ -252,6 +253,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 					filterInput.SetText(null);
 				}
 			}
+			return this;
 		}
 		protected getOperatorsAndPrefixesByRawValue (rawValue: string): Map<Enums.Operator, string> {
 			var operatorsAndPrefixes: Map<Enums.Operator, string>,

@@ -178,13 +178,13 @@ namespace MvcCore.Ext.Controllers.DataGrids {
 				var emSinglePage = new AgGrids.EventsManagers.SinglePageMode(this);
 				this.eventsManager = emSinglePage;
 				emSinglePage
-					.AddWindowPopStateChangeEvent();
+					.AddUrlChangeEvent();
 			} else if ((this.pageMode & AgGrids.Enums.ClientPageMode.CLIENT_PAGE_MODE_MULTI) != 0) {
 				var emMultiplePages = new AgGrids.EventsManagers.MultiplePagesMode(this);
 				this.eventsManager = emMultiplePages;
 				emMultiplePages
 					.AddPagingEvents()
-					.AddWindowPopStateChangeEvent();
+					.AddUrlChangeEvent();
 			}
 			return this;
 		}

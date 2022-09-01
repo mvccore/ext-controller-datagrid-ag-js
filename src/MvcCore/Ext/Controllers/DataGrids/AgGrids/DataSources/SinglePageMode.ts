@@ -41,50 +41,16 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.DataSources {
 			}
 		}
 		public ExecRequest (reqData: Interfaces.IServerRequestRaw, changeUrl: boolean): this {
-			var sortChanged = false,
-				sortingOld = this.grid.GetSorting(),
-				sortHeaders = this.grid.GetSortHeaders(),
-				agColumnsState: agGrid.ColumnState[] = [],
-				sorting: AgGrids.Types.SortItem[] = reqData.sorting as any,
-				sortColId: string,
-				sortDir: AgGrids.Types.SortDir;
-			if (JSON.stringify(sortingOld) !== JSON.stringify(sorting)) {
-				sortChanged = true;
-				for (var sortHeader of sortHeaders.values())
-					sortHeader.SetDirection(null);
-				for (var i = 0, l = sorting.length; i < l; i++) {
-					[sortColId, sortDir] = sorting[i];
-					agColumnsState.push(<agGrid.ColumnState>{
-						colId: sortColId,
-						sort: sortDir === 1 ? 'asc' : 'desc',
-						sortIndex: i
-					});
-					sortHeaders.get(sortColId)
-						.SetDirection(sortDir)
-						.SetSequence(i);
-				}
-				this.grid.SetSorting(sorting);
-			}
+			
+			var cacheKey = this.cache.Key(reqData);
+			this.changeUrlSwitches.set(cacheKey, true);
+			console.log("set cache", cacheKey, reqData);
 
-			// 
-			if (sortChanged) {
-				var cacheKey = this.cache.Key(reqData);
-				this.changeUrlSwitches.set(cacheKey, true);
-
-				var gridOptions = this.grid.GetOptions().GetAgOptions();
-				gridOptions.columnApi.applyColumnState(<agGrid.ApplyColumnStateParams>{
-					state: agColumnsState,
-					applyOrder: false,
-					defaultState: <agGrid.ColumnStateParams>{
-						sort: null
-					},
-				});
-				
-				// TODO: využít při změně filru kombinaci volání níže, každé samostatně spustí další AJAX
-				//gridOptions.api.onFilterChanged();
-				//gridOptions.api.onSortChanged();
-			}
-
+			var gridOptions = this.grid.GetOptions().GetAgOptions();
+			
+			// both triggers current grid model reload and calling `this.getRows()`:
+			//gridOptions.api.onFilterChanged();
+			gridOptions.api.onFilterChanged();
 			
 			return this;
 		}
@@ -125,6 +91,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.DataSources {
 				if (this.changeUrlSwitches.has(cacheKey) && this.changeUrlSwitches.get(cacheKey)) {
 					this.changeUrlSwitches.delete(cacheKey);
 				} else {
+					console.log("pushState init data", reqData);
 					history.pushState(reqData, document.title, this.initLocationHref);
 				}
 
@@ -163,6 +130,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.DataSources {
 					if (this.changeUrlSwitches.has(cacheKey) && this.changeUrlSwitches.get(cacheKey)) {
 						this.changeUrlSwitches.delete(cacheKey);
 					} else {
+						console.log("pushState ajax", reqData);
 						history.pushState(reqData, document.title, response.url);
 					}
 
