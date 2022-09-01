@@ -30,7 +30,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.DataSources {
 		}
 
 		public Load (): this {
-			var reqData: Interfaces.IServerRequestRaw = this.helpers.RetypeRequest2RawRequest({
+			var reqData: Interfaces.IServerRequestRaw = this.Static.retypeRequestMaps2Objects({
 				offset: this.grid.GetOffset(),
 				limit: this.grid.GetServerConfig().itemsPerPage,
 				sorting: this.grid.GetSorting(),
@@ -64,7 +64,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.DataSources {
 		}
 		protected handleResponse (reqData: Interfaces.IServerRequestRaw, changeUrl: boolean, cacheKey: string, cached: boolean, response: AgGrids.Interfaces.IServerResponse): void {
 			if (!cached) {
-				response = this.helpers.RetypeRawServerResponse(response);
+				response = this.Static.RetypeRawServerResponse(response);
 				this.cache.Add(cacheKey, response);
 			}
 
@@ -101,9 +101,6 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.DataSources {
 			
 			if (changeUrl)
 				history.pushState(reqData, document.title, response.url);
-
-			// TODO: set up sorting and filtering from server
-			
 		}
 
 	}

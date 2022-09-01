@@ -19,10 +19,9 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.ColumnsManagers {
 		protected columnId: string;
 		protected sortable: boolean;
 		protected sequence: number;
-		protected direction: 0 | 1 | null; // 1 means asc, 0 means desc
+		protected direction: AgGrids.Types.SortDirNullable; // 1 means asc, 0 means desc
 		protected elms: AgGrids.Interfaces.ISortHeaderElements;
 		protected contBaseClass: string;
-		protected multiSort: boolean;
 		protected handlers: {
 			handleContClick?: (e: MouseEvent) => void;
 			handleRemoveClick?: (e: MouseEvent) => void;
@@ -50,7 +49,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.ColumnsManagers {
 					: Number(this.sequence + 1).toString();
 			return this;
 		}
-		public SetDirection (direction: 1 | 0 | null): this {
+		public SetDirection (direction: AgGrids.Types.SortDirNullable): this {
 			this.direction = direction;
 			if (direction == null) {
 				this.setSortInactive();
@@ -67,9 +66,6 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.ColumnsManagers {
 			this.sortable = this.params.sortable;
 			this.sequence = this.params.sequence;
 			this.direction = this.params.direction;
-			this.multiSort = (
-				(this.grid.GetServerConfig().sortingMode & Enums.SortingMode.SORT_MULTIPLE_COLUMNS) != 0
-			);
 			this.grid.GetSortHeaders().set(this.columnId, this);
 			return this;
 		}

@@ -5,8 +5,9 @@ declare namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Interfaces {
 		columns: {
 			[columnUrlName: string]: MvcCore.Ext.Controllers.DataGrids.AgGrids.Interfaces.IServerConfigs.IColumn;
 		};
-		urlSegments: MvcCore.Ext.Controllers.DataGrids.AgGrids.Interfaces.IServerConfigs.IUrlSegment;
 		locales: MvcCore.Ext.Controllers.DataGrids.AgGrids.Interfaces.IServerConfigs.ILocales;
+		urlSegments: MvcCore.Ext.Controllers.DataGrids.AgGrids.Interfaces.IServerConfigs.IUrlSegment;
+		filterOperatorPrefixes: Map<Enums.Operator, string>;
 		ajaxParamsNames: Map<Enums.AjaxParamName, string>;
 		id: string;
 		clientPageMode: Enums.ClientPageMode;

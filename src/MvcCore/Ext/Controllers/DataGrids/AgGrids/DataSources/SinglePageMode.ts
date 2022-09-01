@@ -40,14 +40,14 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.DataSources {
 				this.resolveByAjaxRequest(params);
 			}
 		}
-		public ExecRequest (reqData: Interfaces.IServerRequestRaw): this {
+		public ExecRequest (reqData: Interfaces.IServerRequestRaw, changeUrl: boolean): this {
 			var sortChanged = false,
 				sortingOld = this.grid.GetSorting(),
 				sortHeaders = this.grid.GetSortHeaders(),
 				agColumnsState: agGrid.ColumnState[] = [],
-				sorting: [string, 1 | 0 | null][] = reqData.sorting as any,
+				sorting: AgGrids.Types.SortItem[] = reqData.sorting as any,
 				sortColId: string,
-				sortDir: 1 | 0;
+				sortDir: AgGrids.Types.SortDir;
 			if (JSON.stringify(sortingOld) !== JSON.stringify(sorting)) {
 				sortChanged = true;
 				for (var sortHeader of sortHeaders.values())
@@ -96,7 +96,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.DataSources {
 				(params.endRow <= this.initialData.offset + this.initialData.dataCount || totalCount < params.endRow)
 			);
 			if (!result) return false;
-			var reqData: Interfaces.IServerRequestRaw = this.helpers.RetypeRequest2RawRequest({
+			var reqData: Interfaces.IServerRequestRaw = this.Static.retypeRequestMaps2Objects({
 				offset: this.grid.GetOffset(),
 				limit: this.grid.GetServerConfig().itemsPerPage,
 				sorting: this.grid.GetSorting(),
@@ -115,7 +115,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.DataSources {
 			);
 			if (this.pageLoaded) {
 
-				var reqData: Interfaces.IServerRequestRaw = this.helpers.RetypeRequest2RawRequest({
+				var reqData: Interfaces.IServerRequestRaw = this.Static.retypeRequestMaps2Objects({
 					offset: this.grid.GetOffset(),
 					limit: this.grid.GetServerConfig().itemsPerPage,
 					sorting: this.grid.GetSorting(),
@@ -145,7 +145,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.DataSources {
 			var agGridApi: agGrid.GridApi<any> = this.options.GetAgOptions().api;
 			agGridApi.showLoadingOverlay();
 			var [reqDataUrl, reqMethod, reqType] = this.getReqUrlMethodAndType();
-			var reqData = this.helpers.RetypeRequest2RawRequest({
+			var reqData = this.Static.retypeRequestMaps2Objects({
 				offset: params.startRow,
 				limit: params.endRow - params.startRow,
 				sorting: this.grid.GetSorting(),

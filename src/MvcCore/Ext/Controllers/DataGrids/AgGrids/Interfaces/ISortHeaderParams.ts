@@ -3,7 +3,7 @@ declare namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Interfaces {
 		grid: AgGrid;
 		columnId: string;
 		sortable: boolean;
-		direction?: 1 | 0;
+		direction?: AgGrids.Types.SortDir;
 		sequence?: number;
 		renderDirection: boolean;
 		renderRemove: boolean;

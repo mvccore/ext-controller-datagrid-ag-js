@@ -13,9 +13,9 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.ColumnsManagers {
 		protected grid: AgGrid;
 		protected columnId: string;
 		protected input: HTMLInputElement;
-		protected multiFilter: boolean;
 		protected handlers: {
 			handleSubmit?: (e: MouseEvent) => void;
+			handleBlur?: (e: FocusEvent) => void;
 		};
 		
 		public Static: typeof FilterInput;
@@ -28,14 +28,29 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.ColumnsManagers {
 			this
 				.initParams(agParams)
 				.initElements()
-				.initEvents();
+				.initEvents()
+				.SetText(agParams.filteringItem);
 		}
 		public getGui (): HTMLElement {
 			return this.input;
 		}
 
-		public SetText (): this {
-			// todo: set up filter text info input in grid short syntax
+		public SetText (filteringItem: Map<Enums.Operator, string[]> | null): this {
+			if (filteringItem == null) {
+				this.input.value = '';
+				return this;
+			}
+			var textItems: string[] = [],
+				prefix: string,
+				serverConfig = this.grid.GetServerConfig(),
+				valuesDelimiter = serverConfig.urlSegments.urlDelimiterValues,
+				filterOperatorPrefixes = serverConfig.filterOperatorPrefixes;
+			for (var [operator, filterValues] of filteringItem.entries()) {
+				prefix = filterOperatorPrefixes.get(operator);
+				for (var filterValue of filterValues)
+					textItems.push(prefix + filterValue);
+			}
+			this.input.value = textItems.join(valuesDelimiter);
 			return this;
 		}
 
@@ -43,9 +58,6 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.ColumnsManagers {
 			this.params = agParams;
 			this.grid = this.params.grid;
 			this.columnId = this.params.columnId;
-			this.multiFilter = (
-				(this.grid.GetServerConfig().filteringMode & Enums.FilteringMode.FILTER_MULTIPLE_COLUMNS) != 0
-			);
 			this.grid.GetFilterInputs().set(this.columnId, this);
 			return this;
 		}
@@ -60,11 +72,28 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.ColumnsManagers {
 			this.input.addEventListener(
 				'keyup', this.handlers.handleSubmit = this.handleSubmit.bind(this)
 			);
+			this.input.addEventListener(
+				'blur', this.handlers.handleBlur = this.handleBlur.bind(this)
+			);
 			return this;
 		}
 		protected handleSubmit (e: KeyboardEvent): void {
 			if(e.key !== 'Enter') return;
+			e.stopPropagation();
+			e.preventDefault();
+			e.cancelBubble = true;
 			this.grid.GetEvents().HandleInputFilterChange(this.columnId, this.input.value);
+		}
+		protected handleBlur (e: KeyboardEvent): void {
+			e.stopPropagation();
+			e.preventDefault();
+			e.cancelBubble = true;
+			var value = this.input.value.trim();
+			if (value === '' || value == null) {
+				var filtering = this.grid.GetFiltering();
+				if (filtering.has(this.columnId))
+					filtering.delete(this.columnId);
+			}
 		}
 
 		/*protected _tmp (): void {
@@ -135,7 +164,6 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.ColumnsManagers {
 			this.grid = null;
 			this.columnId = '';
 			this.input = null;
-			this.multiFilter = false;
 		}
 	}
 }

@@ -15,7 +15,7 @@ namespace MvcCore.Ext.Controllers.DataGrids {
 		protected sortHeaders: Map<string, AgGrids.ColumnsManagers.SortHeader>;
 		protected filterInputs: Map<string, AgGrids.ColumnsManagers.FilterInput>;
 
-		protected sorting: [string, 0 | 1][];
+		protected sorting: AgGrids.Types.SortItem[];
 		protected filtering: Map<string, Map<AgGrids.Enums.Operator, string[]>>;
 		protected totalCount: number | null = null;
 		protected offset: number = 0;
@@ -111,11 +111,11 @@ namespace MvcCore.Ext.Controllers.DataGrids {
 		public GetGridColumnApi (): agGrid.ColumnApi {
 			return this.agColumnApi;
 		}
-		public SetSorting (sorting: [string, 0 | 1][]): this {
+		public SetSorting (sorting: AgGrids.Types.SortItem[]): this {
 			this.sorting = sorting;
 			return this;
 		}
-		public GetSorting (): [string, 0 | 1][] {
+		public GetSorting (): AgGrids.Types.SortItem[] {
 			return this.sorting;
 		}
 		public SetFiltering (filtering: Map<string, Map<AgGrids.Enums.Operator, string[]>>): this {
@@ -198,7 +198,7 @@ namespace MvcCore.Ext.Controllers.DataGrids {
 			return this;
 		}
 		protected initData (initialData: AgGrids.Interfaces.IServerResponse): this {
-			this.initialData = this.helpers.RetypeRawServerResponse(initialData);
+			this.initialData = AgGrids.DataSource.RetypeRawServerResponse(initialData);
 			this.sorting = this.initialData.sorting;
 			this.filtering = this.initialData.filtering;
 			this.totalCount = this.initialData.totalCount;

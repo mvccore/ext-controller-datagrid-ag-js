@@ -1,7 +1,8 @@
 namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
-	export class DataSource {
+	export abstract class DataSource {
 		public Static: typeof DataSource;
 
+		protected static grid: AgGrid;
 		protected grid: AgGrid;
 		protected options: AgGrids.Options;
 		protected eventsManager: AgGrids.EventsManager;
@@ -13,6 +14,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 
 		public constructor (grid: AgGrid) {
 			this.Static = new.target;
+			this.Static.grid = grid;
 			this.grid = grid;
 			this.options = grid.GetOptions();
 			this.eventsManager = grid.GetEvents();
@@ -20,17 +22,20 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 			this.initialData = grid.GetInitialData();
 		}
 
+		public abstract ExecRequest (reqData: Interfaces.IServerRequestRaw, changeUrl: boolean): this;
+
 		protected initPageReqDataAndCache (): void {
-			this.cache = new DataSources.Cache(this.grid);
-			this.pageReqData = this.helpers.RetypeRequest2RawRequest({
-				offset: this.grid.GetOffset(),
-				limit: this.grid.GetServerConfig().itemsPerPage,
-				sorting: this.grid.GetSorting(),
-				filtering: this.grid.GetFiltering(),
+			var grid = this.Static.grid;
+			this.cache = new DataSources.Cache(grid);
+			this.pageReqData = this.Static.retypeRequestMaps2Objects({
+				offset: grid.GetOffset(),
+				limit: grid.GetServerConfig().itemsPerPage,
+				sorting: grid.GetSorting(),
+				filtering: grid.GetFiltering(),
 			});
 		}
 		protected getReqUrlMethodAndType (): [string, string, string] {
-			var serverCfg = this.grid.GetServerConfig(),
+			var serverCfg = this.Static.grid.GetServerConfig(),
 				cfgReqMethod = serverCfg.dataRequestMethod,
 				dataUrl: string = serverCfg.dataUrl,
 				reqMethod: string = 'GET',
@@ -41,6 +46,50 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 				reqType = 'jsonp';
 			}
 			return [dataUrl, reqMethod, reqType];
+		}
+		public static RetypeRawServerResponse (serverResponse: Interfaces.IServerResponse): Interfaces.IServerResponse {
+			serverResponse.filtering = this.retypeFilteringObj2Map(serverResponse.filtering);
+			return serverResponse;
+		}
+		public static RetypeRequestObjects2Maps (serverRequest: Interfaces.IServerRequestRaw): Interfaces.IServerRequest {
+			var result: Interfaces.IServerRequest = serverRequest as any;
+			result.filtering = this.retypeFilteringObj2Map(serverRequest.filtering);
+			return result;
+		}
+		protected static retypeFilteringObj2Map (filtering: any): Map<string, Map<Enums.Operator, string[]>> {
+			var columnsIds = Object.keys(filtering);
+			if (columnsIds.length > 0) {
+				var filtering = filtering;
+				var newFiltering = new Map<string, Map<Enums.Operator, string[]>>();
+				for (var idColumn of columnsIds) {
+					newFiltering.set(idColumn, Helpers.ConvertObject2Map<Enums.Operator, string[]>(
+						filtering[idColumn] as any
+					));
+				}
+				return newFiltering;
+			} else {
+				return new Map<string, Map<Enums.Operator, string[]>>();
+			}
+		}
+		protected static retypeRequestMaps2Objects (serverRequest: Interfaces.IServerRequest): Interfaces.IServerRequestRaw {
+			var result: Interfaces.IServerRequestRaw = serverRequest as any;
+			if (serverRequest.filtering instanceof Map) {
+				var newFiltering: any = {};
+				for (var [idColumn, filterValues] of serverRequest.filtering.entries()) {
+					newFiltering[idColumn] = Helpers.ConvertMap2Object<Enums.Operator, string[]>(
+						filterValues
+					) as any;
+				}
+				result.filtering = newFiltering;
+			}
+			return this.addRequestSystemData(result);
+		}
+		protected static addRequestSystemData (serverRequest: Interfaces.IServerRequestRaw): Interfaces.IServerRequestRaw {
+			var serverConfig = this.grid.GetServerConfig();
+			serverRequest.id = serverConfig.id;
+			serverRequest.mode = serverConfig.clientPageMode;
+			serverRequest.path = this.grid.GetGridPath();
+			return serverRequest;
 		}
 	}
 }

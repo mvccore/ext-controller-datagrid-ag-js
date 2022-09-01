@@ -1,9 +1,11 @@
 namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 	export class Helpers {
+		public Static: typeof Helpers;
 		protected grid: AgGrid;
 		protected touchDevice: boolean;
 		protected isChromeBrowser: boolean;
 		public constructor (grid: AgGrid) {
+			this.Static = new.target;
 			this.grid = grid;
 		}
 		public IsTouchDevice (): boolean {
@@ -24,39 +26,6 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 			contDiv.innerHTML = htmlCode.trim();
 			return contDiv.firstChild as HTMLElement;
 		}
-		public RetypeRawServerConfig (serverConfig: Interfaces.IServerConfig): Interfaces.IServerConfig {
-			serverConfig.urlSegments.urlFilterOperators = this.convertObject2Map<Enums.Operator, string>(
-				serverConfig.urlSegments.urlFilterOperators
-			);
-			serverConfig.ajaxParamsNames = this.convertObject2Map<Enums.AjaxParamName, string>(
-				serverConfig.ajaxParamsNames
-			);
-			serverConfig.controlsTexts = this.convertObject2Map<Enums.ControlText, string>(
-				serverConfig.controlsTexts
-			);
-			return serverConfig;
-		}
-		public RetypeRawServerResponse (serverResponse: Interfaces.IServerResponse): Interfaces.IServerResponse {
-			serverResponse.filtering = this.convertObject2Map<string, Map<Enums.Operator, string[]>>(
-				serverResponse.filtering
-			);
-			return serverResponse;
-		}
-		public RetypeRequest2RawRequest (serverRequest: Interfaces.IServerRequest): Interfaces.IServerRequestRaw {
-			var result: Interfaces.IServerRequestRaw = serverRequest as any;
-			var newFiltering: any = {};
-			for (var [idColumn, filterValues] of serverRequest.filtering.entries()) {
-				newFiltering[idColumn] = this.convertMap2Object<Enums.Operator, string[]>(
-					filterValues
-				) as any;
-			}
-			result.filtering = newFiltering;
-			var serverConfig = this.grid.GetServerConfig();
-			result.id = serverConfig.id;
-			result.mode = serverConfig.clientPageMode;
-			result.path = this.grid.GetGridPath();
-			return result;
-		}
 		public IsInstanceOfIServerRequestRaw (obj: any): boolean {
 			return (
 				obj != null &&
@@ -65,13 +34,106 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 				'sorting' in obj && 'filtering' in obj
 			);
 		}
-		protected convertObject2Map<TKey, TValue> (obj: any): Map<TKey, TValue> {
+		public RetypeRawServerConfig (serverConfig: Interfaces.IServerConfig): Interfaces.IServerConfig {
+			serverConfig.urlSegments.urlFilterOperators = this.Static.ConvertObject2Map<Enums.Operator, string>(
+				serverConfig.urlSegments.urlFilterOperators
+			);
+			serverConfig.ajaxParamsNames = this.Static.ConvertObject2Map<Enums.AjaxParamName, string>(
+				serverConfig.ajaxParamsNames
+			);
+			serverConfig.filterOperatorPrefixes = this.Static.ConvertObject2Map<Enums.Operator, string>(
+				serverConfig.filterOperatorPrefixes
+			);
+			serverConfig.controlsTexts = this.Static.ConvertObject2Map<Enums.ControlText, string>(
+				serverConfig.controlsTexts
+			);
+			return serverConfig;
+		}
+		public GetAllowedOperators (columnFilterFlags: Enums.FilteringMode): Map<Enums.Operator, AgGrids.Interfaces.IAllowedOperator> {
+			var urlFilterOperators 	= this.grid.GetServerConfig().urlSegments.urlFilterOperators,
+				allowedOperators 	= new Map<Enums.Operator, AgGrids.Interfaces.IAllowedOperator>(),
+				allowRanges			= (columnFilterFlags & Enums.FilteringMode.ALLOW_RANGES) != 0,
+				allowLikeRight		= (columnFilterFlags & Enums.FilteringMode.ALLOW_LIKE_RIGHT_SIDE) != 0,
+				allowLikeLeft		= (columnFilterFlags & Enums.FilteringMode.ALLOW_LIKE_LEFT_SIDE)  != 0,
+				allowLikeAnywhere	= (columnFilterFlags & Enums.FilteringMode.ALLOW_LIKE_ANYWHERE) != 0,
+				operators: Enums.Operator[] = [
+					Enums.Operator.EQUAL, Enums.Operator.NOT_EQUAL
+				]; // equal and not equal are allowed for filtering by default
+			if (allowRanges)
+				operators = [...operators, ...[
+					Enums.Operator.LOWER,
+					Enums.Operator.GREATER,
+					Enums.Operator.LOWER_EQUAL,
+					Enums.Operator.GREATER_EQUAL
+				]];
+			if (allowLikeRight || allowLikeLeft || allowLikeAnywhere) 
+				operators = [...operators, ...[
+					Enums.Operator.LIKE,
+					Enums.Operator.NOT_LIKE
+				]];
+			var urlSegment: string,
+				multipleValues: boolean,
+				likeOperator: boolean,
+				regex: RegExp | null;
+			for (var operator of operators) {
+				urlSegment = urlFilterOperators.get(operator);
+				multipleValues = operator.indexOf('<') === -1 && operator.indexOf('>') === -1;
+				likeOperator = operator.indexOf('LIKE') !== -1;
+				regex = null;
+				if (likeOperator && !allowLikeAnywhere) {
+					if (allowLikeRight && !allowLikeLeft) {
+						regex = /^([^%_]).*$/g;
+					} else if (allowLikeLeft && !allowLikeRight) {
+						regex = /.*([^%_])$/g;
+					} else if (allowLikeLeft && allowLikeRight) {
+						regex = /^.([^%_]+).$/g;
+					}
+				}
+				allowedOperators.set(operator, <Interfaces.IAllowedOperator>{
+					operator: 	operator,
+					multiple: 	multipleValues,
+					regex: 		regex
+				});
+			}
+			return allowedOperators;
+		}
+		/**
+		 * Check if given value contains any LIKE/NOT LIKE special 
+		 * character: `%` or `_` or escaped like this: `[%]` or `[_]`.
+		 * Returns `0` if no special char `%` or `_` matched.
+		 * Returns `1` if special char `%` or `_` matched in raw form only, not escaped.
+		 * Returns `2` if special char `%` or `_` matched in escaped form only.
+		 * Returns `1 | 2` if special char `%` or `_` matched in both forms.
+		 */
+		public CheckFilterValueForLikeChar (rawValue: string, specialLikeChar: '_' | '%'): number {
+			var containsSpecialChar = 0,
+				index = 0,
+				length = rawValue.length,
+				specialCharPos: number,
+				escapedSpecialCharPos: number,
+				matchedEscapedChar = 0;
+			while (index < length) {
+				specialCharPos = rawValue.indexOf(specialLikeChar, index);
+				if (specialCharPos === -1) break;
+				escapedSpecialCharPos = rawValue.indexOf('[' + specialLikeChar + ']', Math.max(0, index - 1));
+				if (escapedSpecialCharPos !== -1 && specialCharPos - 1 === escapedSpecialCharPos) {
+					index = specialCharPos + specialLikeChar.length + 1;
+					matchedEscapedChar = 2;
+					continue;
+				}
+				index = specialCharPos + 1;
+				containsSpecialChar = 1;
+				break;
+			}
+			return containsSpecialChar | matchedEscapedChar;
+		}
+		public static ConvertObject2Map<TKey, TValue> (obj: any): Map<TKey, TValue> {
 			var data: any[][] = [];
 			for (var key in obj)
 				data.push([key, obj[key]]);
 			return new Map<TKey, TValue>(data as Iterable<readonly [TKey, TValue]>);
 		}
-		protected convertMap2Object<TKey, TValue> (map: Map<TKey, TValue>): object {
+		public static ConvertMap2Object<TKey, TValue> (map: Map<TKey, TValue>): object {
 			var obj: any = {};
 			for (var [key, value] of map)
 				obj[key] = value;

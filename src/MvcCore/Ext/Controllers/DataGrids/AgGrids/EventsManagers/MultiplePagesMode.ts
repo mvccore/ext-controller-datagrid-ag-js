@@ -30,14 +30,5 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.EventsManagers {
 			e.cancelBubble = true;
 			e.preventDefault();
 		}
-		public AddWindowPopStateChangeEvent (): this {
-			window.addEventListener('popstate', (event) => {
-				if (this.grid.GetHelpers().IsInstanceOfIServerRequestRaw(event.state)) {
-					var dataSource = this.grid.GetDataSource() as AgGrids.DataSources.MultiplePagesMode;
-					dataSource.ExecRequest(event.state, false);
-				}
-			});
-			return this;
-		}
 	}
 }
