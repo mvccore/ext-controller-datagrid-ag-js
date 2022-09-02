@@ -49,21 +49,17 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 		public HandleColumnMoved (event: agGrid.ColumnMovedEvent<any>): void {
 			//console.log(event);
 		}
-		public HandleFilterChanged (event: agGrid.FilterChangedEvent<any>): void {
-			
-			//console.log(event);
-		}
 		public HandleInputFilterChange (columnId: string, rawInputValue: string): void {
-			var rawInputValue = rawInputValue.trim(),
-				filterRemoving = rawInputValue === '' || rawInputValue == null,
+			var rawInputIsNull = rawInputValue == null,
+				rawInputValue = rawInputIsNull ? '' : rawInputValue.trim(),
+				filterRemoving = rawInputValue === '',
 				serverConfig = this.grid.GetServerConfig(),
 				valuesDelimiter = serverConfig.urlSegments.urlDelimiterValues,
 				rawValues = filterRemoving ? [] : rawInputValue.split(valuesDelimiter),
 				serverColumnCfg = serverConfig.columns[columnId],
 				columnFilterCfg = serverColumnCfg.filter,
 				columnFilterCfgInt = Number(columnFilterCfg),
-				columnFilterCfgIsInt = typeof(columnFilterCfg) === 'number',
-				columnFilterCfgIsBool = !columnFilterCfgIsInt,
+				columnFilterCfgIsInt = columnFilterCfg === columnFilterCfgInt,
 				allowedOperators = (columnFilterCfgIsInt && this.columnsAllowedOperators.has(columnId)
 					? this.columnsAllowedOperators.get(columnId)
 					: this.defaultAllowedOperators),
@@ -84,14 +80,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 					// complete possible operator prefixes from submitted value
 					operatorsAndPrefixes = this.getOperatorsAndPrefixesByRawValue(rawValue);
 					// complete operator value from submitted value
-					operator = this.getOperatorByRawValue(
-						rawValue,
-						operatorsAndPrefixes,
-						columnFilterCfgIsBool,
-						columnFilterCfgIsInt,
-						columnFilterCfgInt,
-						columnFilterCfg
-					);
+					operator = this.getOperatorByRawValue(rawValue, operatorsAndPrefixes, columnFilterCfg);
 					// check if operator is allowed
 					if (operator == null || !allowedOperators.has(operator)) continue;
 					// check if operator configuration allowes submitted value form
@@ -122,10 +111,12 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 					filtering.set(columnId, filterValues);
 				}
 			}
+			var filterInput = this.grid.GetFilterInputs().get(columnId);
 			if (filterRemoving) {
 				filtering.delete(columnId);
+				filterInput.SetText(null);
 			} else {
-				this.grid.GetFilterInputs().get(columnId).SetText(filtering.get(columnId));
+				filterInput.SetText(filtering.get(columnId));
 			}
 			this.grid
 				.SetFiltering(filtering)
@@ -273,12 +264,12 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 		protected getOperatorByRawValue (
 			rawValue: string, 
 			operatorsAndPrefixes: Map<Enums.Operator, string>, 
-			columnFilterCfgIsBool: boolean, 
-			columnFilterCfgIsInt: boolean, 
-			columnFilterCfgInt: number, 
 			columnFilterCfg: number | boolean
 		): Enums.Operator | null {
-			var operator: Enums.Operator = null;
+			var operator: Enums.Operator = null,
+				columnFilterCfgInt = Number(columnFilterCfg),
+				columnFilterCfgIsInt = columnFilterCfg === columnFilterCfgInt,
+				columnFilterCfgIsBool = !columnFilterCfgIsInt;
 			for (var [operatorKey, valuePrefix] of operatorsAndPrefixes.entries()) {
 				var valuePrefixLen = valuePrefix.length;
 				if (valuePrefixLen > 0) {

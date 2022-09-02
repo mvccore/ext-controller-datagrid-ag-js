@@ -1,6 +1,6 @@
 declare namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Interfaces {
 	interface ISortHeaderElements {
-		cont: HTMLDivElement,
+		cont: HTMLDivElement;
 		label: HTMLDivElement;
 		sequence?: HTMLDivElement;
 		direction?: HTMLDivElement;
