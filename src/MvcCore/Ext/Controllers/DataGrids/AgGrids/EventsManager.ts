@@ -80,7 +80,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 					// complete possible operator prefixes from submitted value
 					operatorsAndPrefixes = this.getOperatorsAndPrefixesByRawValue(rawValue);
 					// complete operator value from submitted value
-					operator = this.getOperatorByRawValue(rawValue, operatorsAndPrefixes, columnFilterCfg);
+					[rawValue, operator] = this.getOperatorByRawValue(rawValue, operatorsAndPrefixes, columnFilterCfg);
 					// check if operator is allowed
 					if (operator == null || !allowedOperators.has(operator)) continue;
 					// check if operator configuration allowes submitted value form
@@ -111,12 +111,12 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 					filtering.set(columnId, filterValues);
 				}
 			}
-			var filterInput = this.grid.GetFilterInputs().get(columnId);
+			var filterHeader = this.grid.GetFilterHeaders().get(columnId);
 			if (filterRemoving) {
 				filtering.delete(columnId);
-				filterInput.SetText(null);
+				filterHeader.SetText(null);
 			} else {
-				filterInput.SetText(filtering.get(columnId));
+				filterHeader.SetText(filtering.get(columnId));
 			}
 			this.grid
 				.SetFiltering(filtering)
@@ -236,7 +236,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 				}
 			}
 			// set up filtering inputs:
-			var filterInputs = this.grid.GetFilterInputs();
+			var filterInputs = this.grid.GetFilterHeaders();
 			for (var [columnId, filterInput] of filterInputs.entries()) {
 				if (reqData.filtering.has(columnId)) {
 					filterInput.SetText(reqData.filtering.get(columnId));
@@ -265,7 +265,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 			rawValue: string, 
 			operatorsAndPrefixes: Map<Enums.Operator, string>, 
 			columnFilterCfg: number | boolean
-		): Enums.Operator | null {
+		): [string, Enums.Operator | null] {
 			var operator: Enums.Operator = null,
 				columnFilterCfgInt = Number(columnFilterCfg),
 				columnFilterCfgIsInt = columnFilterCfg === columnFilterCfgInt,
@@ -295,7 +295,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 					break;
 				}
 			}
-			return operator;
+			return [rawValue, operator];
 		}
 	}
 }

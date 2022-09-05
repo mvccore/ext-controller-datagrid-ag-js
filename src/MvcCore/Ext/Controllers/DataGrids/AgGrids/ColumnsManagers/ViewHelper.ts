@@ -2,6 +2,10 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.ColumnsManagers {
 	export class ViewHelper {
 		public Static: typeof ViewHelper;
 		
+		public static readonly PARSER_PATTERN_DATE: string 		= 'YYYY-MM-DD';
+		public static readonly PARSER_PATTERN_DATE_TIME: string = 'YYYY-MM-DD HH:mm:ss';
+		public static readonly PARSER_PATTERN_TIME: string 		= 'HH:mm:ss';
+
 		public static readonly FORMAT_PATTERN_DATE: string 		= 'YYYY-MM-DD';
 		public static readonly FORMAT_PATTERN_DATE_TIME: string = 'YYYY-MM-DD HH:mm:ss';
 		public static readonly FORMAT_PATTERN_TIME: string 		= 'HH:mm:ss';
@@ -85,10 +89,11 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.ColumnsManagers {
 			}
 			if (viewHelper != null) {
 				var propName = serverColumnCfg.propName,
-					formatArgs: string[] = serverColumnCfg.format;
+					parserArgs: string[] = serverColumnCfg.parserArgs,
+					formatArgs: string[] = serverColumnCfg.formatArgs;
 				agColumnCfg.valueFormatter = (params: agGrid.ValueFormatterParams<any, any>): string => {
 					if (params.data == null || params.data[propName] == null) return '';
-					return viewHelper.call(this, params, propName, formatArgs);
+					return viewHelper.call(this, params, propName, parserArgs, formatArgs);
 				};
 			}
 			return this;
@@ -156,32 +161,38 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.ColumnsManagers {
 			return this.formattersMoney.get(formatterKey);
 		}
 
-		protected formatInt (params: agGrid.ValueFormatterParams<any, any>, propName: string, formatArgs: string[]): string {
+		protected formatInt (params: agGrid.ValueFormatterParams<any, any>, propName: string, parserArgs: string[], formatArgs: string[]): string {
 			var formatterKey = formatArgs == null ? 'default' : formatArgs.join('|');
 			return this.getIntFormater(formatterKey, formatArgs).format(params.data[propName]);
 		}
-		protected formatFloat (params: agGrid.ValueFormatterParams<any, any>, propName: string, formatArgs: string[]): string {
+		protected formatFloat (params: agGrid.ValueFormatterParams<any, any>, propName: string, parserArgs: string[], formatArgs: string[]): string {
 			var formatterKey = formatArgs == null ? 'default' : formatArgs.join('|');
 			return this.getFloatFormater(formatterKey, formatArgs).format(params.data[propName]);
 		}
-		protected formatMoney (params: agGrid.ValueFormatterParams<any, any>, propName: string, formatArgs: string[]): string {
+		protected formatMoney (params: agGrid.ValueFormatterParams<any, any>, propName: string, parserArgs: string[], formatArgs: string[]): string {
 			var formatterKey = formatArgs == null ? 'default' : formatArgs.join('|');
 			return this.getMoneyFormater(formatterKey, formatArgs).format(params.data[propName]);
 		}
-		protected formatDate (params: agGrid.ValueFormatterParams<any, any>, propName: string, formatArgs: string[]): string {
-			var dateTime = Date.parse(params.data[propName]) + this.serverConfig.timeZoneOffset;
+		protected formatDate (params: agGrid.ValueFormatterParams<any, any>, propName: string, parserArgs: string[], formatArgs: string[]): string {
+			if (parserArgs == null || parserArgs.length === 0) parserArgs = [this.Static.PARSER_PATTERN_DATE];
+			var dateTime = moment(params.data[propName], parserArgs[parserArgs.length - 1]);
+			dateTime.add(this.serverConfig.timeZoneOffset, 's');
 			if (formatArgs == null || formatArgs.length === 0) formatArgs = [this.Static.FORMAT_PATTERN_DATE];
-			return moment(dateTime).format(formatArgs[formatArgs.length - 1]);
+			return dateTime.format(formatArgs[0]);
 		}
-		protected formatDateTime (params: agGrid.ValueFormatterParams<any, any>, propName: string, formatArgs: string[]): string {
-			var dateTime = Date.parse(params.data[propName]) + this.serverConfig.timeZoneOffset;
+		protected formatDateTime (params: agGrid.ValueFormatterParams<any, any>, propName: string, parserArgs: string[], formatArgs: string[]): string {
+			if (parserArgs == null || parserArgs.length === 0) parserArgs = [this.Static.PARSER_PATTERN_DATE_TIME];
+			var dateTime = moment(params.data[propName], parserArgs[parserArgs.length - 1]);
+			dateTime.add(this.serverConfig.timeZoneOffset, 's');
 			if (formatArgs == null || formatArgs.length === 0) formatArgs = [this.Static.FORMAT_PATTERN_DATE_TIME];
-			return moment(dateTime).format(formatArgs[formatArgs.length - 1]);
+			return dateTime.format(formatArgs[0]);
 		}
-		protected formatTime (params: agGrid.ValueFormatterParams<any, any>, propName: string, formatArgs: string[]): string {
-			var dateTime = Date.parse(params.data[propName]) + this.serverConfig.timeZoneOffset;
+		protected formatTime (params: agGrid.ValueFormatterParams<any, any>, propName: string, parserArgs: string[], formatArgs: string[]): string {
+			if (parserArgs == null || parserArgs.length === 0) parserArgs = [this.Static.PARSER_PATTERN_TIME];
+			var dateTime = moment(params.data[propName], parserArgs[parserArgs.length - 1]);
+			dateTime.add(this.serverConfig.timeZoneOffset, 's');
 			if (formatArgs == null || formatArgs.length === 0) formatArgs = [this.Static.FORMAT_PATTERN_TIME];
-			return moment(dateTime).format(formatArgs[formatArgs.length - 1]);
+			return dateTime.format(formatArgs[0]);
 		}
 	}
 }

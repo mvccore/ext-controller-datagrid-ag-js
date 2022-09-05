@@ -77,7 +77,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 				serverColumnCfg: AgGrids.Interfaces.IServerConfigs.IColumn,
 				serverColumns = this.serverConfig.columns;
 			this.grid.SetSortHeaders(new Map<string, AgGrids.ColumnsManagers.SortHeader>());
-			this.grid.SetFilterInputs(new Map<string, AgGrids.ColumnsManagers.FilterInput>());
+			this.grid.SetFilterHeaders(new Map<string, AgGrids.ColumnsManagers.FilterHeader>());
 			for (var columnUrlName in serverColumns) {
 				serverColumnCfg = serverColumns[columnUrlName];
 				if (serverColumnCfg.disabled === true) continue;
@@ -172,9 +172,9 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 				column.filterParams = {
 					grid: this.grid
 				};
-				column.floatingFilterComponent = AgGrids.ColumnsManagers.FilterInput;
+				column.floatingFilterComponent = AgGrids.ColumnsManagers.FilterHeader;
 				var filtering = this.grid.GetFiltering();
-				column.floatingFilterComponentParams = <AgGrids.Interfaces.IFilterInputParams>{
+				column.floatingFilterComponentParams = <AgGrids.Interfaces.IFilterHeaderParams>{
 					suppressFilterButton: false,
 					grid: this.grid,
 					columnId: serverColumnCfg.urlName,

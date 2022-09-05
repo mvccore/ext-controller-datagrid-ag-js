@@ -1,5 +1,5 @@
 declare namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Interfaces {
-	interface IFilterInputElements {
+	interface IFilterHeaderElements {
 		cont: HTMLDivElement;
 		input: HTMLInputElement;
 		remove: HTMLDivElement;

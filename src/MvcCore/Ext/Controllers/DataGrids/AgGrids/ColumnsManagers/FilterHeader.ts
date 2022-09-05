@@ -1,16 +1,16 @@
 namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.ColumnsManagers {
-	export class FilterInput implements agGrid.IFloatingFilterComp<any> {
+	export class FilterHeader implements agGrid.IFloatingFilterComp<any> {
 		public static readonly SELECTORS = {
 			CONT_CLS: 'filter-header',
 			INPUT_CLS: 'filter-input',
 			REMOVE_CLS: 'filter-remove',
 			ACTIVE_CLS: 'filter-active',
 		};
-		public Static: typeof FilterInput;
-		protected params: AgGrids.Interfaces.IFilterInputParams<any>;
+		public Static: typeof FilterHeader;
+		protected params: AgGrids.Interfaces.IFilterHeaderParams<any>;
 		protected grid: AgGrid;
 		protected columnId: string;
-		protected elms: AgGrids.Interfaces.IFilterInputElements;
+		protected elms: AgGrids.Interfaces.IFilterHeaderElements;
 		protected activeFilterClsRegExp: RegExp;
 		protected handlers: {
 			handleSubmit?: (e: MouseEvent) => void;
@@ -20,7 +20,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.ColumnsManagers {
 		public constructor () {
 			this.Static = new.target;
 		}
-		public init (agParams: AgGrids.Interfaces.IFilterInputParams<any>): void {
+		public init (agParams: AgGrids.Interfaces.IFilterHeaderParams<any>): void {
 			this
 				.initParams(agParams)
 				.initElements()
@@ -51,7 +51,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.ColumnsManagers {
 			this.setHeaderActive(input.value !== '');
 			return this;
 		}
-		protected initParams (agParams: AgGrids.Interfaces.IFilterInputParams<any>): this {
+		protected initParams (agParams: AgGrids.Interfaces.IFilterHeaderParams<any>): this {
 			this.params = agParams;
 			this.grid = this.params.grid;
 			this.columnId = this.params.columnId;
@@ -59,7 +59,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.ColumnsManagers {
 				'\\s+' + this.Static.SELECTORS.ACTIVE_CLS.replace(/-/g, '\\-') + '\\s+', 
 				'g'
 			);
-			this.grid.GetFilterInputs().set(this.columnId, this);
+			this.grid.GetFilterHeaders().set(this.columnId, this);
 			return this;
 		}
 		protected initElements (): this {
@@ -73,7 +73,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.ColumnsManagers {
 			remove.className = sels.REMOVE_CLS;
 			cont.appendChild(input);
 			cont.appendChild(remove);
-			this.elms = <AgGrids.Interfaces.IFilterInputElements>{
+			this.elms = <AgGrids.Interfaces.IFilterHeaderElements>{
 				cont: cont,
 				input: input,
 				remove: remove
