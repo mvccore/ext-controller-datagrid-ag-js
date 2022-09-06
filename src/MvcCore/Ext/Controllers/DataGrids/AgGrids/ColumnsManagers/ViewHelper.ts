@@ -20,10 +20,12 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.ColumnsManagers {
 		protected formattersInt: Map<string, Intl.NumberFormat>;
 		protected formattersFloat: Map<string, Intl.NumberFormat>;
 		protected formattersMoney: Map<string, Intl.NumberFormat>;
+		protected translator: Translator;
 		
 		public constructor (grid: AgGrid) {
 			this.Static = new.target;
 			this.grid = grid;
+			this.translator = grid.GetTranslator();
 			this.serverConfig = grid.GetServerConfig();
 			this.localeNumeric = this.serverConfig.locales.localeNumeric.join(
 				AgGrids.Options.SYSTEM_LOCALE_SEPARATOR
@@ -64,6 +66,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.ColumnsManagers {
 				)]
 			]);
 			this.Static.defaults = new Map<Enums.ServerType, Types.ViewHelper>([
+				[Enums.ServerType.BOOL,			this.formatBool],
 				[Enums.ServerType.INT,			this.formatInt],
 				[Enums.ServerType.FLOAT,		this.formatFloat],
 				[Enums.ServerType.MONEY,		this.formatMoney],
@@ -161,6 +164,9 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.ColumnsManagers {
 			return this.formattersMoney.get(formatterKey);
 		}
 
+		protected formatBool (params: agGrid.ValueFormatterParams<any, any>, propName: string, parserArgs: string[], formatArgs: string[]): string {
+			return this.translator.Translate(params.data[propName] ? 'yes' : 'no');
+		}
 		protected formatInt (params: agGrid.ValueFormatterParams<any, any>, propName: string, parserArgs: string[], formatArgs: string[]): string {
 			var formatterKey = formatArgs == null ? 'default' : formatArgs.join('|');
 			return this.getIntFormater(formatterKey, formatArgs).format(params.data[propName]);

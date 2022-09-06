@@ -123,14 +123,16 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.DataSources {
 				method: reqMethod,
 				data: Object.assign({}, reqData),
 				type: reqType,
-				success: (response: AgGrids.Interfaces.IServerResponse) => {
+				success: (rawResponse: AgGrids.Interfaces.IServerResponse) => {
 					agGridApi.hideOverlay();
+
+					var response = this.Static.RetypeRawServerResponse(rawResponse);
+					this.grid.GetEvents().HandleResponseLoaded(response);
 					
 					var cacheKey = this.cache.Key(reqData);
 					if (this.changeUrlSwitches.has(cacheKey) && this.changeUrlSwitches.get(cacheKey)) {
 						this.changeUrlSwitches.delete(cacheKey);
 					} else {
-						console.log("pushState ajax", reqData);
 						history.pushState(reqData, document.title, response.url);
 					}
 

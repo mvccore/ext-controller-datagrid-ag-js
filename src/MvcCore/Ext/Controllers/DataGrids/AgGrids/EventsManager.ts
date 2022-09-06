@@ -49,7 +49,25 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 		public HandleColumnMoved (event: agGrid.ColumnMovedEvent<any>): void {
 			//console.log(event);
 		}
-		public HandleInputFilterChange (columnId: string, rawInputValue: string): void {
+		public HandleFilterMenuChange (columnId: string, filteringItem: Map<Enums.Operator, string[]> | null): void {
+			var filtering = this.grid.GetFiltering(),
+				filterRemoving = filteringItem == null || filteringItem.size === 0,
+				filterHeader = this.grid.GetFilterHeaders().get(columnId),
+				filterMenu = this.grid.GetFilterMenus().get(columnId);
+			if (filterRemoving) {
+				filtering.delete(columnId);
+				filterHeader?.SetText(null);
+				filterMenu?.SetUpControls(null);
+			} else {
+				if (!this.multiFiltering)
+					filtering = new Map<string, Map<Enums.Operator, string[]>>();
+				filtering.set(columnId, filteringItem);
+				filterHeader?.SetText(filtering.get(columnId));
+				filterMenu?.SetUpControls(filteringItem);
+			}
+			this.firefiltering(filtering);
+		}
+		public HandleFilterHeaderChange (columnId: string, rawInputValue: string): void {
 			var rawInputIsNull = rawInputValue == null,
 				rawInputValue = rawInputIsNull ? '' : rawInputValue.trim(),
 				filterRemoving = rawInputValue === '',
@@ -111,13 +129,21 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 					filtering.set(columnId, filterValues);
 				}
 			}
-			var filterHeader = this.grid.GetFilterHeaders().get(columnId);
+			var filterHeader = this.grid.GetFilterHeaders().get(columnId),
+				filterMenu = this.grid.GetFilterMenus().get(columnId),
+				filteringItem: Map<Enums.Operator, string[]>;
 			if (filterRemoving) {
 				filtering.delete(columnId);
-				filterHeader.SetText(null);
+				filterHeader?.SetText(null);
+				filterMenu?.SetUpControls(null);
 			} else {
-				filterHeader.SetText(filtering.get(columnId));
+				filteringItem = filtering.get(columnId);
+				filterHeader?.SetText(filteringItem);
+				filterMenu?.SetUpControls(filteringItem);
 			}
+			this.firefiltering(filtering);
+		}
+		public firefiltering (filtering: Map<string, Map<Enums.Operator, string[]>>): this {
 			this.grid
 				.SetFiltering(filtering)
 				.SetTotalCount(null);
@@ -129,6 +155,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 				var dataSourceMp: AgGrids.DataSources.MultiplePagesMode = this.grid.GetDataSource() as any;
 				dataSourceMp.Load();
 			}
+			return this;
 		}
 		public HandleSortChange (columnId: string, direction: AgGrids.Types.SortDirNullable): void {
 			var sortRemoving = direction == null,
@@ -220,6 +247,37 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 			this.handleUrlChangeSortsFilters(reqData);
 			dataSource.ExecRequest(reqDataRaw, false);
 		}
+		public HandleResponseLoaded (response: AgGrids.Interfaces.IServerResponse): void {
+			this.grid
+				.SetOffset(response.offset)
+				.SetTotalCount(response.totalCount)
+				.SetSorting(response.sorting)
+				.SetFiltering(response.filtering);
+			for (var [columnId, filterHeader] of this.grid.GetFilterHeaders().entries()) {
+				if (response.filtering.has(columnId)) {
+					filterHeader.SetText(response.filtering.get(columnId));
+				} else {
+					filterHeader.SetText(null);
+				}
+			}
+			for (var [columnId, filterMenu] of this.grid.GetFilterMenus().entries()) {
+				if (response.filtering.has(columnId)) {
+					filterMenu.SetUpControls(response.filtering.get(columnId));
+				} else {
+					filterMenu.SetUpControls(null);
+				}
+			}
+			var sortHeaders = this.grid.GetSortHeaders(),
+				index = 0;
+			for (var [columnId, sortDir] of response.sorting) {
+				if (sortHeaders.has(columnId)) {
+					sortHeaders.get(columnId)
+						.SetSequence(index)
+						.SetDirection(sortDir);
+				}
+				index++;
+			}
+		}
 		protected handleUrlChangeSortsFilters (reqData: Interfaces.IServerRequest): this {
 			// set up sort headers:
 			var sortHeaders = this.grid.GetSortHeaders(),
@@ -239,9 +297,9 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 			var filterInputs = this.grid.GetFilterHeaders();
 			for (var [columnId, filterInput] of filterInputs.entries()) {
 				if (reqData.filtering.has(columnId)) {
-					filterInput.SetText(reqData.filtering.get(columnId));
+					filterInput?.SetText(reqData.filtering.get(columnId));
 				} else {
-					filterInput.SetText(null);
+					filterInput?.SetText(null);
 				}
 			}
 			return this;

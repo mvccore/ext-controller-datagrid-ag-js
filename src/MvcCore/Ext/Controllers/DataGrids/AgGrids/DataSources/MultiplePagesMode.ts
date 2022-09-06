@@ -62,16 +62,21 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.DataSources {
 			}
 			return this;
 		}
-		protected handleResponse (reqData: Interfaces.IServerRequestRaw, changeUrl: boolean, cacheKey: string, cached: boolean, response: AgGrids.Interfaces.IServerResponse): void {
-			if (!cached) {
-				response = this.Static.RetypeRawServerResponse(response);
+		protected handleResponse (reqData: Interfaces.IServerRequestRaw, changeUrl: boolean, cacheKey: string, cached: boolean, rawResponse: AgGrids.Interfaces.IServerResponse): void {
+			var response: AgGrids.Interfaces.IServerResponse;
+			if (cached) {
+				response = rawResponse;	
+			} else {
+				response = this.Static.RetypeRawServerResponse(rawResponse);
 				this.cache.Add(cacheKey, response);
+
+				this.grid.GetEvents().HandleResponseLoaded(response);
 			}
 
 			var agGridApi: agGrid.GridApi<any> = this.options.GetAgOptions().api;
 			agGridApi.setRowData(response.data);
 			agGridApi.hideOverlay();
-
+			
 			if (response.controls != null) {
 				this.options.InitBottomControls();
 				var elms = this.options.GetElements(),

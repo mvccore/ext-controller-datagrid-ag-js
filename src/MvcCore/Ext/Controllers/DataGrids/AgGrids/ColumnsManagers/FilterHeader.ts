@@ -16,6 +16,8 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.ColumnsManagers {
 			handleSubmit?: (e: MouseEvent) => void;
 			handleBlur?: (e: FocusEvent) => void;
 			handleRemove?: (e: MouseEvent) => void;
+			handleChange?: (e: Event) => void;
+			changeDelayTimeout?: number;
 		};
 		public constructor () {
 			this.Static = new.target;
@@ -84,12 +86,18 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.ColumnsManagers {
 			this.handlers = {};
 			var input = this.elms.input,
 				remove = this.elms.remove;
-			input.addEventListener(
-				'keyup', this.handlers.handleSubmit = this.handleSubmit.bind(this)
-			);
-			input.addEventListener(
-				'blur', this.handlers.handleBlur = this.handleBlur.bind(this)
-			);
+			if (this.params.submitDelayMs > 0) {
+				input.addEventListener(
+					'change', this.handlers.handleChange = this.handleChange.bind(this)
+				);
+			} else {
+				input.addEventListener(
+					'keyup', this.handlers.handleSubmit = this.handleSubmit.bind(this)
+				);
+				input.addEventListener(
+					'blur', this.handlers.handleBlur = this.handleBlur.bind(this)
+				);
+			}
 			remove.addEventListener(
 				'click', this.handlers.handleRemove = this.handleRemove.bind(this), true
 			);
@@ -100,9 +108,8 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.ColumnsManagers {
 			e.preventDefault();
 			e.cancelBubble = true;
 			var value = this.elms.input.value;
-			debugger;
 			if (e.key === 'Enter') {
-				this.grid.GetEvents().HandleInputFilterChange(this.columnId, value);
+				this.grid.GetEvents().HandleFilterHeaderChange(this.columnId, value);
 			} else {
 				if (value == null || (value.trim() === '')) {
 					this.setHeaderActive(false);
@@ -115,7 +122,6 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.ColumnsManagers {
 			e.stopPropagation();
 			e.preventDefault();
 			e.cancelBubble = true;
-			debugger;
 			var value = this.elms.input.value.trim();
 			if (value === '' || value == null) {
 				var filtering = this.grid.GetFiltering();
@@ -126,14 +132,29 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.ColumnsManagers {
 		protected handleRemove (e: KeyboardEvent): void {
 			e.stopPropagation();
 			e.preventDefault();
-			debugger;
 			e.cancelBubble = true;
 			this.elms.input.value = '';
-			this.grid.GetEvents().HandleInputFilterChange(this.columnId, null);
+			this.grid.GetEvents().HandleFilterHeaderChange(this.columnId, null);
+		}
+		protected handleChange (e: Event): void {
+			e.stopPropagation();
+			e.preventDefault();
+			e.cancelBubble = true;
+			if (this.handlers.changeDelayTimeout)
+				clearTimeout(this.handlers.changeDelayTimeout);
+			setTimeout(() => {
+				this.grid.GetEvents().HandleFilterHeaderChange(this.columnId, this.elms.input.value.trim());
+			}, this.params.submitDelayMs);
 		}
 		public destroy (): void {
 			var input = this.elms.input,
 				cont = this.elms.cont;
+			if (this.handlers.changeDelayTimeout)
+				clearTimeout(this.handlers.changeDelayTimeout);
+			if (this.handlers.handleChange)
+				this.elms.remove.removeEventListener(
+					'click', this.handlers.handleChange
+				);
 			if (this.handlers.handleSubmit)
 				input.removeEventListener(
 					'keyup', this.handlers.handleSubmit
@@ -173,41 +194,8 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.ColumnsManagers {
 			}
 			return this;
 		}
-		/*protected _tmp (): void {
-
-			this.eGui = document.createElement('div');
-			this.eGui.innerHTML = '<input type="text" />';
-			this.currentValue = null;
-			this.eFilterInput = this.eGui.querySelector('input');
-			
-			const onInputBoxChanged = () => {
-				if (this.eFilterInput.value === '') {
-					// clear the filter
-					params.parentFilterInstance(instance => {
-						instance.onFloatingFilterChanged(null, null);
-					});
-					return;
-				}
-	 
-				this.currentValue = Number(this.eFilterInput.value);
-				params.parentFilterInstance(instance => {
-					// TODO: tohle tady nebude, prostě se pošle to co tam je do gridu a provede se AJAX request
-					instance.onFloatingFilterChanged('greaterThan', this.currentValue);
-				});
-			}
-	 
-			this.eFilterInput.addEventListener('input', onInputBoxChanged);
-		}*/
-		onParentModelChanged (parentModel: any, event: agGrid.FilterChangedEvent<any>): void {
-			debugger;
-			// When the filter is empty we will receive a null message her
-			/*if (!parentModel) {
-				this.eFilterInput.value = '';
-				this.currentValue = null;
-			} else {
-				this.eFilterInput.value = parentModel.filter + '';
-				this.currentValue = parentModel.filter;
-			}*/
+		
+		public onParentModelChanged (parentModel: any, event: agGrid.FilterChangedEvent<any>): void {
 		}
 	}
 }

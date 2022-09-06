@@ -1,13 +1,7 @@
 namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 	export class ColumnsManager {
 		public Static: typeof ColumnsManager;
-		protected static agColumnsTypes: Map<string, string> = new Map<string, string>([
-			[Enums.ServerType.INT,			"numericColumn"],
-			[Enums.ServerType.FLOAT,		"numericColumn"],
-			[Enums.ServerType.DATE,			"dateColumn"],
-			[Enums.ServerType.DATE_TIME,	"dateColumn"],
-			[Enums.ServerType.TIME,			"dateColumn"],
-		]);
+		
 		protected grid: AgGrid;
 		protected options: AgGrids.Options;
 		protected eventsManager: AgGrids.EventsManager;
@@ -28,6 +22,14 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 			renderRemove: true,
 			renderSequence: true,
 		};
+		protected filterHeaderDefaults: AgGrids.Interfaces.IFilterHeaderParams = <AgGrids.Interfaces.IFilterHeaderParams>{
+			suppressFilterButton: false,
+			submitDelayMs: 300
+		};
+		protected filterMenuDefaults: AgGrids.Interfaces.IFilterMenuParams = <AgGrids.Interfaces.IFilterMenuParams>{
+			suppressAndOrCondition: true,
+			buttons: Enums.FilterButton.APPLY | Enums.FilterButton.CLEAR | Enums.FilterButton.CANCEL
+		};
 		protected serverConfig: Interfaces.IServerConfig;
 		protected initData: Interfaces.IServerResponse;
 		protected viewHelper: ColumnsManagers.ViewHelper;
@@ -38,7 +40,12 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 			this.options = grid.GetOptions();
 			this.eventsManager = grid.GetEvents();
 			this.helpers = grid.GetHelpers();
-			this.sortHeaderDefaults.renderRemove = !this.helpers.IsTouchDevice();
+			var isTouchDevice = this.helpers.IsTouchDevice();
+			this.sortHeaderDefaults.renderRemove = !isTouchDevice;
+			if (!isTouchDevice) {
+				this.filterHeaderDefaults.submitDelayMs = 0;
+			}
+			this.filterMenuDefaults.isTouchDevice = isTouchDevice;
 		}
 
 		public SetAgColumnsConfigs (gridColumns: Map<string, AgGrids.Types.GridColumn>): this {
@@ -78,6 +85,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 				serverColumns = this.serverConfig.columns;
 			this.grid.SetSortHeaders(new Map<string, AgGrids.ColumnsManagers.SortHeader>());
 			this.grid.SetFilterHeaders(new Map<string, AgGrids.ColumnsManagers.FilterHeader>());
+			this.grid.SetFilterMenus(new Map<string, AgGrids.ColumnsManagers.FilterMenu>());
 			for (var columnUrlName in serverColumns) {
 				serverColumnCfg = serverColumns[columnUrlName];
 				if (serverColumnCfg.disabled === true) continue;
@@ -102,18 +110,11 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 				headerName: serverColumnCfg.headingName,
 				tooltipField: serverColumnCfg.propName
 			};
-			this.initColumnType(column, serverColumnCfg);
 			this.initColumnSorting(column, serverColumnCfg);
 			this.initColumnFiltering(column, serverColumnCfg);
 			this.viewHelper.SetUpColumnCfg(column, serverColumnCfg);
 			this.initColumnStyles(column, serverColumnCfg);
 			return column;
-		}
-		protected initColumnType (column: agGrid.ColDef, serverColumnCfg: AgGrids.Interfaces.IServerConfigs.IColumn): this {
-			var serverType = serverColumnCfg.types[serverColumnCfg.types.length - 1];
-			if (this.Static.agColumnsTypes.has(serverType))
-				column.type = this.Static.agColumnsTypes.get(serverType);
-			return this;
 		}
 		protected initColumnSorting (column: agGrid.ColDef, serverColumnCfg: AgGrids.Interfaces.IServerConfigs.IColumn): this {
 			column.sortable = !(serverColumnCfg.sort === false);
@@ -129,60 +130,59 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 			return this;
 		}
 		protected initColumnFiltering (column: agGrid.ColDef, serverColumnCfg: AgGrids.Interfaces.IServerConfigs.IColumn): this {
-			column.filter = !(serverColumnCfg.filter === false);
-			column.filterParams = {
-				suppressAndOrCondition: true,
-				/*filterOptions:[
-					'equals',
-					'notEqual',
-					'contains',
-					'notContains',
-					'startsWith',
-					'endsWith',
-					'lessThan',
-					'lessThanOrEqual',
-					'greaterThan',
-					'greaterThanOrEqual',
-					'inRange',
+			column.filter = (
+				serverColumnCfg.filter !== Enums.FilteringMode.DISABLED &&
+				serverColumnCfg.filter !== false
+			);
+			if (!column.filter) return this;
+			
+			var filtering = this.grid.GetFiltering(),
+				filteringItem = filtering.has(serverColumnCfg.urlName)
+				? filtering.get(serverColumnCfg.urlName)
+				: null;
 
-					'blank',
-					'notBlank',
-					'empty'
-				],*/
-				buttons: [
-					'apply', 'clear', 'reset', 'cancel'
-				]
-			};
-
-			// TODO
-			/*if (column.type === 'dateColumn') {
-				if (column.filter)
-					column.filter = 'agDateColumnFilter';
-				
-				column.floatingFilterComponent = AgGrids.ColumnsManagers.FilterInput;
-				column.floatingFilterComponentParams = <AgGrids.Interfaces.IFilterInputParams>{
-					suppressFilterButton: false,
-					grid: this.grid,
-					columnId: serverColumnCfg.urlName
-				};
-			}
-
-			if (column.type === 'numericColumn') {*/
-				column.filter = AgGrids.ColumnsManagers.FilterMenu;
-				column.filterParams = {
-					grid: this.grid
-				};
-				column.floatingFilterComponent = AgGrids.ColumnsManagers.FilterHeader;
-				var filtering = this.grid.GetFiltering();
-				column.floatingFilterComponentParams = <AgGrids.Interfaces.IFilterHeaderParams>{
-					suppressFilterButton: false,
+			column.floatingFilterComponent = AgGrids.ColumnsManagers.FilterHeader;
+			var floatingFilterComponentParams = {
+				...this.filterHeaderDefaults,
+				...<AgGrids.Interfaces.IFilterHeaderParams>{
 					grid: this.grid,
 					columnId: serverColumnCfg.urlName,
-					filteringItem: filtering.has(serverColumnCfg.urlName)
-						? filtering.get(serverColumnCfg.urlName)
-						: null
-				};
-			//}
+					
+					filteringItem: filteringItem
+				}
+			};
+			column.floatingFilterComponentParams = floatingFilterComponentParams;
+			
+			var serverType: Enums.ServerType = serverColumnCfg.types[serverColumnCfg.types.length - 1] as any,
+				filterMenuClass = ColumnsManagers.FilterMenu,
+				serverTypesExtendefFilterMenus = ColumnsManagers.FilterOperatorsCfg.SERVER_TYPES_EXTENDED_FILTER_MENUS;
+			if (serverTypesExtendefFilterMenus.has(serverType))
+			filterMenuClass = serverTypesExtendefFilterMenus.get(serverType);
+			column.filter = filterMenuClass;
+		
+			var allControlTypes = AgGrids.ColumnsManagers.FilterOperatorsCfg.FILTERING_CONTROL_TYPES,
+				columnControlTypes: Enums.FilterControlType = Enums.FilterControlType.UNKNOWN,
+				columnFiltering = Number(serverColumnCfg.filter);
+			for (var [filteringMode, controlTypes] of allControlTypes.entries()) {
+				if ((columnFiltering & filteringMode) != 0) {
+					for (var controlType of controlTypes) {
+						columnControlTypes |= controlType;
+					}
+				}
+			}
+			var filterMenuParams = {
+				...this.filterMenuDefaults,
+				...<AgGrids.Interfaces.IFilterMenuParams>{
+					grid: this.grid,
+					columnId: serverColumnCfg.urlName,
+					serverColumnCfg: serverColumnCfg,
+					serverType: serverType,
+					filteringItem: filteringItem,
+					controlTypes: columnControlTypes
+				}
+			};
+			column.filterParams = filterMenuParams;
+			
 			return this;
 		}
 		protected initColumnStyles (column: agGrid.ColDef, serverColumnCfg: AgGrids.Interfaces.IServerConfigs.IColumn): this {
