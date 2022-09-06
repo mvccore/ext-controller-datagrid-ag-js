@@ -22,6 +22,7 @@ namespace MvcCore.Ext.Controllers.DataGrids {
 		protected offset: number = 0;
 		protected gridPath: string = '';
 		protected pageMode: AgGrids.Enums.ClientPageMode;
+		protected columnsMenu: AgGrids.ColumnsMenu;
 		
 		public constructor (serverConfig: AgGrids.Interfaces.IServerConfig, initialData: AgGrids.Interfaces.IServerResponse) {
 			console.log("AgGrid.ctor - serverConfig", serverConfig);
@@ -38,7 +39,8 @@ namespace MvcCore.Ext.Controllers.DataGrids {
 				this
 					.initAgOptions()
 					.initGrid()
-					.initDataSource();
+					.initDataSource()
+					.initColumnsMenu();
 			});
 		}
 
@@ -175,6 +177,13 @@ namespace MvcCore.Ext.Controllers.DataGrids {
 		public GetFilterMenus (): Map<string, AgGrids.ColumnsManagers.FilterMenu> {
 			return this.filterMenus;
 		}
+		public SetColumnsMenus (columnsMenu: AgGrids.ColumnsMenu): this {
+			this.columnsMenu = columnsMenu;
+			return this;
+		}
+		public GetColumnsMenus (): AgGrids.ColumnsMenu {
+			return this.columnsMenu;
+		}
 
 		protected initSubClasses (): this {
 			this.helpers = new AgGrids.Helpers(this);
@@ -239,6 +248,10 @@ namespace MvcCore.Ext.Controllers.DataGrids {
 			} else if ((this.pageMode & AgGrids.Enums.ClientPageMode.CLIENT_PAGE_MODE_MULTI) != 0) {
 				this.dataSource = new AgGrids.DataSources.MultiplePagesMode(this);
 			}
+			return this;
+		}
+		protected initColumnsMenu (): this {
+			this.columnsMenu = new AgGrids.ColumnsMenu(this);
 			return this;
 		}
 	}

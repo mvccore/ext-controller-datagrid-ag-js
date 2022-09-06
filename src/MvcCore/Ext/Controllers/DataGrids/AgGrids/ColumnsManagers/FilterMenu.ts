@@ -364,11 +364,12 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.ColumnsManagers {
 						this.translator.Translate('addOr'), sels.BTN_ADD_CLS
 					)
 				);
-			var hiddenBtnClass = [sels.BTN_ADD_CLS, sels.BTN_ADD_HIDDEN_CLS].join(' ');;
+			var hiddenBtnClass = [sels.BTN_ADD_CLS, sels.BTN_ADD_HIDDEN_CLS].join(' ');
 			if (index + 1 < filteringItemsCount) {
 				btnNextValue.className = hiddenBtnClass;
 			} else if (
-				filteringItemsCount === 1 && !(
+				filteringItemsCount === 1 && 
+				this.serverType === Enums.ServerType.BOOL && !(
 					(this.params.controlTypes & Enums.FilterControlType.IS_NULL) != 0 ||
 					(this.params.controlTypes & Enums.FilterControlType.IS_NOT_NULL) != 0
 				)
