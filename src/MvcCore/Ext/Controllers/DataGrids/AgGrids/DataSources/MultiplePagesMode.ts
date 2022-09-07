@@ -11,7 +11,6 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.DataSources {
 			this.initPageReqDataAndCache();
 			history.replaceState(this.pageReqData, document.title, location.href);
 			this.pageReqData = null;
-			
 		}
 
 		protected initPageReqDataAndCache (): void {
@@ -30,7 +29,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.DataSources {
 		}
 
 		public Load (): this {
-			var reqData: Interfaces.IServerRequestRaw = this.Static.retypeRequestMaps2Objects({
+			var reqData: Interfaces.IServerRequestRaw = this.Static.RetypeRequestMaps2Objects({
 				offset: this.grid.GetOffset(),
 				limit: this.grid.GetServerConfig().itemsPerPage,
 				sorting: this.grid.GetSorting(),
@@ -104,8 +103,10 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.DataSources {
 				}
 			}
 			
-			if (changeUrl)
+			if (changeUrl) {
+				reqData.path = response.path;
 				history.pushState(reqData, document.title, response.url);
+			}
 		}
 
 	}

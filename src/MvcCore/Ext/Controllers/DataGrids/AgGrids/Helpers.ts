@@ -97,6 +97,39 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 			}
 			return allowedOperators;
 		}
+		public SortConfigColumns (serverColumns: {[columnUrlName: string]: MvcCore.Ext.Controllers.DataGrids.AgGrids.Interfaces.IServerConfigs.IColumn }): MvcCore.Ext.Controllers.DataGrids.AgGrids.Interfaces.IServerConfigs.IColumn[] {
+			var indexedMap = new Map<number, MvcCore.Ext.Controllers.DataGrids.AgGrids.Interfaces.IServerConfigs.IColumn[]>(),
+				notIndexedSet = new Set<MvcCore.Ext.Controllers.DataGrids.AgGrids.Interfaces.IServerConfigs.IColumn>(),
+				serverColumnCfg: AgGrids.Interfaces.IServerConfigs.IColumn,
+				columnIndex: number | null;
+			for (var columnUrlName in serverColumns) {
+				serverColumnCfg = serverColumns[columnUrlName];
+				columnIndex = serverColumnCfg.columnIndex;
+				if (columnIndex == null) {
+					notIndexedSet.add(serverColumnCfg);
+				} else {
+					if (indexedMap.has(columnIndex)) {
+						indexedMap.get(columnIndex).push(serverColumnCfg);
+					} else {
+						indexedMap.set(columnIndex, [serverColumnCfg]);
+					}
+				}
+			}
+			var result: MvcCore.Ext.Controllers.DataGrids.AgGrids.Interfaces.IServerConfigs.IColumn[] = [],
+				index: number = 0,
+				indexedMapKeys = Array.from(indexedMap.keys()).sort();
+			for (var indexedMapKey of indexedMapKeys) {
+				for (var serverColumnCfg of indexedMap.get(indexedMapKey)) {
+					serverColumnCfg.columnIndex = index++;
+					result.push(serverColumnCfg);
+				}
+			}
+			for (var serverColumnCfg of notIndexedSet) {
+				serverColumnCfg.columnIndex = index++;
+				result.push(serverColumnCfg);
+			}
+			return result;
+		}
 		/**
 		 * Check if given value contains any LIKE/NOT LIKE special 
 		 * character: `%` or `_` or escaped like this: `[%]` or `[_]`.

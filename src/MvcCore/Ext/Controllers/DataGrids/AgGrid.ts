@@ -25,8 +25,8 @@ namespace MvcCore.Ext.Controllers.DataGrids {
 		protected columnsMenu: AgGrids.ColumnsMenu;
 		
 		public constructor (serverConfig: AgGrids.Interfaces.IServerConfig, initialData: AgGrids.Interfaces.IServerResponse) {
-			console.log("AgGrid.ctor - serverConfig", serverConfig);
-			console.log("AgGrid.ctor - initialData", initialData);
+			//console.log("AgGrid.ctor - serverConfig", serverConfig);
+			//console.log("AgGrid.ctor - initialData", initialData);
 			this
 				.initSubClasses()
 				.initServerConfig(serverConfig)
@@ -190,6 +190,10 @@ namespace MvcCore.Ext.Controllers.DataGrids {
 		}
 		public RemoveEventListener <K extends keyof AgGrids.Interfaces.IGridEvensHandlersMap>(eventName: K, handler: (e: AgGrids.Interfaces.IGridEvensHandlersMap[K]) => void): this {
 			this.eventsManager.RemoveEventListener(eventName, handler);
+			return this;
+		}
+		public ExecChange (offset: number = 0, sorting: AgGrids.Types.SortItem[] = [], filtering: Map<string, Map<AgGrids.Enums.Operator, string[]>> = new Map<string, Map<AgGrids.Enums.Operator, string[]>>()): this {
+			this.eventsManager.HandleExecChange(offset, sorting, filtering);
 			return this;
 		}
 

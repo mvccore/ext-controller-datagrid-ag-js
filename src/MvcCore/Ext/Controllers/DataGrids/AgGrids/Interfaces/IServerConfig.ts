@@ -11,9 +11,10 @@ declare namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Interfaces {
 		ajaxParamsNames: Map<Enums.AjaxParamName, string>;
 		id: string;
 		clientPageMode: Enums.ClientPageMode;
-		dataUrl: string;
-		columnsStatesUrl: string;
-		columnsSizesUrl: string;
+		urlData: string;
+		urlColumnsStates: string;
+		urlColumnsChanges: string;
+		ignoreDisabledColumns: boolean;
 		dataRequestMethod: Enums.AjaxDataRequestMethod;
 		rowSelection: Enums.RowSelection;
 		itemsPerPage: number;

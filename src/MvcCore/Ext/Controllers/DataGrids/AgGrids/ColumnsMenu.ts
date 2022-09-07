@@ -18,12 +18,9 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 		};
 		public Static: typeof ColumnsMenu;
 		protected grid: AgGrid;
-		protected helpers: Helpers;
 		protected options: Options;
-		protected eventsManager: EventsManager;
 		protected translator: Translator;
 		protected serverConfig: Interfaces.IServerConfig;
-		protected isTouchDevice: boolean;
 		protected elms: Interfaces.IColumnsMenuElements;
 		protected displayed: boolean;
 		protected formClick: boolean;
@@ -34,12 +31,9 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 		public constructor (grid: AgGrid) {
 			this.Static = new.target;
 			this.grid = grid;
-			this.eventsManager = grid.GetEvents();
 			this.options = grid.GetOptions();
-			this.helpers = grid.GetHelpers();
 			this.translator = grid.GetTranslator();
 			this.serverConfig = grid.GetServerConfig();
-			this.isTouchDevice = this.helpers.IsTouchDevice();
 			this.displayed = false;
 			this.formClick = false;
 			this
@@ -61,10 +55,17 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 			if (this.elms.form) {
 				this.displayed = true;
 				this.elms.form.className = this.Static.SELECTORS.FORM_CLS;
-				this.ResizeControls();
-				this.addShownEvents();
+				this
+					.ResizeControls()
+					.disableUsedColumns()
+					.addShownEvents();
 			}
 			return this;
+		}
+		public RedrawControls (): this {
+			if (!this.elms.controls) return this;
+			this.elms.controls.innerHTML = '';
+			return this.initFormControls();
 		}
 		public ResizeControls (): this {
 			if (!this.displayed) return this;
@@ -78,6 +79,18 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 		protected removeShownEvents(): this {
 			document.removeEventListener('click', this.handlers.handleDocumentClick);
 			this.elms.form.removeEventListener('click', this.handlers.handleFormClick, true);
+			return this;
+		}
+		protected disableUsedColumns (): this {
+			if (this.serverConfig.ignoreDisabledColumns) return this;
+			var filtering = this.grid.GetFiltering(),
+				sorting = this.grid.GetSorting(),
+				sortingSet = new Set<string>();
+			for (var [idColumn] of sorting)
+				sortingSet.add(idColumn);
+			for (var [idColumn, input] of this.elms.inputs.entries()) {
+				input.disabled = filtering.has(idColumn) || sortingSet.has(idColumn);
+			}
 			return this;
 		}
 		protected addShownEvents(): this {
@@ -118,7 +131,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 			var form = this.createElm<HTMLFormElement>(
 				'form', [sels.FORM_CLS], null, {
 					method: 'POST',
-					action: this.serverConfig.columnsStatesUrl
+					action: this.serverConfig.urlColumnsStates
 				}
 			);
 			var head = this.createElm<HTMLDivElement>(
@@ -142,6 +155,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 		protected initFormControls (): this {
 			var columnCfg: Interfaces.IServerConfigs.IColumn,
 				inputId: string,
+				idColumn: string,
 				sels = this.Static.SELECTORS,
 				baseId = sels.INPUT_ID_BASE,
 				labelCls = sels.MENU_CTRL_CLS,
@@ -149,8 +163,9 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 				text: string,
 				span: HTMLSpanElement,
 				checkbox: HTMLInputElement;
-			for (var idColumn in this.serverConfig.columns) {
-				columnCfg = this.serverConfig.columns[idColumn];
+			this.elms.inputs = new Map<string, HTMLInputElement>();
+			for (var columnCfg of this.grid.GetOptions().GetColumnManager().GetAllServerColumnsSorted()) {
+				idColumn = columnCfg.urlName;
 				text = columnCfg.title ?? columnCfg.headingName;
 				if (text === idColumn) continue;
 				inputId = baseId + idColumn;
@@ -158,7 +173,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 				checkbox = this.createElm<HTMLInputElement>('input', [], null, { id: inputId, name: idColumn, type: 'checkbox' });
 				checkbox.checked = !columnCfg.disabled;
 				span = this.createElm<HTMLSpanElement>('span', [], text);
-				label.appendChild(checkbox);
+				this.elms.inputs.set(idColumn, label.appendChild(checkbox));
 				label.appendChild(span);
 				this.elms.controls.appendChild(label);
 			}
@@ -192,13 +207,17 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 		protected handleOpen (e: MouseEvent): void {
 			if (!this.elms.form) 
 				this.initFormElements().initFormEvents();
-			this.Show();
+			this.stopEvent(e).Show();
+
 		}
 		protected handleCancel (e: MouseEvent): void {
+			this.stopEvent(e).Hide();
+		}
+		protected stopEvent (e: Event): this {
 			e.preventDefault();
 			e.stopPropagation();
 			e.cancelBubble = true;
-			this.Hide();
+			return this;
 		}
 	}
 }

@@ -27,7 +27,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 		protected initPageReqDataAndCache (): void {
 			var grid = this.Static.grid;
 			this.cache = new DataSources.Cache(grid);
-			this.pageReqData = this.Static.retypeRequestMaps2Objects({
+			this.pageReqData = this.Static.RetypeRequestMaps2Objects({
 				offset: grid.GetOffset(),
 				limit: grid.GetServerConfig().itemsPerPage,
 				sorting: grid.GetSorting(),
@@ -37,7 +37,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 		protected getReqUrlMethodAndType (): [string, string, string] {
 			var serverCfg = this.Static.grid.GetServerConfig(),
 				cfgReqMethod = serverCfg.dataRequestMethod,
-				dataUrl: string = serverCfg.dataUrl,
+				urlData: string = serverCfg.urlData,
 				reqMethod: string = 'GET',
 				reqType: string = 'json';
 			if ((cfgReqMethod & Enums.AjaxDataRequestMethod.AJAX_DATA_REQUEST_METHOD_POST) != 0) {
@@ -45,7 +45,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 			} else if ((cfgReqMethod & Enums.AjaxDataRequestMethod.AJAX_DATA_REQUEST_METHOD_JSONP) != 0) {
 				reqType = 'jsonp';
 			}
-			return [dataUrl, reqMethod, reqType];
+			return [urlData, reqMethod, reqType];
 		}
 		public static RetypeRawServerResponse (serverResponse: Interfaces.IServerResponse): Interfaces.IServerResponse {
 			serverResponse.filtering = this.retypeFilteringObj2Map(serverResponse.filtering);
@@ -80,8 +80,8 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 			}
 			return newFiltering;
 		}
-		protected static retypeRequestMaps2Objects (serverRequest: Interfaces.IServerRequest): Interfaces.IServerRequestRaw {
-			var result: Interfaces.IServerRequestRaw = serverRequest as any;
+		public static RetypeRequestMaps2Objects (serverRequest: Interfaces.IServerRequest): Interfaces.IServerRequestRaw {
+			var result: Interfaces.IServerRequestRaw = { ...serverRequest } as any;
 			if (serverRequest.filtering instanceof Map) {
 				result.filtering = this.RetypeFilteringMap2Obj(serverRequest.filtering);
 			}

@@ -44,7 +44,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.DataSources {
 			
 			var cacheKey = this.cache.Key(reqData);
 			this.changeUrlSwitches.set(cacheKey, true);
-			console.log("set cache", cacheKey, reqData);
+			//console.log("set cache", cacheKey, reqData);
 
 			var gridOptions = this.grid.GetOptions().GetAgOptions();
 			
@@ -62,7 +62,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.DataSources {
 				(params.endRow <= this.initialData.offset + this.initialData.dataCount || totalCount < params.endRow)
 			);
 			if (!result) return false;
-			var reqData: Interfaces.IServerRequestRaw = this.Static.retypeRequestMaps2Objects({
+			var reqData: Interfaces.IServerRequestRaw = this.Static.RetypeRequestMaps2Objects({
 				offset: this.grid.GetOffset(),
 				limit: this.grid.GetServerConfig().itemsPerPage,
 				sorting: this.grid.GetSorting(),
@@ -81,7 +81,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.DataSources {
 			);
 			if (this.pageLoaded) {
 
-				var reqData: Interfaces.IServerRequestRaw = this.Static.retypeRequestMaps2Objects({
+				var reqData: Interfaces.IServerRequestRaw = this.Static.RetypeRequestMaps2Objects({
 					offset: this.grid.GetOffset(),
 					limit: this.grid.GetServerConfig().itemsPerPage,
 					sorting: this.grid.GetSorting(),
@@ -91,7 +91,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.DataSources {
 				if (this.changeUrlSwitches.has(cacheKey) && this.changeUrlSwitches.get(cacheKey)) {
 					this.changeUrlSwitches.delete(cacheKey);
 				} else {
-					console.log("pushState init data", reqData);
+					//console.log("pushState init data", reqData);
 					history.pushState(reqData, document.title, this.initLocationHref);
 				}
 
@@ -112,7 +112,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.DataSources {
 			var agGridApi: agGrid.GridApi<any> = this.options.GetAgOptions().api;
 			agGridApi.showLoadingOverlay();
 			var [reqDataUrl, reqMethod, reqType] = this.getReqUrlMethodAndType();
-			var reqData = this.Static.retypeRequestMaps2Objects({
+			var reqData = this.Static.RetypeRequestMaps2Objects({
 				offset: params.startRow,
 				limit: params.endRow - params.startRow,
 				sorting: this.grid.GetSorting(),

@@ -1,5 +1,6 @@
 namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 	export class EventsManager {
+		public static readonly COLUMN_CHANGES_TIMEOUT = 2000;
 		public Static: typeof EventsManager;
 		protected grid: AgGrid;
 		protected multiSorting: boolean;
@@ -9,8 +10,12 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 		protected helpers: Helpers;
 		protected likeOperatorsAndPrefixes: Map<Enums.Operator, string>;
 		protected notLikeOperatorsAndPrefixes: Map<Enums.Operator, string>;
+		protected columnsChanges: Map<string, Interfaces.IColumnChange>;
+		protected columnsChangesTimeout: number;
+		protected columnsChangesSending: boolean;
 		protected handlers: Map<Types.GridEventName, Types.GridEventHandler[]>;
 		public constructor (grid: AgGrid) {
+			this.Static = new.target;
 			this.grid = grid;
 			var serverConfig = grid.GetServerConfig();
 			this.multiSorting = (
@@ -44,6 +49,8 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 				}
 			}
 			this.handlers = new Map<Types.GridEventName, Types.GridEventHandler[]>();
+			this.columnsChanges = new Map<string, Interfaces.IColumnChange>();
+			this.columnsChangesSending = false;
 		}
 		public AddEventListener <K extends keyof Interfaces.IGridEvensHandlersMap>(eventName: Types.GridEventName, handler: (e: Interfaces.IGridEvensHandlersMap[K]) => void): this {
 			var handlers = this.handlers.has(eventName)
@@ -82,10 +89,93 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 			});
 		}
 		public HandleColumnResized (event: agGrid.ColumnResizedEvent<any>): void {
-			//console.log(event);
+			if (event.source !== 'uiColumnDragged' || !event.finished) return;
+
+			if (this.columnsChangesTimeout) 
+				clearTimeout(this.columnsChangesTimeout);
+
+			var columnId = event.column.getColId(),
+				newWidth = event.column.getActualWidth();
+
+			if (this.columnsChanges.has(columnId)) {
+				this.columnsChanges.get(columnId).width = newWidth;
+			} else {
+				this.columnsChanges.set(columnId, <Interfaces.IColumnChange>{
+					width: newWidth
+				});
+			}
+
+			this.columnsChangesTimeout = setTimeout(
+				this.handleColumnChangesSent.bind(this), 
+				this.Static.COLUMN_CHANGES_TIMEOUT
+			);
 		}
 		public HandleColumnMoved (event: agGrid.ColumnMovedEvent<any>): void {
-			//console.log(event);
+			if (this.columnsChangesTimeout) 
+				clearTimeout(this.columnsChangesTimeout);
+
+			var columnId = event.column.getColId(),
+				columnConfig = this.grid.GetServerConfig().columns[columnId],
+				columnsManager = this.grid.GetOptions().GetColumnManager(),
+				activeColumnsSorted = columnsManager.GetActiveServerColumnsSorted(),
+				allColumnsSorted = columnsManager.GetAllServerColumnsSorted(),
+				activeIndexOld = columnConfig.activeColumnIndex,
+				activeIndexNex = event.toIndex,
+				allIndexOld = columnConfig.columnIndex,
+				allIndexNew = allColumnsSorted[activeIndexNex].columnIndex;
+
+			// přehodit reálné all indexy
+			var [allColumnCfg] = allColumnsSorted.splice(allIndexOld, 1);
+			allColumnsSorted.splice(allIndexNew, 0, allColumnCfg);
+			var [activeColumnCfg] = activeColumnsSorted.splice(activeIndexOld, 1);
+			activeColumnsSorted.splice(activeIndexNex, 0, activeColumnCfg);
+			
+			for (var i = 0, l = allColumnsSorted.length; i < l; i++) {
+				columnConfig = allColumnsSorted[i]
+				columnConfig.columnIndex = i;
+				columnId = columnConfig.urlName;
+				if (this.columnsChanges.has(columnId)) {
+					this.columnsChanges.get(columnId).index = i;
+				} else {
+					this.columnsChanges.set(columnId, <Interfaces.IColumnChange>{
+						index: i
+					});
+				}
+			}
+			for (var i = 0, l = activeColumnsSorted.length; i < l; i++)
+				activeColumnsSorted[i].activeColumnIndex = i;
+				
+			columnsManager.SetActiveServerColumnsSorted(activeColumnsSorted);
+			columnsManager.SetAllServerColumnsSorted(allColumnsSorted);
+			this.grid.GetColumnsMenu().RedrawControls();
+
+			this.columnsChangesTimeout = setTimeout(
+				this.handleColumnChangesSent.bind(this), 
+				this.Static.COLUMN_CHANGES_TIMEOUT
+			);
+		}
+		protected handleColumnChangesSent (): void {
+			if (this.columnsChangesSending) return;
+			var plainObj = AgGrids.Helpers.ConvertMap2Object(this.columnsChanges);
+			this.columnsChanges = new Map<string, Interfaces.IColumnChange>();
+			Ajax.load(<Ajax.LoadConfig>{
+				url: this.grid.GetServerConfig().urlColumnsChanges,
+				data: { changes: plainObj },
+				type: 'json',
+				method: 'POST',
+				success: this.handleColumnChangesResponse.bind(this),
+				error: this.handleColumnChangesResponse.bind(this)
+			});
+		}
+		protected handleColumnChangesResponse (): void {
+			this.columnsChangesSending = false;
+			if (this.columnsChanges.size === 0) return;
+			if (this.columnsChangesTimeout) 
+				clearTimeout(this.columnsChangesTimeout);
+			this.columnsChangesTimeout = setTimeout(
+				this.handleColumnChangesSent.bind(this), 
+				this.Static.COLUMN_CHANGES_TIMEOUT
+			);
 		}
 
 		public HandleFilterMenuChange (columnId: string, filteringItem: Map<Enums.Operator, string[]> | null): void {
@@ -234,7 +324,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 				sorting: newSorting
 			});
 		}
-		public HandleGridSizeChanged (event: agGrid.ViewportChangedEvent<any> | agGrid.GridSizeChangedEvent<any>): void {
+		public HandleGridSizeChanged (viewPort: boolean, event: agGrid.ViewportChangedEvent<any> | agGrid.GridSizeChangedEvent<any>): void {
 			// get the current grids width
 			var gridElm = this.grid.GetOptions().GetElements().agGridElement,
 				gridElmParent = gridElm.parentNode as HTMLElement;
@@ -271,17 +361,59 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 			});
 			return this;
 		}
+		public HandleExecChange (offset: number, sorting: Types.SortItem[], filtering: Map<string, Map<Enums.Operator, string[]>>): void {
+			var dataSource = this.grid.GetDataSource() as AgGrids.DataSource,
+				reqData = <Interfaces.IServerRequest>{
+					offset: offset,
+					limit: this.grid.GetServerConfig().itemsPerPage,
+					sorting: sorting,
+					filtering: filtering,
+				},
+				reqDataRaw = dataSource.Static.RetypeRequestMaps2Objects(reqData),
+				
+				oldOffset = this.grid.GetOffset(),
+				oldFiltering = JSON.stringify(dataSource.Static.RetypeFilteringMap2Obj(this.grid.GetFiltering())),
+				oldSorting = JSON.stringify(this.grid.GetSorting()),
+				
+				newFiltering = JSON.stringify(reqDataRaw.filtering),
+				newSorting = JSON.stringify(sorting);
+			
+			this.grid
+				.SetOffset(offset)
+				.SetSorting(sorting)
+				.SetFiltering(filtering);
+
+			this.handleUrlChangeSortsFilters(reqData);
+			dataSource.ExecRequest(reqDataRaw, true);
+
+			if (oldOffset !== reqData.offset) {
+				this.FireHandlers("pageChange", <Interfaces.IGridPageChangeEvent>{
+					offset: reqData.offset
+				});
+			}
+			if (oldFiltering !== newFiltering) {
+				this.FireHandlers("filterChange", <Interfaces.IGridFilterChangeEvent>{
+					filtering: reqData.filtering
+				});
+			}
+			if (oldSorting !== newSorting) {
+				this.FireHandlers("sortChange", <Interfaces.IGridSortChangeEvent>{
+					sorting: reqData.sorting
+				});
+			}
+		}
 		public HandleUrlChange (e: PopStateEvent): void {
 			var dataSource = this.grid.GetDataSource() as AgGrids.DataSource,
 				reqDataRaw = e.state as Interfaces.IServerRequestRaw,
 				oldOffset = this.grid.GetOffset(),
-				oldFiltering = JSON.stringify(DataSource.RetypeFilteringMap2Obj(this.grid.GetFiltering())),
+				oldFiltering = JSON.stringify(dataSource.Static.RetypeFilteringMap2Obj(this.grid.GetFiltering())),
 				oldSorting = JSON.stringify(this.grid.GetSorting()),
 				newFiltering = JSON.stringify(reqDataRaw.filtering),
 				newSorting = JSON.stringify(reqDataRaw.sorting),
-				reqData = DataSource.RetypeRequestObjects2Maps(reqDataRaw);
+				reqData = dataSource.Static.RetypeRequestObjects2Maps(reqDataRaw);
 			
 			this.grid
+				.SetOffset(reqData.offset)
 				.SetSorting(reqData.sorting)
 				.SetFiltering(reqData.filtering);
 
@@ -294,7 +426,6 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 				});
 			}
 			if (oldFiltering !== newFiltering) {
-				console.log(oldFiltering, newFiltering);
 				this.FireHandlers("filterChange", <Interfaces.IGridFilterChangeEvent>{
 					filtering: reqData.filtering
 				});

@@ -6,6 +6,7 @@ declare namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Interfaces {
 		form: HTMLFormElement;
 		heading: HTMLDivElement;
 		controls: HTMLDivElement;
+		inputs: Map<string, HTMLInputElement>;
 		buttons: HTMLDivElement;
 		
 		btnApply: HTMLButtonElement;
