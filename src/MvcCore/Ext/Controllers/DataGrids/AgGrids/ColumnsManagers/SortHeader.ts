@@ -1,6 +1,7 @@
 namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.ColumnsManagers {
 	export class SortHeader implements agGrid.IHeaderComp {
 		public static readonly SELECTORS = {
+			PARENT_ACTIVE_CLS: 'sort-header-active',
 			CONT_CLS: 'sort-header',
 			CONT_ITEMS_CLS_BASE: 'sort-header-items-',
 			SORTABLE_CLS: 'sortable',
@@ -14,6 +15,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.ColumnsManagers {
 		};
 		public Static: typeof SortHeader;
 
+		protected contActiveClsRegExp: RegExp;
 		protected params: AgGrids.Interfaces.ISortHeaderParams<any>;
 		protected grid: AgGrid;
 		protected columnId: string;
@@ -29,6 +31,10 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.ColumnsManagers {
 
 		public constructor () {
 			this.Static = new.target;
+			this.contActiveClsRegExp = new RegExp(
+				'\\s+(' + this.Static.SELECTORS.PARENT_ACTIVE_CLS.replace(/\-/g, '\\-') + ')\\s+', 
+				'g'
+			);
 		}
 
 		public init (agParams: AgGrids.Interfaces.ISortHeaderParams<any>): void {
@@ -58,6 +64,14 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.ColumnsManagers {
 			}
 			return this;
 		}
+		public OnReady (): this {
+			if (this.sortable && this.direction != null) {
+				var sels = this.Static.SELECTORS;
+				var parentCont = this.elms.cont.parentNode as HTMLDivElement;
+				parentCont.className = [parentCont.className, sels.PARENT_ACTIVE_CLS].join(' ');
+			}
+			return this;
+		}
 
 		protected initParams (agParams: AgGrids.Interfaces.ISortHeaderParams<any>): this {
 			this.params = agParams;
@@ -74,7 +88,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.ColumnsManagers {
 				cont = document.createElement('div'),
 				innerCode: string[] = [];
 			var innerCodes = {
-				label:	`<div class="${sels.LABEL_CLS}">${this.params.displayName}</div>`,
+				label:		`<div class="${sels.LABEL_CLS}">${this.params.displayName}</div>`,
 				sequence:	`<div class="${sels.ORDER_CLS}"></div>`,
 				direction:	`<div class="${sels.DIRECTION_CLS}"></div>`,
 				remove:		`<div class="${sels.REMOVE_CLS}"></div>`,
@@ -203,6 +217,10 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.ColumnsManagers {
 			if (this.params.renderSequence)
 				this.elms.sequence.innerHTML = '1';
 			var sels = this.Static.SELECTORS;
+			var parentCont = this.elms.cont.parentNode as HTMLDivElement;
+			var className = ' '+parentCont.className+' ';
+			if (!className.match(this.contActiveClsRegExp))
+				parentCont.className = [className, sels.PARENT_ACTIVE_CLS].join(' ');
 			this.elms.cont.className = [this.contBaseClass, sels.ACTIVE_CLS].join(' ');
 			if (this.params.renderDirection) {
 				this.elms.direction.className = [
@@ -220,6 +238,11 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.ColumnsManagers {
 				this.elms.sequence.innerHTML = '';
 			var sels = this.Static.SELECTORS;
 			this.elms.cont.className = this.contBaseClass;
+			var parentCont = this.elms.cont.parentNode as HTMLDivElement;
+			var className = ' '+parentCont.className+' ';
+			parentCont.className = className.replace(
+				this.contActiveClsRegExp, ' '
+			);
 			return this;
 		}
 	}

@@ -238,6 +238,8 @@ namespace MvcCore.Ext.Controllers.DataGrids {
 			this.options.GetColumnManager().SetAgColumnsConfigs(null); // frees memory
 			this.agGridApi = gridOptions.api;
 			this.agColumnApi = gridOptions.columnApi;
+			for (var sortHeader of this.sortHeaders.values())
+				sortHeader.OnReady();
 			return this;
 		}
 		protected initDataSource (): this {
