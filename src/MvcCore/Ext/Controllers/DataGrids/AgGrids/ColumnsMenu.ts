@@ -8,6 +8,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 			BTN_CANCEL_CLS: 'columns-menu-btn-cancel',
 
 			FORM_CLS: 'columns-menu-form',
+			FORM_HIDDEN_CLS: 'columns-menu-form-hidden',
 			FORM_HEAD_CLS: 'columns-menu-heading',
 			FORM_CTRLS_CLS: 'columns-menu-controls',
 			MENU_CTRL_CLS: 'columns-menu-control',
@@ -36,6 +37,20 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 			this
 				.initElements()
 				.initEvents();
+		}
+		protected Hide (): this {
+			if (this.elms.form) {
+				var sels = this.Static.SELECTORS;
+				this.elms.form.className = [sels.FORM_CLS, sels.FORM_HIDDEN_CLS].join(' ');
+			}
+			return this;
+		}
+		protected Show (): this {
+			if (this.elms.form) {
+				this.elms.form.className = this.Static.SELECTORS.FORM_CLS;
+				this.resizeControls();
+			}
+			return this;
 		}
 		protected initElements (): this {
 			var contElm = this.options.GetElements().contElement,
@@ -100,6 +115,10 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 			}
 			return this;
 		}
+		protected initFormEvents (): this {
+			this.elms.btnCancel.addEventListener('click', this.handleCancel.bind(this));
+			return this;
+		}
 		protected resizeControls (): this {
 			var gridElm = this.grid.GetOptions().GetElements().agGridElement,
 				gridElmParent = gridElm.parentNode as HTMLElement,
@@ -130,10 +149,15 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 			return this;
 		}
 		protected handleOpen (e: MouseEvent): void {
-			if (!this.elms.form) this.initFormElements();
-			this.resizeControls();
-
+			if (!this.elms.form) 
+				this.initFormElements().initFormEvents();
+			this.Show();
 		}
-
+		protected handleCancel (e: MouseEvent): void {
+			e.preventDefault();
+			e.stopPropagation();
+			e.cancelBubble = true;
+			this.Hide();
+		}
 	}
 }
