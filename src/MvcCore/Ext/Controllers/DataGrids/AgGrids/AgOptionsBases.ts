@@ -70,15 +70,9 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 		protected initEvents (): this {
 			this.agOptions.onColumnResized = this.eventsManager.HandleColumnResized.bind(this.eventsManager);
 			this.agOptions.onColumnMoved = this.eventsManager.HandleColumnMoved.bind(this.eventsManager);
-			/*this.agOptions.onSortChanged = this.eventsManager.HandleSortChanged.bind(this.eventsManager);*/
-			/*this.agOptions.onFirstDataRendered = (params: agGrid.FirstDataRenderedEvent) => {
-				params.api.sizeColumnsToFit();
-			},*/
 			this.agOptions.onViewportChanged = this.eventsManager.HandleGridSizeChanged.bind(this.eventsManager);
-			/*this.agOptions.onGridReady = (params: agGrid.GridReadyEvent): void => {
-				params.api.sizeColumnsToFit();
-			},*/
 			this.agOptions.onGridSizeChanged = this.eventsManager.HandleGridSizeChanged.bind(this.eventsManager);
+			this.agOptions.onSelectionChanged = this.eventsManager.HandleSelectionChange.bind(this.eventsManager);
 			return this;
 		}
 	}

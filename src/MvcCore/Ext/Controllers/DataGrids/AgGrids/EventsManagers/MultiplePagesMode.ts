@@ -29,6 +29,10 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.EventsManagers {
 			dataSource.Load();
 			e.cancelBubble = true;
 			e.preventDefault();
+			e.stopPropagation();
+			this.FireHandlers("pageChange", <Interfaces.IGridPageChangeEvent>{
+				offset: offset
+			});
 		}
 	}
 }

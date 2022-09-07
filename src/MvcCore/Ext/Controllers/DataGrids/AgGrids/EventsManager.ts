@@ -9,6 +9,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 		protected helpers: Helpers;
 		protected likeOperatorsAndPrefixes: Map<Enums.Operator, string>;
 		protected notLikeOperatorsAndPrefixes: Map<Enums.Operator, string>;
+		protected handlers: Map<Types.GridEventName, Types.GridEventHandler[]>;
 		public constructor (grid: AgGrid) {
 			this.grid = grid;
 			var serverConfig = grid.GetServerConfig();
@@ -42,6 +43,43 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 					this.notLikeOperatorsAndPrefixes.set(operator, prefix);
 				}
 			}
+			this.handlers = new Map<Types.GridEventName, Types.GridEventHandler[]>();
+		}
+		public AddEventListener <K extends keyof Interfaces.IGridEvensHandlersMap>(eventName: Types.GridEventName, handler: (e: Interfaces.IGridEvensHandlersMap[K]) => void): this {
+			var handlers = this.handlers.has(eventName)
+				? this.handlers.get(eventName)
+				: [];
+			handlers.push(handler);
+			this.handlers.set(eventName, handlers);
+			return this;
+		}
+		public RemoveEventListener <K extends keyof Interfaces.IGridEvensHandlersMap>(eventName: Types.GridEventName, handler: (e: Interfaces.IGridEvensHandlersMap[K]) => void): this {
+			var handlers = this.handlers.has(eventName)
+				? this.handlers.get(eventName)
+				: [];
+			var newHandlers = [];
+			for (var handlersItem of handlers)
+				if (handlersItem !== handler)
+					newHandlers.push(handlersItem);
+			this.handlers.set(eventName, newHandlers);
+			return this;
+		}
+		public FireHandlers (eventName: Types.GridEventName, event: Interfaces.IGridEvent): this {
+			if (!this.handlers.has(eventName)) return this;
+			var handlers = this.handlers.get(eventName);
+			event.grid = this.grid;
+			event.eventName = eventName;
+			for (var handler of handlers) {
+				try {
+					handler(event);
+				} catch (e) {}
+			}
+			return this;
+		}
+		public HandleSelectionChange (event: agGrid.SelectionChangedEvent<any>): void {
+			this.FireHandlers("selectionChange", <Interfaces.IGridSelectionChangeEvent>{
+				selectedRows: this.grid.GetGridApi().getSelectedRows()
+			});
 		}
 		public HandleColumnResized (event: agGrid.ColumnResizedEvent<any>): void {
 			//console.log(event);
@@ -49,6 +87,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 		public HandleColumnMoved (event: agGrid.ColumnMovedEvent<any>): void {
 			//console.log(event);
 		}
+
 		public HandleFilterMenuChange (columnId: string, filteringItem: Map<Enums.Operator, string[]> | null): void {
 			var filtering = this.grid.GetFiltering(),
 				filterRemoving = filteringItem == null || filteringItem.size === 0,
@@ -155,6 +194,9 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 				var dataSourceMp: AgGrids.DataSources.MultiplePagesMode = this.grid.GetDataSource() as any;
 				dataSourceMp.Load();
 			}
+			this.FireHandlers("filterChange", <Interfaces.IGridFilterChangeEvent>{
+				filtering: filtering
+			});
 			return this;
 		}
 		public HandleSortChange (columnId: string, direction: AgGrids.Types.SortDirNullable): void {
@@ -176,11 +218,6 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 			}
 			for (var i = 0, sortColId = '', l = newSorting.length; i < l; i++) {
 				var [sortColId, sortDir] = newSorting[i];
-				/*agColumnsState.push(<agGrid.ColumnState>{
-					colId: sortColId,
-					sort: sortDir === 1 ? 'asc' : 'desc',
-					sortIndex: i
-				});*/
 				if (sortColId === columnId) continue;
 				sortHeaders.get(sortColId).SetSequence(i);
 			}
@@ -188,18 +225,14 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 			var pageMode = this.grid.GetPageMode();
 			if ((pageMode & AgGrids.Enums.ClientPageMode.CLIENT_PAGE_MODE_SINGLE) != 0) {
 				var gridOptions = this.grid.GetOptions().GetAgOptions();
-				/*gridOptions.columnApi.applyColumnState(<agGrid.ApplyColumnStateParams>{
-					state: agColumnsState,
-					applyOrder: false,
-					defaultState: <agGrid.ColumnStateParams>{
-						sort: null
-					},
-				});*/
 				gridOptions.api.onSortChanged();
 			} else if ((pageMode & AgGrids.Enums.ClientPageMode.CLIENT_PAGE_MODE_MULTI) != 0) {
 				var dataSourceMp: AgGrids.DataSources.MultiplePagesMode = this.grid.GetDataSource() as any;
 				dataSourceMp.Load();
 			}
+			this.FireHandlers("sortChange", <Interfaces.IGridSortChangeEvent>{
+				sorting: newSorting
+			});
 		}
 		public HandleGridSizeChanged (event: agGrid.ViewportChangedEvent<any> | agGrid.GridSizeChangedEvent<any>): void {
 			// get the current grids width
@@ -229,6 +262,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 			event.columnApi.setColumnsVisible(columnsToHide, false);
 			// fill out any available space to ensure there are no gaps
 			event.api.sizeColumnsToFit();
+			this.grid.GetColumnsMenu().ResizeControls();
 		}
 		public AddUrlChangeEvent (): this {
 			window.addEventListener('popstate', (e: PopStateEvent): void => {
@@ -240,12 +274,36 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 		public HandleUrlChange (e: PopStateEvent): void {
 			var dataSource = this.grid.GetDataSource() as AgGrids.DataSource,
 				reqDataRaw = e.state as Interfaces.IServerRequestRaw,
-				reqData = AgGrids.DataSource.RetypeRequestObjects2Maps(reqDataRaw);
+				oldOffset = this.grid.GetOffset(),
+				oldFiltering = JSON.stringify(DataSource.RetypeFilteringMap2Obj(this.grid.GetFiltering())),
+				oldSorting = JSON.stringify(this.grid.GetSorting()),
+				newFiltering = JSON.stringify(reqDataRaw.filtering),
+				newSorting = JSON.stringify(reqDataRaw.sorting),
+				reqData = DataSource.RetypeRequestObjects2Maps(reqDataRaw);
+			
 			this.grid
 				.SetSorting(reqData.sorting)
 				.SetFiltering(reqData.filtering);
+
 			this.handleUrlChangeSortsFilters(reqData);
 			dataSource.ExecRequest(reqDataRaw, false);
+
+			if (oldOffset !== reqData.offset) {
+				this.FireHandlers("pageChange", <Interfaces.IGridPageChangeEvent>{
+					offset: reqData.offset
+				});
+			}
+			if (oldFiltering !== newFiltering) {
+				console.log(oldFiltering, newFiltering);
+				this.FireHandlers("filterChange", <Interfaces.IGridFilterChangeEvent>{
+					filtering: reqData.filtering
+				});
+			}
+			if (oldSorting !== newSorting) {
+				this.FireHandlers("sortChange", <Interfaces.IGridSortChangeEvent>{
+					sorting: reqData.sorting
+				});
+			}
 		}
 		public HandleResponseLoaded (response: AgGrids.Interfaces.IServerResponse): void {
 			this.grid

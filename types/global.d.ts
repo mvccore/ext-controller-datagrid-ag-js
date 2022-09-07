@@ -32,6 +32,7 @@ declare global {
 		interface IFloatingFilterParams<P = InbuiltParentType, TData = any> extends AgGridAll.IFloatingFilterParams<P, TData> {}
 		interface FilterChangedEvent<TData = any> extends AgGridAll.FilterChangedEvent<TData> {}
 		interface ValueFormatterParams<TData = any, TValue = any> extends AgGridAll.ValueFormatterParams<TData, TValue> {}
+		interface SelectionChangedEvent<TData = any> extends AgGridAll.SelectionChangedEvent<TData> {}
 		interface GridOptions<TData = any> extends AgGridAll.GridOptions<TData> {}
 		interface GridApi<TData = any> extends AgGridAll.GridApi<TData> {}
 		interface ColDef<TData = any> extends AgGridAll.ColDef<TData> {}

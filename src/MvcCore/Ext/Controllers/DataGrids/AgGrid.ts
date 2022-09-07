@@ -177,12 +177,20 @@ namespace MvcCore.Ext.Controllers.DataGrids {
 		public GetFilterMenus (): Map<string, AgGrids.ColumnsManagers.FilterMenu> {
 			return this.filterMenus;
 		}
-		public SetColumnsMenus (columnsMenu: AgGrids.ColumnsMenu): this {
+		public SetColumnsMenu (columnsMenu: AgGrids.ColumnsMenu): this {
 			this.columnsMenu = columnsMenu;
 			return this;
 		}
-		public GetColumnsMenus (): AgGrids.ColumnsMenu {
+		public GetColumnsMenu (): AgGrids.ColumnsMenu {
 			return this.columnsMenu;
+		}
+		public AddEventListener <K extends keyof AgGrids.Interfaces.IGridEvensHandlersMap>(eventName: K, handler: (a: AgGrids.Interfaces.IGridEvensHandlersMap[K]) => void): this {
+			this.eventsManager.AddEventListener(eventName, handler);
+			return this;
+		}
+		public RemoveEventListener <K extends keyof AgGrids.Interfaces.IGridEvensHandlersMap>(eventName: K, handler: (e: AgGrids.Interfaces.IGridEvensHandlersMap[K]) => void): this {
+			this.eventsManager.RemoveEventListener(eventName, handler);
+			return this;
 		}
 
 		protected initSubClasses (): this {

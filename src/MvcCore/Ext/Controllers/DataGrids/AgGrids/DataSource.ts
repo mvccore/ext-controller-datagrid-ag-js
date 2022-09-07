@@ -52,7 +52,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 			return serverResponse;
 		}
 		public static RetypeRequestObjects2Maps (serverRequest: Interfaces.IServerRequestRaw): Interfaces.IServerRequest {
-			var result: Interfaces.IServerRequest = serverRequest as any;
+			var result: Interfaces.IServerRequest = { ...serverRequest } as any;
 			result.filtering = this.retypeFilteringObj2Map(serverRequest.filtering);
 			return result;
 		}
@@ -71,16 +71,19 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 				return new Map<string, Map<Enums.Operator, string[]>>();
 			}
 		}
+		public static RetypeFilteringMap2Obj (filtering: Map<string, Map<Enums.Operator, string[]>>): any {
+			var newFiltering: any = {};
+			for (var [idColumn, filterValues] of filtering.entries()) {
+				newFiltering[idColumn] = Helpers.ConvertMap2Object<Enums.Operator, string[]>(
+					filterValues
+				) as any;
+			}
+			return newFiltering;
+		}
 		protected static retypeRequestMaps2Objects (serverRequest: Interfaces.IServerRequest): Interfaces.IServerRequestRaw {
 			var result: Interfaces.IServerRequestRaw = serverRequest as any;
 			if (serverRequest.filtering instanceof Map) {
-				var newFiltering: any = {};
-				for (var [idColumn, filterValues] of serverRequest.filtering.entries()) {
-					newFiltering[idColumn] = Helpers.ConvertMap2Object<Enums.Operator, string[]>(
-						filterValues
-					) as any;
-				}
-				result.filtering = newFiltering;
+				result.filtering = this.RetypeFilteringMap2Obj(serverRequest.filtering);
 			}
 			return this.addRequestSystemData(result);
 		}

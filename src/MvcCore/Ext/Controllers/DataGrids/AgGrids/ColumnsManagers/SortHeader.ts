@@ -57,10 +57,10 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.ColumnsManagers {
 		}
 		public SetDirection (direction: AgGrids.Types.SortDirNullable): this {
 			this.direction = direction;
-			if (direction == null) {
-				this.setSortInactive();
-			} else {
+			if (direction != null) {
 				this.setSortActive();
+			} else {
+				this.setSortInactive();
 			}
 			return this;
 		}
@@ -172,6 +172,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.ColumnsManagers {
 		}
 
 		protected handleContClick (e: MouseEvent): void {
+			this.grid.GetColumnsMenu().Hide();
 			if (this.params.renderRemove) {
 				this.switchDirectionByTwoStates();
 			} else {
@@ -183,6 +184,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.ColumnsManagers {
 			e.preventDefault();
 			e.stopPropagation();
 			e.cancelBubble = true;
+			this.grid.GetColumnsMenu().Hide();
 			this.direction = null;
 			this.setSortInactive();
 			this.grid.GetEvents().HandleSortChange(

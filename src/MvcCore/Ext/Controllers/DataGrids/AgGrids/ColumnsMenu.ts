@@ -25,6 +25,12 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 		protected serverConfig: Interfaces.IServerConfig;
 		protected isTouchDevice: boolean;
 		protected elms: Interfaces.IColumnsMenuElements;
+		protected displayed: boolean;
+		protected formClick: boolean;
+		protected handlers: {
+			handleDocumentClick?: (e: MouseEvent) => void;
+			handleFormClick?: (e: MouseEvent) => void;
+		}
 		public constructor (grid: AgGrid) {
 			this.Static = new.target;
 			this.grid = grid;
@@ -34,23 +40,66 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 			this.translator = grid.GetTranslator();
 			this.serverConfig = grid.GetServerConfig();
 			this.isTouchDevice = this.helpers.IsTouchDevice();
+			this.displayed = false;
+			this.formClick = false;
 			this
 				.initElements()
 				.initEvents();
 		}
-		protected Hide (): this {
+		public Hide (): this {
+			if (!this.displayed) return this;
 			if (this.elms.form) {
+				this.displayed = false;
 				var sels = this.Static.SELECTORS;
 				this.elms.form.className = [sels.FORM_CLS, sels.FORM_HIDDEN_CLS].join(' ');
+				this.removeShownEvents();
 			}
 			return this;
 		}
-		protected Show (): this {
+		public Show (): this {
+			if (this.displayed) return this;
 			if (this.elms.form) {
+				this.displayed = true;
 				this.elms.form.className = this.Static.SELECTORS.FORM_CLS;
-				this.resizeControls();
+				this.ResizeControls();
+				this.addShownEvents();
 			}
 			return this;
+		}
+		public ResizeControls (): this {
+			if (!this.displayed) return this;
+			var gridElm = this.grid.GetOptions().GetElements().agGridElement,
+				gridElmParent = gridElm.parentNode as HTMLElement,
+				heightDiff = this.elms.heading.offsetHeight + this.elms.buttons.offsetHeight + 20;
+			var offsetHeight = Math.max((gridElmParent.offsetHeight * 0.75) - heightDiff, 200);
+			this.elms.controls.style.maxHeight = offsetHeight + 'px';
+			return this;
+		}
+		protected removeShownEvents(): this {
+			document.removeEventListener('click', this.handlers.handleDocumentClick);
+			this.elms.form.removeEventListener('click', this.handlers.handleFormClick, true);
+			return this;
+		}
+		protected addShownEvents(): this {
+			this.handlers = {};
+			setTimeout(() => {
+				document.addEventListener(
+					'click', this.handlers.handleDocumentClick = this.handleDocumentClick.bind(this)
+				);
+				this.elms.form.addEventListener(
+					'click', this.handlers.handleFormClick = this.handleFormClick.bind(this), true
+				);
+			});
+			return this;
+		}
+		protected handleDocumentClick (e: MouseEvent): void {
+			if (!this.formClick) {
+				this.Hide();
+			}
+			this.formClick = false;
+		}
+		protected handleFormClick (e: MouseEvent): void {
+			this.formClick = true;
 		}
 		protected initElements (): this {
 			var contElm = this.options.GetElements().contElement,
@@ -117,14 +166,6 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 		}
 		protected initFormEvents (): this {
 			this.elms.btnCancel.addEventListener('click', this.handleCancel.bind(this));
-			return this;
-		}
-		protected resizeControls (): this {
-			var gridElm = this.grid.GetOptions().GetElements().agGridElement,
-				gridElmParent = gridElm.parentNode as HTMLElement,
-				heightDiff = this.elms.heading.offsetHeight + this.elms.buttons.offsetHeight + 20;
-			var offsetHeight = Math.max((gridElmParent.offsetHeight * 0.75) - heightDiff, 200);
-			this.elms.controls.style.maxHeight = offsetHeight + 'px';
 			return this;
 		}
 		protected createElm<T> (elmName: string, clsNames: string[] = [], innerHTML: string | null = null, props: any = null): T {

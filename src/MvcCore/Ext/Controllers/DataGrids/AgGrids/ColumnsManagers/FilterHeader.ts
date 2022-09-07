@@ -12,8 +12,10 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.ColumnsManagers {
 		protected columnId: string;
 		protected elms: AgGrids.Interfaces.IFilterHeaderElements;
 		protected activeFilterClsRegExp: RegExp;
+		protected activeState: boolean;
 		protected handlers: {
 			handleSubmit?: (e: MouseEvent) => void;
+			handleFocus?: (e: FocusEvent) => void;
 			handleBlur?: (e: FocusEvent) => void;
 			handleRemove?: (e: MouseEvent) => void;
 			handleChange?: (e: Event) => void;
@@ -21,6 +23,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.ColumnsManagers {
 		};
 		public constructor () {
 			this.Static = new.target;
+			this.activeState = false;
 		}
 		public init (agParams: AgGrids.Interfaces.IFilterHeaderParams<any>): void {
 			this
@@ -33,6 +36,9 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.ColumnsManagers {
 			return this.elms.cont;
 		}
 		public SetText (filteringItem: Map<Enums.Operator, string[]> | null): this {
+			var newStateActive = filteringItem != null;
+			if (this.activeState === newStateActive) return this;
+			this.activeState = newStateActive;
 			var input = this.elms.input;
 			if (filteringItem == null) {
 				input.value = '';
@@ -98,15 +104,16 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.ColumnsManagers {
 					'blur', this.handlers.handleBlur = this.handleBlur.bind(this)
 				);
 			}
+			input.addEventListener(
+				'focus', this.handlers.handleFocus = this.handleFocus.bind(this)
+			);
 			remove.addEventListener(
 				'click', this.handlers.handleRemove = this.handleRemove.bind(this), true
 			);
 			return this;
 		}
 		protected handleSubmit (e: KeyboardEvent): void {
-			e.stopPropagation();
-			e.preventDefault();
-			e.cancelBubble = true;
+			this.stopEvent(e);
 			var value = this.elms.input.value;
 			if (e.key === 'Enter') {
 				this.grid.GetEvents().HandleFilterHeaderChange(this.columnId, value);
@@ -119,9 +126,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.ColumnsManagers {
 			}
 		}
 		protected handleBlur (e: KeyboardEvent): void {
-			e.stopPropagation();
-			e.preventDefault();
-			e.cancelBubble = true;
+			this.stopEvent(e);
 			var value = this.elms.input.value.trim();
 			if (value === '' || value == null) {
 				var filtering = this.grid.GetFiltering();
@@ -129,22 +134,28 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.ColumnsManagers {
 					filtering.delete(this.columnId);
 			}
 		}
+		protected handleFocus (e: KeyboardEvent): void {
+			this.grid.GetColumnsMenu().Hide();
+		}
 		protected handleRemove (e: KeyboardEvent): void {
-			e.stopPropagation();
-			e.preventDefault();
-			e.cancelBubble = true;
+			this.stopEvent(e);
 			this.elms.input.value = '';
 			this.grid.GetEvents().HandleFilterHeaderChange(this.columnId, null);
 		}
 		protected handleChange (e: Event): void {
-			e.stopPropagation();
-			e.preventDefault();
-			e.cancelBubble = true;
+			this.stopEvent(e);
 			if (this.handlers.changeDelayTimeout)
 				clearTimeout(this.handlers.changeDelayTimeout);
 			setTimeout(() => {
 				this.grid.GetEvents().HandleFilterHeaderChange(this.columnId, this.elms.input.value.trim());
 			}, this.params.submitDelayMs);
+		}
+		protected stopEvent (e: Event): this {
+			if (e == null) return this;
+			e.preventDefault();
+			e.stopPropagation();
+			e.cancelBubble = true;
+			return this;
 		}
 		public destroy (): void {
 			var input = this.elms.input,
