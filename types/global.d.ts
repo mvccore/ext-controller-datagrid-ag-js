@@ -33,6 +33,7 @@ declare global {
 		interface FilterChangedEvent<TData = any> extends AgGridAll.FilterChangedEvent<TData> {}
 		interface ValueFormatterParams<TData = any, TValue = any> extends AgGridAll.ValueFormatterParams<TData, TValue> {}
 		interface SelectionChangedEvent<TData = any> extends AgGridAll.SelectionChangedEvent<TData> {}
+		interface GridReadyEvent<TData = any> extends AgGridAll.GridReadyEvent<TData> {}
 		interface GridOptions<TData = any> extends AgGridAll.GridOptions<TData> {}
 		interface GridApi<TData = any> extends AgGridAll.GridApi<TData> {}
 		interface ColDef<TData = any> extends AgGridAll.ColDef<TData> {}

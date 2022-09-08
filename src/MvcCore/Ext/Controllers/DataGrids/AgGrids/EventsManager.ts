@@ -83,6 +83,9 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 			}
 			return this;
 		}
+		public HandleGridReady (event: agGrid.GridReadyEvent<any>): void {
+			this.FireHandlers("gridReady", <Interfaces.IGridEvent>{});
+		}
 		public HandleSelectionChange (event: agGrid.SelectionChangedEvent<any>): void {
 			this.FireHandlers("selectionChange", <Interfaces.IGridSelectionChangeEvent>{
 				selectedRows: this.grid.GetGridApi().getSelectedRows()
@@ -419,6 +422,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 
 			this.handleUrlChangeSortsFilters(reqData);
 			dataSource.ExecRequest(reqDataRaw, false);
+			this.grid.GetColumnsMenu().UpdateFormAction();
 
 			if (oldOffset !== reqData.offset) {
 				this.FireHandlers("pageChange", <Interfaces.IGridPageChangeEvent>{
