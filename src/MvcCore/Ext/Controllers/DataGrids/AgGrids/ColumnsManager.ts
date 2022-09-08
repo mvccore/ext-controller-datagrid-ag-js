@@ -33,6 +33,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 		protected serverConfig: Interfaces.IServerConfig;
 		protected initData: Interfaces.IServerResponse;
 		protected viewHelper: ColumnsManagers.ViewHelper;
+		protected allServerColumnsMap: Map<string, Interfaces.IServerConfigs.IColumn>;
 		protected allServerColumnsSorted: Interfaces.IServerConfigs.IColumn[];
 		protected activeServerColumnsSorted: Interfaces.IServerConfigs.IColumn[];
 
@@ -48,8 +49,17 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 				this.filterHeaderDefaults.submitDelayMs = 0;
 			}
 			this.filterMenuDefaults.isTouchDevice = isTouchDevice;
+			this.allServerColumnsMap = new Map<string, Interfaces.IServerConfigs.IColumn>();
 			this.allServerColumnsSorted = [];
 			this.activeServerColumnsSorted = [];
+		}
+
+		public SetAllServerColumnsMap (allServerColumnsMap: Map<string, Interfaces.IServerConfigs.IColumn>): this {
+			this.allServerColumnsMap = allServerColumnsMap;
+			return this;
+		}
+		public GetAllServerColumnsMap (): Map<string, Interfaces.IServerConfigs.IColumn> {
+			return this.allServerColumnsMap;
 		}
 
 		public SetAllServerColumnsSorted (allServerColumnsSorted: Interfaces.IServerConfigs.IColumn[]): this {
@@ -109,6 +119,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 			this.grid.SetFilterMenus(new Map<string, AgGrids.ColumnsManagers.FilterMenu>());
 			for (var serverColumnCfg of this.allServerColumnsSorted) {
 				columnUrlName = serverColumnCfg.urlName;
+				this.allServerColumnsMap.set(serverColumnCfg.propName, serverColumnCfg);
 				if (serverColumnCfg.disabled === true) continue;
 				serverColumnCfg.activeColumnIndex = this.activeServerColumnsSorted.length;
 				this.activeServerColumnsSorted.push(serverColumnCfg);
