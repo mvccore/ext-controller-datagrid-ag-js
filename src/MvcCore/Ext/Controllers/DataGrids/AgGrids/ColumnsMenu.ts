@@ -76,6 +76,17 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 			this.elms.controls.style.maxHeight = offsetHeight + 'px';
 			return this;
 		}
+		public UpdateFormAction (): this {
+			if (!this.elms.form) return this;
+			var formAction = location.href,
+				delim = '?',
+				pos = formAction.indexOf(delim);
+			if (pos > -1) 
+				delim = (pos == formAction.length - 1) ? '' : '&';
+			formAction += delim + this.serverConfig.gridActionParamName + '=' + this.serverConfig.gridActionColumnStates;
+			this.elms.form.action = formAction;
+			return this;
+		}
 		protected removeShownEvents(): this {
 			document.removeEventListener('click', this.handlers.handleDocumentClick);
 			this.elms.form.removeEventListener('click', this.handlers.handleFormClick, true);
@@ -130,8 +141,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 			var sels = this.Static.SELECTORS;
 			var form = this.createElm<HTMLFormElement>(
 				'form', [sels.FORM_CLS], null, {
-					method: 'POST',
-					action: this.serverConfig.urlColumnsStates
+					method: 'POST'
 				}
 			);
 			var head = this.createElm<HTMLDivElement>(
@@ -150,6 +160,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 			this.elms.buttons = btns;
 			this.elms.menuCont.appendChild(form);
 			this.elms.form = form;
+			this.UpdateFormAction();
 			return this;
 		}
 		protected initFormControls (): this {

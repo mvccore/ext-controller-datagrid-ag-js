@@ -106,6 +106,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.DataSources {
 			if (changeUrl) {
 				reqData.path = response.path;
 				history.pushState(reqData, document.title, response.url);
+				this.grid.GetColumnsMenu().UpdateFormAction();
 			}
 		}
 

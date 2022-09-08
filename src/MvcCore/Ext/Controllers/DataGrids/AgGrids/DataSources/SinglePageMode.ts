@@ -133,7 +133,9 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.DataSources {
 					if (this.changeUrlSwitches.has(cacheKey) && this.changeUrlSwitches.get(cacheKey)) {
 						this.changeUrlSwitches.delete(cacheKey);
 					} else {
+						reqData.path = response.path;
 						history.pushState(reqData, document.title, response.url);
+						this.grid.GetColumnsMenu().UpdateFormAction();
 					}
 
 					params.successCallback(response.data, response.totalCount);
