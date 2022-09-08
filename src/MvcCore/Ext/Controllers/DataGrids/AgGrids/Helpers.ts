@@ -31,7 +31,8 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 				obj != null &&
 				'id' in obj && 'mode' in obj &&
 				'offset' in obj && 'limit' in obj &&
-				'sorting' in obj && 'filtering' in obj
+				'sorting' in obj && 'filtering' in obj &&
+				obj.id === this.grid.GetServerConfig().id
 			);
 		}
 		public RetypeRawServerConfig (serverConfig: Interfaces.IServerConfig): Interfaces.IServerConfig {
