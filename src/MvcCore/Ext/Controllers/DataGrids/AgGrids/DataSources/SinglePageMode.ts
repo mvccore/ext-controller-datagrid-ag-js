@@ -42,8 +42,10 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.DataSources {
 		}
 		public ExecRequest (reqData: Interfaces.IServerRequestRaw, changeUrl: boolean): this {
 			
-			var cacheKey = this.cache.Key(reqData);
-			this.changeUrlSwitches.set(cacheKey, true);
+			if (!changeUrl) {
+				var cacheKey = this.cache.Key(reqData);
+				this.changeUrlSwitches.set(cacheKey, true);
+			}
 			//console.log("set cache", cacheKey, reqData);
 
 			var gridOptions = this.grid.GetOptions().GetAgOptions();
@@ -133,7 +135,6 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.DataSources {
 					if (this.changeUrlSwitches.has(cacheKey) && this.changeUrlSwitches.get(cacheKey)) {
 						this.changeUrlSwitches.delete(cacheKey);
 					} else {
-						reqData.path = response.path;
 						history.pushState(reqData, document.title, response.url);
 						this.grid.GetColumnsMenu().UpdateFormAction();
 					}

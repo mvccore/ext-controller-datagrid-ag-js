@@ -465,8 +465,8 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 			for (var [columnId, sortDir] of response.sorting) {
 				if (sortHeaders.has(columnId)) {
 					sortHeaders.get(columnId)
-						.SetSequence(index)
-						.SetDirection(sortDir);
+						.SetDirection(sortDir)
+						.SetSequence(index);
 				}
 				index++;
 			}
