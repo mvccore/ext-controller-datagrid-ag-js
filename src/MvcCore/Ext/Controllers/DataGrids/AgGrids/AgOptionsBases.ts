@@ -42,6 +42,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 				suppressColumnVirtualisation: true,
 				debounceVerticalScrollbar: true,
 				alwaysShowVerticalScroll: true,
+				suppressCellFocus: true,
 			};
 			if (this.helpers.IsChromeBrowser())
 				this.agOptions.suppressAnimationFrame = true;
@@ -51,20 +52,18 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 		protected initRowSelection (): this {
 			var rowSel = this.grid.GetServerConfig().rowSelection;
 			var rowSelectionNone = (rowSel & Enums.RowSelection.ROW_SELECTION_NONE) != 0;
-			if (
-				rowSelectionNone ||
-				(rowSel & Enums.RowSelection.ROW_SELECTION_SINGLE) != 0
-			) {
-				this.agOptions.rowSelection = 'single';
-				if (rowSelectionNone)
-					this.agOptions.suppressRowClickSelection = true;
-			} else if ((rowSel & Enums.RowSelection.ROW_SELECTION_MULTIPLE) != 0) {
-				this.agOptions.rowSelection = 'multiple';
-				if (this.helpers.IsTouchDevice())
-					this.agOptions.rowMultiSelectWithClick = true;
+			if (!rowSelectionNone) {
+				if ((rowSel & Enums.RowSelection.ROW_SELECTION_SINGLE) != 0) {
+					this.agOptions.rowSelection = 'single';
+				} else if ((rowSel & Enums.RowSelection.ROW_SELECTION_MULTIPLE) != 0) {
+					this.agOptions.rowSelection = 'multiple';
+					if (this.helpers.IsTouchDevice())
+						this.agOptions.rowMultiSelectWithClick = true;
+				}
+				if ((rowSel & Enums.RowSelection.ROW_SELECTION_NOT_DESELECT) != 0) {
+					this.agOptions.suppressRowDeselection = true;
+				}
 			}
-			if ((rowSel & Enums.RowSelection.ROW_SELECTION_NOT_DESELECT) != 0)
-				this.agOptions.suppressRowDeselection = true;
 			return this;
 		}
 		protected initEvents (): this {
