@@ -1,4 +1,4 @@
-namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
+namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Tools {
 	export class ToolTip {
 		protected eGui: HTMLDivElement;
 		init (params: MvcCore.Ext.Controllers.DataGrids.AgGrids.Interfaces.SortHeaders.ITooltipParams): void {

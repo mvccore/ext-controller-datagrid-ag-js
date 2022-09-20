@@ -95,13 +95,13 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Options {
 			return this;
 		}
 		public InitAgBases (): this {
-			this.agBases = new AgGrids.Options.AgBases(this.grid);
+			this.agBases = new this.grid.Static.Classes.Options.AgBases(this.grid);
 			this.agBases.Init();
 			this.agOptions = this.agBases.GetAgOptions();
 			return this;
 		}
 		public InitAgColumns (): this {
-			this.columnManager = new AgGrids.Columns.Manager(this.grid);
+			this.columnManager = new this.grid.Static.Classes.Columns.Manager(this.grid);
 			this.columnManager.Init();
 			this.agOptions.columnDefs = Array.from(this.columnManager.GetAgColumnsConfigs().values());
 			this.agOptions.defaultColDef = this.columnManager.GetAgColumnDefaults();

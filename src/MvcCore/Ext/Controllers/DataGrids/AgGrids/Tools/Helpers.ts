@@ -173,5 +173,25 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Tools {
 				obj[key] = value;
 			return obj;
 		}
+		public MergeObjectsRecursively (target: any, ...sources: any[]): any {
+			if (!sources.length) 
+				return target;
+			var source = sources.shift();
+			if (this.isObject(target) && this.isObject(source)) {
+				for (var key in source) {
+					if (this.isObject(source[key])) {
+						if (!target[key]) 
+							Object.assign(target, { [key]: {} });
+						this.MergeObjectsRecursively(target[key], source[key]);
+					} else {
+						Object.assign(target, { [key]: source[key] });
+					}
+				}
+			}
+			return this.MergeObjectsRecursively(target, ...sources);
+		}
+		protected isObject (item: any): boolean {
+			return (item && typeof item === 'object' && !Array.isArray(item));
+		}
 	}
 }

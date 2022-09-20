@@ -1,5 +1,43 @@
 namespace MvcCore.Ext.Controllers.DataGrids {
 	export class AgGrid {
+		public static Classes: AgGrids.Interfaces.IClasses = {
+			Columns: {
+				FilterMenus: {
+					Date: AgGrids.Columns.FilterMenus.Date,
+					DateTime: AgGrids.Columns.FilterMenus.DateTime,
+					Time: AgGrids.Columns.FilterMenus.Time,
+					Int: AgGrids.Columns.FilterMenus.Int,
+					Float: AgGrids.Columns.FilterMenus.Float,
+					Money: AgGrids.Columns.FilterMenus.Money,
+				},
+				FilterHeader: AgGrids.Columns.FilterHeader,
+				FilterMenu: AgGrids.Columns.FilterMenu,
+				Manager: AgGrids.Columns.Manager,
+				SortHeader: AgGrids.Columns.SortHeader,
+				ViewHelper: AgGrids.Columns.ViewHelper,
+				VisibilityMenu: AgGrids.Columns.VisibilityMenu,
+			},
+			DataSources: {
+				MultiplePagesMode: AgGrids.DataSources.MultiplePagesMode,
+				SinglePageMode: AgGrids.DataSources.SinglePageMode,
+				Cache:  AgGrids.DataSources.Cache,
+			},
+			EventsManager: {
+				MultiplePagesMode: AgGrids.EventsManagers.MultiplePagesMode,
+				SinglePageMode: AgGrids.EventsManagers.SinglePageMode,
+			},
+			Options: {
+				AgBases: AgGrids.Options.AgBases,
+				Manager: AgGrids.Options.Manager,
+			},
+			Tools: {
+				Helpers: AgGrids.Tools.Helpers,
+				Translator: AgGrids.Tools.Translator,
+				ToolTip: AgGrids.Tools.ToolTip,
+			},
+		};
+		public Static: typeof AgGrid;
+
 		protected serverConfig: AgGrids.Interfaces.IServerConfig;
 		protected initialData: AgGrids.Interfaces.Ajax.IResponse;
 		protected grid: agGrid.Grid;
@@ -27,6 +65,7 @@ namespace MvcCore.Ext.Controllers.DataGrids {
 		public constructor (serverConfig: AgGrids.Interfaces.IServerConfig, initialData: AgGrids.Interfaces.Ajax.IResponse) {
 			//console.log("AgGrid.ctor - serverConfig", serverConfig);
 			//console.log("AgGrid.ctor - initialData", initialData);
+			this.Static = new.target;
 			this
 				.initSubClasses()
 				.initServerConfig(serverConfig)
@@ -202,18 +241,23 @@ namespace MvcCore.Ext.Controllers.DataGrids {
 		}
 
 		protected initSubClasses (): this {
-			this.helpers = new AgGrids.Tools.Helpers(this);
-			this.optionsManager = new AgGrids.Options.Manager(this);
+			var extendedClasses = this.Static.Classes,
+				origClasses = AgGrid.Classes,
+				helpersType = extendedClasses?.Tools?.Helpers ?? origClasses.Tools.Helpers;
+			this.helpers = new helpersType(this);
+			var classes: AgGrids.Interfaces.IClasses = this.helpers.MergeObjectsRecursively({}, origClasses, extendedClasses);
+			this.Static.Classes = classes;
+			this.optionsManager = new classes.Options.Manager(this);
 			return this;
 		}
 		protected initPageModeSpecifics (): this {
 			if ((this.pageMode & AgGrids.Enums.ClientPageMode.CLIENT_PAGE_MODE_SINGLE) != 0) {
-				var emSinglePage = new AgGrids.EventsManagers.SinglePageMode(this);
+				var emSinglePage = new this.Static.Classes.EventsManager.SinglePageMode(this);
 				this.eventsManager = emSinglePage;
 				emSinglePage
 					.AddUrlChangeEvent();
 			} else if ((this.pageMode & AgGrids.Enums.ClientPageMode.CLIENT_PAGE_MODE_MULTI) != 0) {
-				var emMultiplePages = new AgGrids.EventsManagers.MultiplePagesMode(this);
+				var emMultiplePages = new this.Static.Classes.EventsManager.MultiplePagesMode(this);
 				this.eventsManager = emMultiplePages;
 				emMultiplePages
 					.AddPagingEvents()
@@ -227,7 +271,7 @@ namespace MvcCore.Ext.Controllers.DataGrids {
 			return this;
 		}
 		protected initTranslator (): this {
-			this.translator = new AgGrids.Tools.Translator(this);
+			this.translator = new this.Static.Classes.Tools.Translator(this);
 			return this;
 		}
 		protected initData (initialData: AgGrids.Interfaces.Ajax.IResponse): this {
@@ -260,16 +304,16 @@ namespace MvcCore.Ext.Controllers.DataGrids {
 		}
 		protected initDataSource (): this {
 			if ((this.pageMode & AgGrids.Enums.ClientPageMode.CLIENT_PAGE_MODE_SINGLE) != 0) {
-				this.dataSource = new AgGrids.DataSources.SinglePageMode(this);
+				this.dataSource = new this.Static.Classes.DataSources.SinglePageMode(this);
 				var gridOptions = this.optionsManager.GetAgOptions();
 				gridOptions.api.setDatasource(this.dataSource as any);
 			} else if ((this.pageMode & AgGrids.Enums.ClientPageMode.CLIENT_PAGE_MODE_MULTI) != 0) {
-				this.dataSource = new AgGrids.DataSources.MultiplePagesMode(this);
+				this.dataSource = new this.Static.Classes.DataSources.MultiplePagesMode(this);
 			}
 			return this;
 		}
 		protected initColumnsMenu (): this {
-			this.columnsVisibilityMenu = new AgGrids.Columns.VisibilityMenu(this);
+			this.columnsVisibilityMenu = new this.Static.Classes.Columns.VisibilityMenu(this);
 			return this;
 		}
 	}

@@ -88,16 +88,6 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Columns {
 			[Enums.ServerType.DATE_TIME,	stringAndDateFilteringModeOrder],
 			[Enums.ServerType.TIME,			stringAndDateFilteringModeOrder]
 		]);
-		public static SERVER_TYPES_EXTENDED_FILTER_MENUS = new Map<Enums.ServerType, typeof Columns.FilterMenu>([
-			[Enums.ServerType.STRING, 		Columns.FilterMenu],
-			[Enums.ServerType.BOOL, 		Columns.FilterMenu],
-			[Enums.ServerType.INT, 			Columns.FilterMenus.Int],
-			[Enums.ServerType.FLOAT, 		Columns.FilterMenus.Float],
-			[Enums.ServerType.MONEY, 		Columns.FilterMenus.Money],
-			[Enums.ServerType.DATE,			Columns.FilterMenus.Date],
-			[Enums.ServerType.DATE_TIME,	Columns.FilterMenus.DateTime],
-			[Enums.ServerType.TIME,			Columns.FilterMenus.Time],
-		]);
 		public static CONTROL_TYPES_OPERATORS = new Map<Enums.FilterControlType, Enums.Operator>([
 			[Enums.FilterControlType.EQUAL,				Enums.Operator.EQUAL],			// column = value
 			[Enums.FilterControlType.NOT_EQUAL,			Enums.Operator.NOT_EQUAL],		// column != value
@@ -161,5 +151,25 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Columns {
 			[Enums.FilterControlType.IS_TRUE,			'1'],			// column = 1
 			[Enums.FilterControlType.IS_FALSE,			'0'],			// column = 0
 		]);
+		protected static serverTypesExtendedFilterMenus: Map<Enums.ServerType, typeof Columns.FilterMenu>;
+		public static GetServerTypesExtendedFilterMenu (grid: AgGrid, serverType: Enums.ServerType): typeof AgGrids.Columns.FilterMenu {
+			var filterMenuClass = grid.Static.Classes.Columns.FilterMenu,
+				filterMenusClasses = grid.Static.Classes.Columns.FilterMenus;
+			if (this.serverTypesExtendedFilterMenus == null) {
+				this.serverTypesExtendedFilterMenus = new Map<Enums.ServerType, typeof Columns.FilterMenu>([
+					[Enums.ServerType.STRING, 		filterMenuClass],
+					[Enums.ServerType.BOOL, 		filterMenuClass],
+					[Enums.ServerType.INT, 			filterMenusClasses.Int],
+					[Enums.ServerType.FLOAT, 		filterMenusClasses.Float],
+					[Enums.ServerType.MONEY, 		filterMenusClasses.Money],
+					[Enums.ServerType.DATE,			filterMenusClasses.Date],
+					[Enums.ServerType.DATE_TIME,	filterMenusClasses.DateTime],
+					[Enums.ServerType.TIME,			filterMenusClasses.Time],
+				]);
+			}
+			if (this.serverTypesExtendedFilterMenus.has(serverType))
+				return this.serverTypesExtendedFilterMenus.get(serverType);
+			return filterMenuClass;
+		}
 	}
 }

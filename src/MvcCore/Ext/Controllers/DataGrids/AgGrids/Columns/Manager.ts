@@ -15,7 +15,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Columns {
 			editable: false,
 			flex: 1,
 			headerComponent: AgGrids.Columns.SortHeader,
-			//tooltipComponent: AgGrids.ToolTip TODO
+			tooltipComponent: AgGrids.Tools.ToolTip
 		};
 		protected sortHeaderDefaults: AgGrids.Interfaces.SortHeaders.IParams = <AgGrids.Interfaces.SortHeaders.IParams>{
 			renderDirection: true,
@@ -54,6 +54,9 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Columns {
 			this.allServerColumnsMap = new Map<string, Interfaces.IServerConfigs.IColumn>();
 			this.allServerColumnsSorted = [];
 			this.activeServerColumnsSorted = [];
+			this.agColumnDefaults.headerComponent = grid.Static.Classes.Columns.SortHeader;
+			//this.agColumnDefaults.tooltipComponent = grid.Static.Classes.Tools.ToolTip;
+			this.agColumnDefaults.tooltipComponent = undefined;// TODO
 		}
 
 		public SetAllServerColumnsMap (allServerColumnsMap: Map<string, Interfaces.IServerConfigs.IColumn>): this {
@@ -104,7 +107,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Columns {
 		protected initServerCfgAndViewHelper (): this {
 			this.serverConfig = this.grid.GetServerConfig();
 			this.initData = this.grid.GetInitialData();
-			this.viewHelper = new AgGrids.Columns.ViewHelper(this.grid);
+			this.viewHelper = new this.grid.Static.Classes.Columns.ViewHelper(this.grid);
 			this.sortHeaderDefaults.renderSequence = (
 				(this.serverConfig.sortingMode & Enums.SortingMode.SORT_MULTIPLE_COLUMNS) != 0
 			);
@@ -189,7 +192,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Columns {
 				? filtering.get(serverColumnCfg.urlName)
 				: null;
 
-			column.floatingFilterComponent = AgGrids.Columns.FilterHeader;
+			column.floatingFilterComponent = this.grid.Static.Classes.Columns.FilterHeader;
 			var floatingFilterComponentParams = {
 				...this.filterHeaderDefaults,
 				...<AgGrids.Interfaces.FilterHeaders.IParams>{
@@ -200,12 +203,8 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Columns {
 				}
 			};
 			column.floatingFilterComponentParams = floatingFilterComponentParams;
-			var serverType: Enums.ServerType = serverColumnCfg.types[serverColumnCfg.types.length - 1] as any,
-				filterMenuClass = Columns.FilterMenu,
-				serverTypesExtendefFilterMenus = Columns.FilterOperatorsCfg.SERVER_TYPES_EXTENDED_FILTER_MENUS;
-			if (serverTypesExtendefFilterMenus.has(serverType))
-			filterMenuClass = serverTypesExtendefFilterMenus.get(serverType);
-			column.filter = filterMenuClass;
+			var serverType: Enums.ServerType = serverColumnCfg.types[serverColumnCfg.types.length - 1] as any;
+			column.filter = Columns.FilterOperatorsCfg.GetServerTypesExtendedFilterMenu(this.grid, serverType);
 			var allControlTypes = AgGrids.Columns.FilterOperatorsCfg.FILTERING_CONTROL_TYPES,
 				columnControlTypes: Enums.FilterControlType = Enums.FilterControlType.UNKNOWN,
 				columnFiltering = Number(serverColumnCfg.filter);
