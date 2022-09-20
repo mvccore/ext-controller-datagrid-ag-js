@@ -4,14 +4,14 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.DataSources {
 
 		protected maxRows: number;
 		protected enabled: boolean;
-		protected store: Map<string, Interfaces.IServerResponse>;
+		protected store: Map<string, Interfaces.Ajax.IResponse>;
 		protected keys: string[];
 		protected rowsCount: number;
 		public constructor (grid: AgGrid) {
 			var serverConfig = grid.GetServerConfig();
 			this.maxRows = serverConfig.clientMaxRowsInCache;
 			this.enabled = serverConfig.clientMaxRowsInCache > 0;
-			this.store = new Map<string, Interfaces.IServerResponse>();
+			this.store = new Map<string, Interfaces.Ajax.IResponse>();
 			this.keys = [];
 			this.rowsCount = 0;
 		}
@@ -27,10 +27,10 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.DataSources {
 			if (!this.enabled) return false;
 			return this.store.has(key);
 		}
-		public Get (key: string): Interfaces.IServerResponse {
+		public Get (key: string): Interfaces.Ajax.IResponse {
 			return this.store.get(key);
 		}
-		public Add (key: string, response: Interfaces.IServerResponse): this {
+		public Add (key: string, response: Interfaces.Ajax.IResponse): this {
 			this.store.set(key, response);
 			this.keys.push(key);
 			this.rowsCount += response.dataCount;

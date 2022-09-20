@@ -15,7 +15,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.DataSources {
 
 		protected initPageReqDataAndCache (): void {
 			super.initPageReqDataAndCache();
-			var elms = this.grid.GetOptions().GetElements();
+			var elms = this.grid.GetOptionsManager().GetElements();
 			if (elms.bottomControlsElement != null) {
 				this.initialData.controls = {};
 				if (elms.pagingControl != null)
@@ -29,7 +29,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.DataSources {
 		}
 
 		public Load (): this {
-			var reqData: Interfaces.IServerRequestRaw = this.Static.RetypeRequestMaps2Objects({
+			var reqData: Interfaces.Ajax.IReqRawObj = this.Static.RetypeRequestMaps2Objects({
 				offset: this.grid.GetOffset(),
 				limit: this.grid.GetServerConfig().itemsPerPage,
 				sorting: this.grid.GetSorting(),
@@ -37,8 +37,8 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.DataSources {
 			});
 			return this.ExecRequest(reqData, true);
 		}
-		public ExecRequest (reqData: Interfaces.IServerRequestRaw, changeUrl: boolean = true): this {
-			var agGridApi: agGrid.GridApi<any> = this.options.GetAgOptions().api;
+		public ExecRequest (reqData: Interfaces.Ajax.IReqRawObj, changeUrl: boolean = true): this {
+			var agGridApi: agGrid.GridApi<any> = this.optionsManager.GetAgOptions().api;
 			agGridApi.showLoadingOverlay();
 			var [reqDataUrl, reqMethod, reqType] = this.getReqUrlMethodAndType();
 			var cacheKey = this.cache.Key(reqData);
@@ -61,8 +61,8 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.DataSources {
 			}
 			return this;
 		}
-		protected handleResponse (reqData: Interfaces.IServerRequestRaw, changeUrl: boolean, cacheKey: string, cached: boolean, rawResponse: AgGrids.Interfaces.IServerResponse): void {
-			var response: AgGrids.Interfaces.IServerResponse;
+		protected handleResponse (reqData: Interfaces.Ajax.IReqRawObj, changeUrl: boolean, cacheKey: string, cached: boolean, rawResponse: AgGrids.Interfaces.Ajax.IResponse): void {
+			var response: AgGrids.Interfaces.Ajax.IResponse;
 			if (cached) {
 				response = rawResponse;	
 			} else {
@@ -72,13 +72,13 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.DataSources {
 				this.grid.GetEvents().HandleResponseLoaded(response);
 			}
 
-			var agGridApi: agGrid.GridApi<any> = this.options.GetAgOptions().api;
+			var agGridApi: agGrid.GridApi<any> = this.optionsManager.GetAgOptions().api;
 			agGridApi.setRowData(response.data);
 			agGridApi.hideOverlay();
 			
 			if (response.controls != null) {
-				this.options.InitBottomControls();
-				var elms = this.options.GetElements(),
+				this.optionsManager.InitBottomControls();
+				var elms = this.optionsManager.GetElements(),
 					controls = response.controls;
 				if (elms.countScalesControl != null && controls.countScales != null) {
 					elms.countScalesControl.parentNode.replaceChild(
@@ -98,7 +98,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.DataSources {
 						this.helpers.GetHtmlElementFromString(controls.paging),
 						elms.pagingControl
 					);
-					this.options.InitBottomControls();
+					this.optionsManager.InitBottomControls();
 					this.eventsManager.AddPagingEvents();
 				}
 			}
@@ -106,7 +106,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.DataSources {
 			if (changeUrl) {
 				reqData.path = response.path;
 				history.pushState(reqData, document.title, response.url);
-				this.grid.GetColumnsMenu().UpdateFormAction();
+				this.grid.GetColumnsVisibilityMenu().UpdateFormAction();
 			}
 		}
 

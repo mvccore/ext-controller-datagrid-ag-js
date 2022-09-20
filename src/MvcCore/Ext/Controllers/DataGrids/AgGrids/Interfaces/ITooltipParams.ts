@@ -1,4 +1,4 @@
-declare namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Interfaces {
+declare namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Interfaces.SortHeaders {
 	interface ITooltipParams {
 		color?: string;
 		rowIndex: number;

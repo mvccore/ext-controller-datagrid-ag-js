@@ -1,12 +1,12 @@
 declare namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Interfaces {
 	interface IServerConfig {
 		contElementSelector: string;
-		renderConfig: MvcCore.Ext.Controllers.DataGrids.AgGrids.Interfaces.IServerConfigs.IRenderConfig;
+		renderConfig: IServerConfigs.IRenderConfig;
 		columns: {
-			[columnUrlName: string]: MvcCore.Ext.Controllers.DataGrids.AgGrids.Interfaces.IServerConfigs.IColumn;
+			[columnUrlName: string]: IServerConfigs.IColumn;
 		};
-		locales: MvcCore.Ext.Controllers.DataGrids.AgGrids.Interfaces.IServerConfigs.ILocales;
-		urlSegments: MvcCore.Ext.Controllers.DataGrids.AgGrids.Interfaces.IServerConfigs.IUrlSegment;
+		locales: IServerConfigs.ILocales;
+		urlSegments: IServerConfigs.IUrlSegment;
 		filterOperatorPrefixes: Map<Enums.Operator, string>;
 		ajaxParamsNames: Map<Enums.AjaxParamName, string>;
 		id: string;

@@ -6,7 +6,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.EventsManagers {
 			super(grid);
 		}
 		public AddPagingEvents (): this {
-			this.grid.GetOptions().GetElements().pagingAnchors.forEach(pagingAnchor => {
+			this.grid.GetOptionsManager().GetElements().pagingAnchors.forEach(pagingAnchor => {
 				var ofsetInt = parseInt(pagingAnchor.dataset.offset, 10);
 				pagingAnchor.addEventListener(
 					'click', this.handlePagingClick.bind(this, ofsetInt), true
@@ -15,7 +15,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.EventsManagers {
 			return this;
 		}
 		public RemovePagingEvents (): this {
-			this.grid.GetOptions().GetElements().pagingAnchors.forEach(pagingAnchor => {
+			this.grid.GetOptionsManager().GetElements().pagingAnchors.forEach(pagingAnchor => {
 				var ofsetInt = parseInt(pagingAnchor.dataset.offset, 10);
 				pagingAnchor.removeEventListener(
 					'click', this.handlePagingClick.bind(this, ofsetInt), true
@@ -30,7 +30,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.EventsManagers {
 			e.cancelBubble = true;
 			e.preventDefault();
 			e.stopPropagation();
-			this.FireHandlers("pageChange", <Interfaces.IGridPageChangeEvent>{
+			this.FireHandlers("pageChange", <Interfaces.Events.IPageChange>{
 				offset: offset
 			});
 		}

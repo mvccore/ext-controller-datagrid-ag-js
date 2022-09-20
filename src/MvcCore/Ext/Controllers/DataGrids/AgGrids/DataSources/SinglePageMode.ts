@@ -25,7 +25,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.DataSources {
 		protected initPageReqDataAndCache (): void {
 			super.initPageReqDataAndCache();
 			this.cache.SetEnabled(true);
-			this.cache.Add(this.cache.Key(this.pageReqData), <Interfaces.IServerResponse>{});
+			this.cache.Add(this.cache.Key(this.pageReqData), <Interfaces.Ajax.IResponse>{});
 		}
 		/** Callback the grid calls that you implement to fetch rows from the server. */
 		public getRows (params: agGrid.IGetRowsParams): void {
@@ -40,7 +40,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.DataSources {
 				this.resolveByAjaxRequest(params);
 			}
 		}
-		public ExecRequest (reqData: Interfaces.IServerRequestRaw, changeUrl: boolean): this {
+		public ExecRequest (reqData: Interfaces.Ajax.IReqRawObj, changeUrl: boolean): this {
 			
 			if (!changeUrl) {
 				var cacheKey = this.cache.Key(reqData);
@@ -48,11 +48,11 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.DataSources {
 			}
 			//console.log("set cache", cacheKey, reqData);
 
-			var gridOptions = this.grid.GetOptions().GetAgOptions();
+			var gridOptionsManager = this.grid.GetOptionsManager().GetAgOptions();
 			
 			// both triggers current grid model reload and calling `this.getRows()`:
 			//gridOptions.api.onFilterChanged();
-			gridOptions.api.onFilterChanged();
+			gridOptionsManager.api.onFilterChanged();
 			
 			return this;
 		}
@@ -64,7 +64,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.DataSources {
 				(params.endRow <= this.initialData.offset + this.initialData.dataCount || totalCount < params.endRow)
 			);
 			if (!result) return false;
-			var reqData: Interfaces.IServerRequestRaw = this.Static.RetypeRequestMaps2Objects({
+			var reqData: Interfaces.Ajax.IReqRawObj = this.Static.RetypeRequestMaps2Objects({
 				offset: this.grid.GetOffset(),
 				limit: this.grid.GetServerConfig().itemsPerPage,
 				sorting: this.grid.GetSorting(),
@@ -83,7 +83,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.DataSources {
 			);
 			if (this.pageLoaded) {
 
-				var reqData: Interfaces.IServerRequestRaw = this.Static.RetypeRequestMaps2Objects({
+				var reqData: Interfaces.Ajax.IReqRawObj = this.Static.RetypeRequestMaps2Objects({
 					offset: this.grid.GetOffset(),
 					limit: this.grid.GetServerConfig().itemsPerPage,
 					sorting: this.grid.GetSorting(),
@@ -104,14 +104,14 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.DataSources {
 				if (serverCfg.page > 1) {
 					var scrollOffset = (serverCfg.page - 1) * serverCfg.clientRowBuffer;
 					//console.log("scrolling top", scrollOffset);
-					this.options.GetAgOptions().api.ensureIndexVisible(
+					this.optionsManager.GetAgOptions().api.ensureIndexVisible(
 						scrollOffset, "top"
 					);
 				}
 			}
 		}
 		protected resolveByAjaxRequest (params: agGrid.IGetRowsParams): void {
-			var agGridApi: agGrid.GridApi<any> = this.options.GetAgOptions().api;
+			var agGridApi: agGrid.GridApi<any> = this.optionsManager.GetAgOptions().api;
 			agGridApi.showLoadingOverlay();
 			var [reqDataUrl, reqMethod, reqType] = this.getReqUrlMethodAndType();
 			var reqData = this.Static.RetypeRequestMaps2Objects({
@@ -125,7 +125,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.DataSources {
 				method: reqMethod,
 				data: Object.assign({}, reqData),
 				type: reqType,
-				success: (rawResponse: AgGrids.Interfaces.IServerResponse) => {
+				success: (rawResponse: AgGrids.Interfaces.Ajax.IResponse) => {
 					agGridApi.hideOverlay();
 
 					var response = this.Static.RetypeRawServerResponse(rawResponse);
@@ -136,7 +136,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.DataSources {
 						this.changeUrlSwitches.delete(cacheKey);
 					} else {
 						history.pushState(reqData, document.title, response.url);
-						this.grid.GetColumnsMenu().UpdateFormAction();
+						this.grid.GetColumnsVisibilityMenu().UpdateFormAction();
 					}
 
 					params.successCallback(response.data, response.totalCount);

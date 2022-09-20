@@ -1,4 +1,4 @@
-declare namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Interfaces {
+declare namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Interfaces.SortHeaders {
 	interface IElements {
 		contElement: HTMLDivElement;
 		agGridElement: HTMLDivElement;

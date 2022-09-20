@@ -4,25 +4,25 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 
 		protected static grid: AgGrid;
 		protected grid: AgGrid;
-		protected options: AgGrids.Options;
+		protected optionsManager: AgGrids.Options.Manager;
 		protected eventsManager: AgGrids.EventsManager;
-		protected helpers: AgGrids.Helpers;
+		protected helpers: AgGrids.Tools.Helpers;
 
-		protected initialData: Interfaces.IServerResponse;
+		protected initialData: Interfaces.Ajax.IResponse;
 		protected cache: DataSources.Cache;
-		protected pageReqData?: Interfaces.IServerRequestRaw;
+		protected pageReqData?: Interfaces.Ajax.IReqRawObj;
 
 		public constructor (grid: AgGrid) {
 			this.Static = new.target;
 			this.Static.grid = grid;
 			this.grid = grid;
-			this.options = grid.GetOptions();
+			this.optionsManager = grid.GetOptionsManager();
 			this.eventsManager = grid.GetEvents();
 			this.helpers = grid.GetHelpers();
 			this.initialData = grid.GetInitialData();
 		}
 
-		public abstract ExecRequest (reqData: Interfaces.IServerRequestRaw, changeUrl: boolean): this;
+		public abstract ExecRequest (reqData: Interfaces.Ajax.IReqRawObj, changeUrl: boolean): this;
 
 		protected initPageReqDataAndCache (): void {
 			var grid = this.Static.grid;
@@ -47,12 +47,12 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 			}
 			return [urlData, reqMethod, reqType];
 		}
-		public static RetypeRawServerResponse (serverResponse: Interfaces.IServerResponse): Interfaces.IServerResponse {
+		public static RetypeRawServerResponse (serverResponse: Interfaces.Ajax.IResponse): Interfaces.Ajax.IResponse {
 			serverResponse.filtering = this.retypeFilteringObj2Map(serverResponse.filtering);
 			return serverResponse;
 		}
-		public static RetypeRequestObjects2Maps (serverRequest: Interfaces.IServerRequestRaw): Interfaces.IServerRequest {
-			var result: Interfaces.IServerRequest = { ...serverRequest } as any;
+		public static RetypeRequestObjects2Maps (serverRequest: Interfaces.Ajax.IReqRawObj): Interfaces.Ajax.IRequest {
+			var result: Interfaces.Ajax.IRequest = { ...serverRequest } as any;
 			result.filtering = this.retypeFilteringObj2Map(serverRequest.filtering);
 			return result;
 		}
@@ -62,7 +62,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 				var filtering = filtering;
 				var newFiltering = new Map<string, Map<Enums.Operator, string[]>>();
 				for (var idColumn of columnsIds) {
-					newFiltering.set(idColumn, Helpers.ConvertObject2Map<Enums.Operator, string[]>(
+					newFiltering.set(idColumn, Tools.Helpers.ConvertObject2Map<Enums.Operator, string[]>(
 						filtering[idColumn] as any
 					));
 				}
@@ -74,20 +74,20 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 		public static RetypeFilteringMap2Obj (filtering: Map<string, Map<Enums.Operator, string[]>>): any {
 			var newFiltering: any = {};
 			for (var [idColumn, filterValues] of filtering.entries()) {
-				newFiltering[idColumn] = Helpers.ConvertMap2Object<Enums.Operator, string[]>(
+				newFiltering[idColumn] = Tools.Helpers.ConvertMap2Object<Enums.Operator, string[]>(
 					filterValues
 				) as any;
 			}
 			return newFiltering;
 		}
-		public static RetypeRequestMaps2Objects (serverRequest: Interfaces.IServerRequest): Interfaces.IServerRequestRaw {
-			var result: Interfaces.IServerRequestRaw = { ...serverRequest } as any;
+		public static RetypeRequestMaps2Objects (serverRequest: Interfaces.Ajax.IRequest): Interfaces.Ajax.IReqRawObj {
+			var result: Interfaces.Ajax.IReqRawObj = { ...serverRequest } as any;
 			if (serverRequest.filtering instanceof Map) {
 				result.filtering = this.RetypeFilteringMap2Obj(serverRequest.filtering);
 			}
 			return this.addRequestSystemData(result);
 		}
-		protected static addRequestSystemData (serverRequest: Interfaces.IServerRequestRaw): Interfaces.IServerRequestRaw {
+		protected static addRequestSystemData (serverRequest: Interfaces.Ajax.IReqRawObj): Interfaces.Ajax.IReqRawObj {
 			var serverConfig = this.grid.GetServerConfig();
 			serverRequest.id = serverConfig.id;
 			serverRequest.mode = serverConfig.clientPageMode;
