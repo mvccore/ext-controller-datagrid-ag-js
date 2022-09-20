@@ -24,6 +24,16 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 
 		public abstract ExecRequest (reqData: Interfaces.Ajax.IReqRawObj, changeUrl: boolean): this;
 
+		protected handleResponseControls (response: AgGrids.Interfaces.Ajax.IResponse): void {
+			var elms = this.optionsManager.GetElements(),
+				controls = response.controls;
+			if (elms.statusControl != null && controls.status != null) {
+				elms.statusControl.parentNode.replaceChild(
+					this.helpers.GetHtmlElementFromString(controls.status),
+					elms.statusControl
+				);
+			}
+		}
 		protected initPageReqDataAndCache (): void {
 			var grid = this.Static.grid;
 			this.cache = new DataSources.Cache(grid);

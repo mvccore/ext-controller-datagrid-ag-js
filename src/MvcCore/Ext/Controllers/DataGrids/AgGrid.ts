@@ -274,4 +274,3 @@ namespace MvcCore.Ext.Controllers.DataGrids {
 		}
 	}
 }
-

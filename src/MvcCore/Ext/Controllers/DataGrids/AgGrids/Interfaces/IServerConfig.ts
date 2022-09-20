@@ -1,5 +1,6 @@
 declare namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Interfaces {
 	interface IServerConfig {
+		version: string;
 		contElementSelector: string;
 		renderConfig: IServerConfigs.IRenderConfig;
 		columns: {

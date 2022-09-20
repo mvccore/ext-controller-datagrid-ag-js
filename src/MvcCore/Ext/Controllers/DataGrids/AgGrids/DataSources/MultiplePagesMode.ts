@@ -78,35 +78,33 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.DataSources {
 			
 			if (response.controls != null) {
 				this.optionsManager.InitBottomControls();
-				var elms = this.optionsManager.GetElements(),
-					controls = response.controls;
-				if (elms.countScalesControl != null && controls.countScales != null) {
-					elms.countScalesControl.parentNode.replaceChild(
-						this.helpers.GetHtmlElementFromString(controls.countScales),
-						elms.countScalesControl
-					);
-				}
-				if (elms.statusControl != null && controls.status != null) {
-					elms.statusControl.parentNode.replaceChild(
-						this.helpers.GetHtmlElementFromString(controls.status),
-						elms.statusControl
-					);
-				}
-				if (elms.pagingControl != null && controls.paging != null) {
-					this.eventsManager.RemovePagingEvents();
-					elms.pagingControl.parentNode.replaceChild(
-						this.helpers.GetHtmlElementFromString(controls.paging),
-						elms.pagingControl
-					);
-					this.optionsManager.InitBottomControls();
-					this.eventsManager.AddPagingEvents();
-				}
+				this.handleResponseControls(response);
 			}
 			
 			if (changeUrl) {
 				reqData.path = response.path;
 				history.pushState(reqData, document.title, response.url);
 				this.grid.GetColumnsVisibilityMenu().UpdateFormAction();
+			}
+		}
+		protected handleResponseControls (response: AgGrids.Interfaces.Ajax.IResponse): void {
+			super.handleResponseControls(response);
+			var elms = this.optionsManager.GetElements(),
+				controls = response.controls;
+			if (elms.countScalesControl != null && controls.countScales != null) {
+				elms.countScalesControl.parentNode.replaceChild(
+					this.helpers.GetHtmlElementFromString(controls.countScales),
+					elms.countScalesControl
+				);
+			}
+			if (elms.pagingControl != null && controls.paging != null) {
+				this.eventsManager.RemovePagingEvents();
+				elms.pagingControl.parentNode.replaceChild(
+					this.helpers.GetHtmlElementFromString(controls.paging),
+					elms.pagingControl
+				);
+				this.optionsManager.InitBottomControls();
+				this.eventsManager.AddPagingEvents();
 			}
 		}
 

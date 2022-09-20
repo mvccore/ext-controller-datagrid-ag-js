@@ -131,6 +131,11 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.DataSources {
 					var response = this.Static.RetypeRawServerResponse(rawResponse);
 					this.grid.GetEvents().HandleResponseLoaded(response);
 					
+					if (response.controls != null) {
+						this.optionsManager.InitBottomControls();
+						this.handleResponseControls(response);
+					}
+					
 					var cacheKey = this.cache.Key(reqData);
 					if (this.changeUrlSwitches.has(cacheKey) && this.changeUrlSwitches.get(cacheKey)) {
 						this.changeUrlSwitches.delete(cacheKey);
