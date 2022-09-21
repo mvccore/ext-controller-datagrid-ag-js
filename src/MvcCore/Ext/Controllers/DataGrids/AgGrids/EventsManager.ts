@@ -14,6 +14,11 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 		protected columnsChangesTimeout: number;
 		protected columnsChangesSending: boolean;
 		protected handlers: Map<Types.GridEventName, Types.GridEventHandler[]>;
+		
+		protected autoSelectFirstRow: boolean;
+		protected onLoadSelectionIndex: number | null = null;
+		protected onLoadSelectionCallback: () => void = null;
+
 		public constructor (grid: AgGrid) {
 			this.Static = new.target;
 			this.grid = grid;
@@ -51,6 +56,21 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 			this.handlers = new Map<Types.GridEventName, Types.GridEventHandler[]>();
 			this.columnsChanges = new Map<string, Interfaces.EventArgs.IColumnChange>();
 			this.columnsChangesSending = false;
+			this.autoSelectFirstRow = (
+				(serverConfig.rowSelection & AgGrids.Enums.RowSelection.ROW_SELECTION_AUTOSELECT_FIRST) != 0
+			);
+		}
+		public SetAutoSelectFirstRow (autoSelectFirstRow: boolean): this {
+			this.autoSelectFirstRow = autoSelectFirstRow;
+			return this;
+		}
+		public GetAutoSelectFirstRow (): boolean {
+			return this.autoSelectFirstRow;
+		}
+		public SetOnLoadSelectionIndex (rowIndexToSelectAfterLoad: number, onLoadSelectionCallback: () => void = null): this {
+			this.onLoadSelectionIndex = rowIndexToSelectAfterLoad;
+			this.onLoadSelectionCallback = onLoadSelectionCallback;
+			return this;
 		}
 		public AddEventListener <K extends keyof Interfaces.Events.IHandlersMap>(eventName: Types.GridEventName, handler: (e: Interfaces.Events.IHandlersMap[K]) => void): this {
 			var handlers = this.handlers.has(eventName)
@@ -80,6 +100,37 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 				try {
 					handler(event);
 				} catch (e) {}
+			}
+			return this;
+		}
+		public HandleModelUpdated (params: agGrid.ModelUpdatedEvent<any>): void {
+			//console.log("onModelUpdated", this.onLoadSelectionIndex)
+			if (this.onLoadSelectionIndex != null) {
+				var nextIndex = this.onLoadSelectionIndex;
+				var nextRow = params.api.getDisplayedRowAtIndex(nextIndex);
+				if (nextRow.data == null) {
+					//console.log("onModelUpdated1", nextIndex, nextRow.data);
+				} else {
+					//console.log("onModelUpdated2", nextIndex, nextRow.data);
+					nextRow.setSelected(true);
+					if (this.onLoadSelectionCallback) {
+						this.onLoadSelectionCallback();
+						this.onLoadSelectionCallback = null;
+					}
+					this.onLoadSelectionIndex = null;
+				}
+			}
+		}
+		public SelectRowByIndex (rowIndex: number, onLoadSelectionCallback: () => void = null): this {
+			if (this.autoSelectFirstRow) {
+				var row = this.grid.GetGridApi().getDisplayedRowAtIndex(rowIndex);
+				if (row != null) {
+					if (row.data == null) {
+						this.SetOnLoadSelectionIndex(rowIndex, onLoadSelectionCallback);
+					} else {
+						row.setSelected(true);
+					}
+				}
 			}
 			return this;
 		}
@@ -277,10 +328,13 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 		}
 		public firefiltering (filtering: Map<string, Map<Enums.Operator, string[]>>): this {
 			this.grid
+				.SetOffset(0)
 				.SetFiltering(filtering)
 				.SetTotalCount(null);
 			var pageMode = this.grid.GetPageMode();
 			if ((pageMode & AgGrids.Enums.ClientPageMode.CLIENT_PAGE_MODE_SINGLE) != 0) {
+				var dataSource = this.grid.GetDataSource() as AgGrids.DataSources.SinglePageMode;
+				dataSource.SetBodyScrolled(false);
 				var gridOptionsManager = this.grid.GetOptionsManager().GetAgOptions();
 				gridOptionsManager.api.onFilterChanged();
 			} else if ((pageMode & AgGrids.Enums.ClientPageMode.CLIENT_PAGE_MODE_MULTI) != 0) {
@@ -440,7 +494,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 				});
 			}
 		}
-		public HandleResponseLoaded (response: AgGrids.Interfaces.Ajax.IResponse): void {
+		public HandleResponseLoaded (response: AgGrids.Interfaces.Ajax.IResponse, selectFirstRow: boolean = false): void {
 			this.grid
 				.SetOffset(response.offset)
 				.SetTotalCount(response.totalCount)
@@ -470,6 +524,9 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 				}
 				index++;
 			}
+
+			if (selectFirstRow)
+				this.SelectRowByIndex(0);
 		}
 		protected handleUrlChangeSortsFilters (reqData: Interfaces.Ajax.IRequest): this {
 			// set up sort headers:

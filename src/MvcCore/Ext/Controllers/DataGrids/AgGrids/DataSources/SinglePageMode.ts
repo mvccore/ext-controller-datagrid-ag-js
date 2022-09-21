@@ -3,14 +3,25 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.DataSources {
 		public Static: typeof SinglePageMode;
 		/** If you know up front how many rows are in the dataset, set it here. Otherwise leave blank. */
 		public rowCount?: number = undefined;
-		protected pageLoaded: boolean;
+		protected pageLoadedState: number;
 		protected initDataCache: boolean;
 		protected requestCounter: number;
 		protected changeUrlSwitches: Map<string, boolean>;
 		protected initLocationHref: string;
+		
+		protected scrolled: boolean;
+		protected autoSelectFirstRow: boolean = false;
+		specialCase: boolean;
+		
+		public SetBodyScrolled (scrolled: boolean): this {
+			this.scrolled = scrolled;
+			return this;
+		}
+
 		public constructor (grid: AgGrid) {
 			super(grid);
-			this.pageLoaded = false;
+			this.scrolled = false;
+			this.pageLoadedState = 0;
 			this.initDataCache = this.grid.GetServerConfig().clientMaxRowsInCache > 0;
 			this.requestCounter = 0;
 			this.initLocationHref = location.href;
@@ -81,8 +92,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.DataSources {
 				this.initialData.data.slice(params.startRow - this.initialData.offset, params.endRow - this.initialData.offset), 
 				totalCount
 			);
-			if (this.pageLoaded) {
-
+			if (this.pageLoadedState > 0) {
 				var reqData: Interfaces.Ajax.IReqRawObj = this.Static.RetypeRequestMaps2Objects({
 					offset: this.grid.GetOffset(),
 					limit: this.grid.GetServerConfig().itemsPerPage,
@@ -96,21 +106,38 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.DataSources {
 					//console.log("pushState init data", reqData);
 					history.pushState(reqData, document.title, this.initLocationHref);
 				}
+				if (this.autoSelectFirstRow)
+					this.grid.GetEvents().SelectRowByIndex(0);
 
 			} else {
-				this.pageLoaded = true;
+				this.pageLoadedState++;
 				var serverCfg = this.grid.GetServerConfig();
 				//console.log("page", serverCfg.page);
 				if (serverCfg.page > 1) {
-					var scrollOffset = (serverCfg.page - 1) * serverCfg.clientRowBuffer;
+					var scrollOffset = (serverCfg.page - 1) * serverCfg.itemsPerPage;
 					//console.log("scrolling top", scrollOffset);
 					this.optionsManager.GetAgOptions().api.ensureIndexVisible(
 						scrollOffset, "top"
 					);
+					this.specialCase = true;
+					
+					this.grid.GetEvents().SelectRowByIndex(scrollOffset, () => {
+						setTimeout(() => {
+							this.autoSelectFirstRow = true;
+						}, 1000);
+					});
+					
+				} else {
+					this.grid.GetEvents().SelectRowByIndex(0, () => {
+						setTimeout(() => {
+							this.autoSelectFirstRow = true;
+						}, 1000);
+					});
 				}
 			}
 		}
 		protected resolveByAjaxRequest (params: agGrid.IGetRowsParams): void {
+			//console.log("resolveByAjaxRequest");
 			var agGridApi: agGrid.GridApi<any> = this.optionsManager.GetAgOptions().api;
 			agGridApi.showLoadingOverlay();
 			var [reqDataUrl, reqMethod, reqType] = this.getReqUrlMethodAndType();
@@ -129,22 +156,34 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.DataSources {
 					agGridApi.hideOverlay();
 
 					var response = this.Static.RetypeRawServerResponse(rawResponse);
-					this.grid.GetEvents().HandleResponseLoaded(response);
 					
 					if (response.controls != null) {
 						this.optionsManager.InitBottomControls();
 						this.handleResponseControls(response);
 					}
 					
+					var serverCfg = this.grid.GetServerConfig();
+					if (serverCfg.page > 1) {
+						this.pageLoadedState++;
+					} else if (serverCfg.page === 1) {
+						this.pageLoadedState = 4;
+					}
+
 					var cacheKey = this.cache.Key(reqData);
 					if (this.changeUrlSwitches.has(cacheKey) && this.changeUrlSwitches.get(cacheKey)) {
 						this.changeUrlSwitches.delete(cacheKey);
 					} else {
-						history.pushState(reqData, document.title, response.url);
-						this.grid.GetColumnsVisibilityMenu().UpdateFormAction();
+						if (this.pageLoadedState > 3) {
+							history.pushState(reqData, document.title, response.url);
+							this.grid.GetColumnsVisibilityMenu().UpdateFormAction();
+						}
 					}
 
+					var selectFirstRow = !this.scrolled && this.pageLoadedState > 3;
+
 					params.successCallback(response.data, response.totalCount);
+					
+					this.grid.GetEvents().HandleResponseLoaded(response, selectFirstRow);
 				}
 			});
 		}

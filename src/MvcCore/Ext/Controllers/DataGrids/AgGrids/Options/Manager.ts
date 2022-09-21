@@ -41,6 +41,13 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Options {
 		public GetElements (): AgGrids.Interfaces.SortHeaders.IElements {
 			return this.elements;
 		}
+		public SetAgBases (agBases: AgGrids.Options.AgBases): this {
+			this.agBases = agBases;
+			return this;
+		}
+		public GetAgBases (): AgGrids.Options.AgBases {
+			return this.agBases;
+		}
 		public SetAgOptions (options: agGrid.GridOptions<any>): this {
 			this.agOptions = options;
 			return this;

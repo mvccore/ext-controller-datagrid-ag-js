@@ -5,6 +5,10 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.EventsManagers {
 		public constructor (grid: AgGrid) {
 			super(grid);
 		}
+		public HandleGridReady (event: agGrid.GridReadyEvent<any>): void {
+			this.SelectRowByIndex(0);
+			super.HandleGridReady(event);
+		}
 		public AddPagingEvents (): this {
 			this.grid.GetOptionsManager().GetElements().pagingAnchors.forEach(pagingAnchor => {
 				var ofsetInt = parseInt(pagingAnchor.dataset.offset, 10);

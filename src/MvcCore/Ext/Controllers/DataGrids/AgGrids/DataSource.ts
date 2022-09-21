@@ -27,11 +27,15 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 		protected handleResponseControls (response: AgGrids.Interfaces.Ajax.IResponse): void {
 			var elms = this.optionsManager.GetElements(),
 				controls = response.controls;
-			if (elms.statusControl != null && controls.status != null) {
-				elms.statusControl.parentNode.replaceChild(
-					this.helpers.GetHtmlElementFromString(controls.status),
-					elms.statusControl
-				);
+			if (elms.statusControl != null) {
+				if (controls.status == null) {
+					elms.statusControl.innerHTML = '';
+				} else {
+					elms.statusControl.parentNode.replaceChild(
+						this.helpers.GetHtmlElementFromString(controls.status),
+						elms.statusControl
+					);
+				}
 			}
 		}
 		protected initPageReqDataAndCache (): void {

@@ -6,9 +6,8 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Options {
 		protected optionsManager: AgGrids.Options.Manager;
 		protected eventsManager: AgGrids.EventsManager;
 		protected helpers: AgGrids.Tools.Helpers;
-
 		protected agOptions: agGrid.GridOptions<any>;
-
+		
 		public constructor (grid: AgGrid) {
 			this.Static = new.target;
 			this.grid = grid;
@@ -73,6 +72,11 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Options {
 			this.agOptions.onViewportChanged = this.eventsManager.HandleGridSizeChanged.bind(this.eventsManager, true);
 			this.agOptions.onGridSizeChanged = this.eventsManager.HandleGridSizeChanged.bind(this.eventsManager, false);
 			this.agOptions.onSelectionChanged = this.eventsManager.HandleSelectionChange.bind(this.eventsManager);
+			this.agOptions.onModelUpdated = this.eventsManager.HandleModelUpdated.bind(this.eventsManager);
+			if ((this.grid.GetPageMode() & AgGrids.Enums.ClientPageMode.CLIENT_PAGE_MODE_SINGLE) != 0) {
+				var eventsManagerSpm = this.eventsManager as AgGrids.EventsManagers.SinglePageMode;
+				this.agOptions.onBodyScroll = eventsManagerSpm.HandleBodyScroll.bind(this.eventsManager);
+			}
 			return this;
 		}
 	}
