@@ -1,6 +1,6 @@
 namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 	export class EventsManager {
-		public static readonly COLUMN_CHANGES_TIMEOUT = 2000;
+		public static readonly COLUMN_CHANGES_TIMEOUT = 500;
 		public Static: typeof EventsManager;
 		protected grid: AgGrid;
 		protected multiSorting: boolean;

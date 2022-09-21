@@ -118,7 +118,8 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Tools {
 			}
 			var result: AgGrids.Interfaces.IServerConfigs.IColumn[] = [],
 				index: number = 0,
-				indexedMapKeys = Array.from(indexedMap.keys()).sort();
+				indexedMapKeys = Array.from(indexedMap.keys());
+			indexedMapKeys.sort((a, b) => a - b);
 			for (var indexedMapKey of indexedMapKeys) {
 				for (var serverColumnCfg of indexedMap.get(indexedMapKey)) {
 					serverColumnCfg.columnIndex = index++;
