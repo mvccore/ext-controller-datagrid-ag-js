@@ -20,30 +20,6 @@
 	"build": "tsc && copy-files-from-to"
   },
   "copyFiles": [{
-    "from": "./build/**/*",
-    "to": "../ext-controller-datagrid-ag/assets/build"
-  }, {
-    "from": "./declarations/**/*",
-    "to": "../ext-controller-datagrid-ag/assets/declarations"
-  }, {
-    "from": "./node_modules/ag-grid-community/dist/*",
-    "to": "../ext-controller-datagrid-ag/assets/ag-grid-community"
-  }, {
-    "from": "./node_modules/ag-grid-community/dist/**/*",
-    "to": "../ext-controller-datagrid-ag/assets/ag-grid-community"
-  }, {
-    "from": "./node_modules/moment/min/*",
-    "to": "../ext-controller-datagrid-ag/assets/moment"
-  }, {
-    "from": "./node_modules/moment/min/**/*",
-    "to": "../ext-controller-datagrid-ag/assets/moment"
-  }, {
-    "from": "./node_modules/moment/locale/*",
-    "to": "../ext-controller-datagrid-ag/assets/moment/locale"
-  }, {
-    "from": "./node_modules/ajax-min/builds/latest/*",
-    "to": "../ext-controller-datagrid-ag/assets/ajax-min"
-  }, {
     "from": "./types/agGrid.d.ts",
     "to": "../ext-controller-datagrid-ag/assets/declarations/agGrid.d.ts"
   }],
