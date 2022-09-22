@@ -1,6 +1,6 @@
 {
   "name": "@mvccore/ext-controller-datagrid-ag-js",
-  "version": "5.1.4",
+  "version": "5.1.5",
   "description": "MvcCore controller datagrid extension for administration environments with AgGrid JS/TS front-end.",
   "author": {
     "name": "Tom Flídr",
@@ -17,7 +17,42 @@
   },
   "scripts": {
     "prepublish": "npm run build",
-    "build": "tsc"
+	"build": "tsc && copy-files-from-to"
+  },
+  "copyFiles": [{
+    "from": "./build/**/*",
+    "to": "../ext-controller-datagrid-ag/assets/build"
+  }, {
+    "from": "./declarations/**/*",
+    "to": "../ext-controller-datagrid-ag/assets/declarations"
+  }, {
+    "from": "./node_modules/ag-grid-community/dist/*",
+    "to": "../ext-controller-datagrid-ag/assets/ag-grid-community"
+  }, {
+    "from": "./node_modules/ag-grid-community/dist/**/*",
+    "to": "../ext-controller-datagrid-ag/assets/ag-grid-community"
+  }, {
+    "from": "./node_modules/moment/min/*",
+    "to": "../ext-controller-datagrid-ag/assets/moment"
+  }, {
+    "from": "./node_modules/moment/min/**/*",
+    "to": "../ext-controller-datagrid-ag/assets/moment"
+  }, {
+    "from": "./node_modules/moment/locale/*",
+    "to": "../ext-controller-datagrid-ag/assets/moment/locale"
+  }, {
+    "from": "./node_modules/ajax-min/builds/latest/*",
+    "to": "../ext-controller-datagrid-ag/assets/ajax-min"
+  }, {
+    "from": "./types/agGrid.d.ts",
+    "to": "../ext-controller-datagrid-ag/assets/declarations/agGrid.d.ts"
+  }],
+  "copyFilesSettings": {
+	"whenFileExists": "overwrite",
+	"removeSourceMappingURL": false,
+	"uglifyJs": false,
+	"addReferenceToSourceOfOrigin": false,
+	"ignoreDotFilesAndFolders": true
   },
   "dependencies": {
     "ag-grid-community": "^28.1.0",
@@ -26,6 +61,7 @@
     "tslib": "^2.4.0"
   },
   "devDependencies": {
-    "typescript": "^4.6.3"
+    "typescript": "^4.6.3",
+	"copy-files-from-to": "^3.2.2"
   }
 }
