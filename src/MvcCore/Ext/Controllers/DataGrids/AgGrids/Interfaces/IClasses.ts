@@ -35,7 +35,6 @@ declare namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Interfaces {
 		interface Tools {
 			Helpers?: typeof AgGrids.Tools.Helpers;
 			Translator?: typeof AgGrids.Tools.Translator;
-			ToolTip?: typeof AgGrids.Tools.ToolTip;
 		}
 	}
 	interface IClasses {

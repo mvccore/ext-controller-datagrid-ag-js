@@ -33,7 +33,6 @@ namespace MvcCore.Ext.Controllers.DataGrids {
 			Tools: {
 				Helpers: AgGrids.Tools.Helpers,
 				Translator: AgGrids.Tools.Translator,
-				ToolTip: AgGrids.Tools.ToolTip,
 			},
 		};
 		public Static: typeof AgGrid;

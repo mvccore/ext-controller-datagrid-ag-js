@@ -15,7 +15,6 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Columns {
 			editable: false,
 			flex: 1,
 			headerComponent: AgGrids.Columns.SortHeader,
-			tooltipComponent: AgGrids.Tools.ToolTip
 		};
 		protected sortHeaderDefaults: AgGrids.Interfaces.SortHeaders.IParams = <AgGrids.Interfaces.SortHeaders.IParams>{
 			renderDirection: true,
@@ -57,8 +56,6 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Columns {
 			this.serverColumnsUserSortedAll = [];
 			this.serverColumnsSortedActive = [];
 			this.agColumnDefaults.headerComponent = grid.Static.Classes.Columns.SortHeader;
-			//this.agColumnDefaults.tooltipComponent = grid.Static.Classes.Tools.ToolTip;
-			this.agColumnDefaults.tooltipComponent = undefined;// TODO
 		}
 
 		public SetServerColumnsMapAll (serverColumnsMapAll: Map<string, Interfaces.IServerConfigs.IColumn>): this {
