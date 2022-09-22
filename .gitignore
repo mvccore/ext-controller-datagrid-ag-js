@@ -56,8 +56,6 @@ Temporary Items
 .vs
 *.njsproj
 *.njsproj.user
-build
-declarations
 package-lock.json
 node_modules
 *.code-workspace
