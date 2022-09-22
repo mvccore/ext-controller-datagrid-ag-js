@@ -1,21 +1,17 @@
 import * as AgGridAll from "ag-grid-community";
 
-import * as MomentAll from "moment";
-
 export {};
 
 declare global {
-	declare var moment: MomentAll.default;
-	declare var agGridLocales: {
+	var agGridLocales: {
 		[locale: string]: {
 			[key: string]: string;
 		}
 	}
 	namespace agGrid {
 		class Grid extends AgGridAll.Grid {}
-		declare type InbuiltParentType = AgGridAll.IFloatingFilterParent & AgGridAll.IFilter;
-		declare type IFloatingFilterParentCallback<P = InbuiltParentType> = AgGridAll.IFloatingFilterParentCallback<P>;
-
+		type InbuiltParentType = AgGridAll.IFloatingFilterParent & AgGridAll.IFilter;
+		type IFloatingFilterParentCallback<P = InbuiltParentType> = AgGridAll.IFloatingFilterParentCallback<P>;
 		interface GridApi<TData = any> extends AgGridAll.GridApi<TData> {}
 		interface ColumnApi extends AgGridAll.ColumnApi {}
 		interface IHeaderComp extends AgGridAll.IHeaderComp {}
@@ -61,4 +57,3 @@ declare global {
 		class RowNode<TData = any> extends AgGridAll.RowNode<TData> {}
 	}
 }
-
