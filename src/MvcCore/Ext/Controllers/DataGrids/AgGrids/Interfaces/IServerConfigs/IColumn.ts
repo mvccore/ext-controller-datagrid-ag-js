@@ -15,9 +15,11 @@ declare namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Interfaces.IServerCo
 		minWidth: number | string | null;
 		flex: number | string | null;
 		columnIndex: number | null;
-		activeColumnIndex: number | null;
+		columnIndexUser: number | null;
+		columnIndexActive: number | null;
 		title: string | null;
 		editable: boolean | null;
 		disabled: boolean | null;
 	}
+	type IColumnIndexes = Pick<IColumn, "columnIndex" | "columnIndexUser" | "columnIndexActive">;
 }

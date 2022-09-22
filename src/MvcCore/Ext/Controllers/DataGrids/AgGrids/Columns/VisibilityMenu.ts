@@ -188,7 +188,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Columns {
 				span: HTMLSpanElement,
 				checkbox: HTMLInputElement;
 			this.elms.inputs = new Map<string, HTMLInputElement>();
-			for (var columnCfg of this.grid.GetOptionsManager().GetColumnManager().GetAllServerColumnsSorted()) {
+			for (var columnCfg of this.grid.GetOptionsManager().GetColumnManager().GetServerColumnsSortedAll()) {
 				idColumn = columnCfg.urlName;
 				text = columnCfg.title ?? columnCfg.headingName;
 				if (text === idColumn) continue;

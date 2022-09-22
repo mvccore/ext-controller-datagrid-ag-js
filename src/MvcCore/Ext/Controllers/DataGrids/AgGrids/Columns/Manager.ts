@@ -33,9 +33,10 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Columns {
 		protected serverConfig: Interfaces.IServerConfig;
 		protected initData: Interfaces.Ajax.IResponse;
 		protected viewHelper: Columns.ViewHelper;
-		protected allServerColumnsMap: Map<string, Interfaces.IServerConfigs.IColumn>;
-		protected allServerColumnsSorted: Interfaces.IServerConfigs.IColumn[];
-		protected activeServerColumnsSorted: Interfaces.IServerConfigs.IColumn[];
+		protected serverColumnsMapAll: Map<string, Interfaces.IServerConfigs.IColumn>;
+		protected serverColumnsSortedAll: Interfaces.IServerConfigs.IColumn[];
+		protected serverColumnsUserSortedAll: Interfaces.IServerConfigs.IColumn[];
+		protected serverColumnsSortedActive: Interfaces.IServerConfigs.IColumn[];
 		protected filteringEnabled: boolean;
 		protected sortingEnabled: boolean;
 
@@ -51,36 +52,46 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Columns {
 				this.filterHeaderDefaults.submitDelayMs = 0;
 			}
 			this.filterMenuDefaults.isTouchDevice = isTouchDevice;
-			this.allServerColumnsMap = new Map<string, Interfaces.IServerConfigs.IColumn>();
-			this.allServerColumnsSorted = [];
-			this.activeServerColumnsSorted = [];
+			this.serverColumnsMapAll = new Map<string, Interfaces.IServerConfigs.IColumn>();
+			this.serverColumnsSortedAll = [];
+			this.serverColumnsUserSortedAll = [];
+			this.serverColumnsSortedActive = [];
 			this.agColumnDefaults.headerComponent = grid.Static.Classes.Columns.SortHeader;
 			//this.agColumnDefaults.tooltipComponent = grid.Static.Classes.Tools.ToolTip;
 			this.agColumnDefaults.tooltipComponent = undefined;// TODO
 		}
 
-		public SetAllServerColumnsMap (allServerColumnsMap: Map<string, Interfaces.IServerConfigs.IColumn>): this {
-			this.allServerColumnsMap = allServerColumnsMap;
+		public SetServerColumnsMapAll (serverColumnsMapAll: Map<string, Interfaces.IServerConfigs.IColumn>): this {
+			this.serverColumnsMapAll = serverColumnsMapAll;
 			return this;
 		}
-		public GetAllServerColumnsMap (): Map<string, Interfaces.IServerConfigs.IColumn> {
-			return this.allServerColumnsMap;
+		public GetServerColumnsMapAll (): Map<string, Interfaces.IServerConfigs.IColumn> {
+			return this.serverColumnsMapAll;
 		}
 
-		public SetAllServerColumnsSorted (allServerColumnsSorted: Interfaces.IServerConfigs.IColumn[]): this {
-			this.allServerColumnsSorted = allServerColumnsSorted;
+		public SetServerColumnsSortedAll (serverColumnsSortedAll: Interfaces.IServerConfigs.IColumn[]): this {
+			this.serverColumnsSortedAll = serverColumnsSortedAll;
 			return this;
 		}
-		public GetAllServerColumnsSorted (): Interfaces.IServerConfigs.IColumn[] {
-			return this.allServerColumnsSorted;
+		public GetServerColumnsSortedAll (): Interfaces.IServerConfigs.IColumn[] {
+			return this.serverColumnsSortedAll;
 		}
 
-		public SetActiveServerColumnsSorted (activeServerColumnsSorted: Interfaces.IServerConfigs.IColumn[]): this {
-			this.activeServerColumnsSorted = activeServerColumnsSorted;
+
+		public SetServerColumnsUserSortedAll (serverColumnsUserSortedAll: Interfaces.IServerConfigs.IColumn[]): this {
+			this.serverColumnsUserSortedAll = serverColumnsUserSortedAll;
 			return this;
 		}
-		public GetActiveServerColumnsSorted (): Interfaces.IServerConfigs.IColumn[] {
-			return this.activeServerColumnsSorted;
+		public GetServerColumnsUserSortedAll (): Interfaces.IServerConfigs.IColumn[] {
+			return this.serverColumnsUserSortedAll;
+		}
+
+		public SetServerColumnsSortedActive (serverColumnsSortedActive: Interfaces.IServerConfigs.IColumn[]): this {
+			this.serverColumnsSortedActive = serverColumnsSortedActive;
+			return this;
+		}
+		public GetServerColumnsSortedActive (): Interfaces.IServerConfigs.IColumn[] {
+			return this.serverColumnsSortedActive;
 		}
 		
 		public SetAgColumnsConfigs (gridColumns: Map<string, AgGrids.Types.GridColumn>): this {
@@ -127,16 +138,17 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Columns {
 			var agColumn: AgGrids.Types.GridColumn,
 				serverColumnCfg: AgGrids.Interfaces.IServerConfigs.IColumn,
 				columnUrlName: string
-			this.allServerColumnsSorted = this.helpers.SortConfigColumns(this.serverConfig.columns);
+			this.serverColumnsSortedAll = this.helpers.SortConfigColumns(this.serverConfig.columns, 'columnIndex');
+			this.serverColumnsUserSortedAll = this.helpers.SortConfigColumns(this.serverConfig.columns, 'columnIndexUser');
 			this.grid.SetSortHeaders(new Map<string, AgGrids.Columns.SortHeader>());
 			this.grid.SetFilterHeaders(new Map<string, AgGrids.Columns.FilterHeader>());
 			this.grid.SetFilterMenus(new Map<string, AgGrids.Columns.FilterMenu>());
-			for (var serverColumnCfg of this.allServerColumnsSorted) {
+			for (var serverColumnCfg of this.serverColumnsUserSortedAll) {
 				columnUrlName = serverColumnCfg.urlName;
-				this.allServerColumnsMap.set(serverColumnCfg.propName, serverColumnCfg);
+				this.serverColumnsMapAll.set(serverColumnCfg.propName, serverColumnCfg);
 				if (serverColumnCfg.disabled === true) continue;
-				serverColumnCfg.activeColumnIndex = this.activeServerColumnsSorted.length;
-				this.activeServerColumnsSorted.push(serverColumnCfg);
+				serverColumnCfg.columnIndexActive = this.serverColumnsSortedActive.length;
+				this.serverColumnsSortedActive.push(serverColumnCfg);
 				agColumn = this.initColumn(serverColumnCfg);
 				this.agColumnsConfigs.set(columnUrlName, agColumn);
 			}

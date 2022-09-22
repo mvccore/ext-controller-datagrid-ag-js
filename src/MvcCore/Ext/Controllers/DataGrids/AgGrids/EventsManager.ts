@@ -171,12 +171,12 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 			var columnId = event.column.getColId(),
 				columnConfig = this.grid.GetServerConfig().columns[columnId],
 				columnsManager = this.grid.GetOptionsManager().GetColumnManager(),
-				activeColumnsSorted = columnsManager.GetActiveServerColumnsSorted(),
-				allColumnsSorted = columnsManager.GetAllServerColumnsSorted(),
-				activeIndexOld = columnConfig.activeColumnIndex,
+				activeColumnsSorted = columnsManager.GetServerColumnsSortedActive(),
+				allColumnsSorted = columnsManager.GetServerColumnsUserSortedAll(),
+				activeIndexOld = columnConfig.columnIndexActive,
 				activeIndexNex = event.toIndex,
-				allIndexOld = columnConfig.columnIndex,
-				allIndexNew = allColumnsSorted[activeIndexNex].columnIndex;
+				allIndexOld = columnConfig.columnIndexUser,
+				allIndexNew = allColumnsSorted[activeIndexNex].columnIndexUser;
 
 			// přehodit reálné all indexy
 			var [allColumnCfg] = allColumnsSorted.splice(allIndexOld, 1);
@@ -186,7 +186,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 			
 			for (var i = 0, l = allColumnsSorted.length; i < l; i++) {
 				columnConfig = allColumnsSorted[i]
-				columnConfig.columnIndex = i;
+				columnConfig.columnIndexUser = i;
 				columnId = columnConfig.urlName;
 				if (this.columnsChanges.has(columnId)) {
 					this.columnsChanges.get(columnId).index = i;
@@ -197,10 +197,10 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 				}
 			}
 			for (var i = 0, l = activeColumnsSorted.length; i < l; i++)
-				activeColumnsSorted[i].activeColumnIndex = i;
+				activeColumnsSorted[i].columnIndexActive = i;
 				
-			columnsManager.SetActiveServerColumnsSorted(activeColumnsSorted);
-			columnsManager.SetAllServerColumnsSorted(allColumnsSorted);
+			columnsManager.SetServerColumnsSortedActive(activeColumnsSorted);
+			columnsManager.SetServerColumnsSortedAll(allColumnsSorted);
 			this.grid.GetColumnsVisibilityMenu().RedrawControls();
 
 			this.columnsChangesTimeout = setTimeout(

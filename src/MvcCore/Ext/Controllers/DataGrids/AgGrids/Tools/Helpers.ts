@@ -98,14 +98,17 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Tools {
 			}
 			return allowedOperators;
 		}
-		public SortConfigColumns (serverColumns: {[columnUrlName: string]: AgGrids.Interfaces.IServerConfigs.IColumn }): AgGrids.Interfaces.IServerConfigs.IColumn[] {
+		public SortConfigColumns (
+			serverColumns: {[columnUrlName: string]: AgGrids.Interfaces.IServerConfigs.IColumn }, 
+			columnIndexPropName: keyof AgGrids.Interfaces.IServerConfigs.IColumnIndexes
+		): AgGrids.Interfaces.IServerConfigs.IColumn[] {
 			var indexedMap = new Map<number, AgGrids.Interfaces.IServerConfigs.IColumn[]>(),
 				notIndexedSet = new Set<AgGrids.Interfaces.IServerConfigs.IColumn>(),
 				serverColumnCfg: AgGrids.Interfaces.IServerConfigs.IColumn,
 				columnIndex: number | null;
 			for (var columnUrlName in serverColumns) {
 				serverColumnCfg = serverColumns[columnUrlName];
-				columnIndex = serverColumnCfg.columnIndex;
+				columnIndex = serverColumnCfg[columnIndexPropName];
 				if (columnIndex == null) {
 					notIndexedSet.add(serverColumnCfg);
 				} else {
@@ -122,12 +125,12 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Tools {
 			indexedMapKeys.sort((a, b) => a - b);
 			for (var indexedMapKey of indexedMapKeys) {
 				for (var serverColumnCfg of indexedMap.get(indexedMapKey)) {
-					serverColumnCfg.columnIndex = index++;
+					serverColumnCfg[columnIndexPropName] = index++;
 					result.push(serverColumnCfg);
 				}
 			}
 			for (var serverColumnCfg of notIndexedSet) {
-				serverColumnCfg.columnIndex = index++;
+				serverColumnCfg[columnIndexPropName] = index++;
 				result.push(serverColumnCfg);
 			}
 			return result;
