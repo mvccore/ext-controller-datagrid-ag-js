@@ -232,17 +232,21 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 			);
 		}
 
-		public HandleFilterMenuChange (columnId: string, filteringItem: Map<Enums.Operator, string[]> | null): void {
+		public HandleFilterMenuChange (columnId: string, filteringItem: Map<Enums.Operator, string[]> | null, clearAllOther: boolean = false): void {
 			var filtering = this.grid.GetFiltering(),
 				filterRemoving = filteringItem == null || filteringItem.size === 0,
 				filterHeader = this.grid.GetFilterHeaders().get(columnId),
 				filterMenu = this.grid.GetFilterMenus().get(columnId);
 			if (filterRemoving) {
-				filtering.delete(columnId);
+				if (clearAllOther) {
+					filtering = new Map<string, Map<Enums.Operator, string[]>>();
+				} else {
+					filtering.delete(columnId);
+				}
 				filterHeader?.SetText(null);
 				filterMenu?.SetUpControls(null);
 			} else {
-				if (!this.multiFiltering)
+				if (!this.multiFiltering || clearAllOther)
 					filtering = new Map<string, Map<Enums.Operator, string[]>>();
 				filtering.set(columnId, filteringItem);
 				filterHeader?.SetText(filtering.get(columnId));
@@ -250,7 +254,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 			}
 			this.firefiltering(filtering);
 		}
-		public HandleFilterHeaderChange (columnId: string, rawInputValue: string): void {
+		public HandleFilterHeaderChange (columnId: string, rawInputValue: string, clearAllOther: boolean = false): void {
 			var rawInputIsNull = rawInputValue == null,
 				rawInputValue = rawInputIsNull ? '' : rawInputValue.trim(),
 				filterRemoving = rawInputValue === '',
@@ -307,7 +311,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 				if (filterValues.size === 0) {
 					filterRemoving = true;
 				} else {
-					if (!this.multiFiltering)
+					if (!this.multiFiltering || clearAllOther)
 						filtering = new Map<string, Map<Enums.Operator, string[]>>();
 					filtering.set(columnId, filterValues);
 				}
@@ -316,7 +320,11 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 				filterMenu = this.grid.GetFilterMenus().get(columnId),
 				filteringItem: Map<Enums.Operator, string[]>;
 			if (filterRemoving) {
-				filtering.delete(columnId);
+				if (clearAllOther) {
+					filtering = new Map<string, Map<Enums.Operator, string[]>>();
+				} else {
+					filtering.delete(columnId);
+				}
 				filterHeader?.SetText(null);
 				filterMenu?.SetUpControls(null);
 			} else {
