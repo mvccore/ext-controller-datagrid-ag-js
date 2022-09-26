@@ -37,7 +37,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Columns {
 		}
 		public SetText (filteringItem: Map<Enums.Operator, string[]> | null): this {
 			var newStateActive = filteringItem != null;
-			if (this.activeState === newStateActive) return this;
+			if (!this.activeState && !newStateActive) return this;
 			this.activeState = newStateActive;
 			var input = this.elms.input;
 			if (filteringItem == null) {
