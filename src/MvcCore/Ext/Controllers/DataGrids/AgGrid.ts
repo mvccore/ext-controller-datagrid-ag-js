@@ -230,12 +230,8 @@ namespace MvcCore.Ext.Controllers.DataGrids {
 			this.eventsManager.RemoveEventListener(eventName, handler);
 			return this;
 		}
-		public ExecChange (offset?: number, sorting?: AgGrids.Types.SortItem[], filtering?: Map<string, Map<AgGrids.Enums.Operator, string[]>>): this {
-			this.eventsManager.HandleExecChange(
-				offset ?? 0, 
-				sorting ?? [], 
-				filtering ?? new Map<string, Map<AgGrids.Enums.Operator, string[]>>()
-			);
+		public ExecChange (offset?: number, sorting?: AgGrids.Types.SortItem[] | false, filtering?: Map<string, Map<AgGrids.Enums.Operator, string[]>> | false): this {
+			this.eventsManager.HandleExecChange(offset, sorting, filtering);
 			return this;
 		}
 

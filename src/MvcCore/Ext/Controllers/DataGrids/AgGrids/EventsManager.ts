@@ -426,9 +426,19 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 			});
 			return this;
 		}
-		public HandleExecChange (offset: number, sorting: Types.SortItem[], filtering: Map<string, Map<Enums.Operator, string[]>>): void {
-			var dataSource = this.grid.GetDataSource() as AgGrids.DataSource,
-				reqData = <Interfaces.Ajax.IRequest>{
+		public HandleExecChange (offset: number = 0, sorting?: Types.SortItem[] | false, filtering?: Map<string, Map<Enums.Operator, string[]>> | false): void {
+			var dataSource = this.grid.GetDataSource() as AgGrids.DataSource;
+			if (sorting === false) {
+				sorting = [];
+			} else if (sorting == null) {
+				sorting = this.grid.GetSorting();
+			}
+			if (filtering === false) {
+				filtering = new Map<string, Map<Enums.Operator, string[]>>();
+			} else if (filtering == null) {
+				filtering = this.grid.GetFiltering();
+			}
+			var reqData = <Interfaces.Ajax.IRequest>{
 					offset: offset,
 					limit: this.grid.GetServerConfig().itemsPerPage,
 					sorting: sorting,
