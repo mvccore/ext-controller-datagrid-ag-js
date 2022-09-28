@@ -16,5 +16,6 @@ declare namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Interfaces.IServerCo
 		renderTableHeadFiltering: boolean;
 		renderTableHeadSorting: boolean;
 		theme: string;
+		tableHeadFilteringTitle?: string;
 	}
 }
