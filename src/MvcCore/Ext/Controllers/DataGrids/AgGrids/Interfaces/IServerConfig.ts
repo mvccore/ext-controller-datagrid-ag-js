@@ -26,6 +26,7 @@ declare namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Interfaces {
 		filteringMode: Enums.FilteringMode;
 		controlsTexts: Map<Enums.ControlText, string>;
 		timeZoneOffset: number;
+		clientRequestBlockSize: number;
 		clientRowBuffer: number;
 		clientMaxRowsInCache: number;
 		clientRowBufferMax: number;

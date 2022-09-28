@@ -31,7 +31,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.DataSources {
 		public Load (): this {
 			var reqData: Interfaces.Ajax.IReqRawObj = this.Static.RetypeRequestMaps2Objects({
 				offset: this.grid.GetOffset(),
-				limit: this.grid.GetServerConfig().itemsPerPage,
+				limit: this.grid.GetLimit(),
 				sorting: this.grid.GetSorting(),
 				filtering: this.grid.GetFiltering(),
 			});

@@ -57,6 +57,7 @@ namespace MvcCore.Ext.Controllers.DataGrids {
 		protected filtering: Map<string, Map<AgGrids.Enums.Operator, string[]>>;
 		protected totalCount: number | null = null;
 		protected offset: number = 0;
+		protected limit: number = 0;
 		protected gridPath: string = '';
 		protected pageMode: AgGrids.Enums.ClientPageMode;
 		protected columnsVisibilityMenu: AgGrids.Columns.VisibilityMenu;
@@ -187,6 +188,13 @@ namespace MvcCore.Ext.Controllers.DataGrids {
 		public GetOffset (): number {
 			return this.offset;
 		}
+		public SetLimit (limit: number): this {
+			this.limit = limit;
+			return this;
+		}
+		public GetLimit (): number {
+			return this.limit;
+		}
 		public SetGridPath (gridPath: string): this {
 			this.gridPath = gridPath;
 			return this;
@@ -245,21 +253,6 @@ namespace MvcCore.Ext.Controllers.DataGrids {
 			this.optionsManager = new classes.Options.Manager(this);
 			return this;
 		}
-		protected initPageModeSpecifics (): this {
-			if ((this.pageMode & AgGrids.Enums.ClientPageMode.CLIENT_PAGE_MODE_SINGLE) != 0) {
-				var emSinglePage = new this.Static.Classes.EventsManager.SinglePageMode(this);
-				this.eventsManager = emSinglePage;
-				emSinglePage
-					.AddUrlChangeEvent();
-			} else if ((this.pageMode & AgGrids.Enums.ClientPageMode.CLIENT_PAGE_MODE_MULTI) != 0) {
-				var emMultiplePages = new this.Static.Classes.EventsManager.MultiplePagesMode(this);
-				this.eventsManager = emMultiplePages;
-				emMultiplePages
-					.AddPagingEvents()
-					.AddUrlChangeEvent();
-			}
-			return this;
-		}
 		protected initServerConfig (serverConfig: AgGrids.Interfaces.IServerConfig): this {
 			this.serverConfig = this.helpers.RetypeRawServerConfig(serverConfig);
 			this.pageMode = this.serverConfig.clientPageMode;
@@ -267,6 +260,23 @@ namespace MvcCore.Ext.Controllers.DataGrids {
 		}
 		protected initTranslator (): this {
 			this.translator = new this.Static.Classes.Tools.Translator(this);
+			return this;
+		}
+		protected initPageModeSpecifics (): this {
+			if ((this.pageMode & AgGrids.Enums.ClientPageMode.CLIENT_PAGE_MODE_SINGLE) != 0) {
+				var emSinglePage = new this.Static.Classes.EventsManager.SinglePageMode(this);
+				this.eventsManager = emSinglePage;
+				emSinglePage
+					.AddUrlChangeEvent();
+				this.limit = this.serverConfig.clientRequestBlockSize;
+			} else if ((this.pageMode & AgGrids.Enums.ClientPageMode.CLIENT_PAGE_MODE_MULTI) != 0) {
+				var emMultiplePages = new this.Static.Classes.EventsManager.MultiplePagesMode(this);
+				this.eventsManager = emMultiplePages;
+				emMultiplePages
+					.AddPagingEvents()
+					.AddUrlChangeEvent();
+				this.limit = this.serverConfig.count;
+			}
 			return this;
 		}
 		protected initData (initialData: AgGrids.Interfaces.Ajax.IResponse): this {

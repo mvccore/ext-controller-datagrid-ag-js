@@ -440,7 +440,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 			}
 			var reqData = <Interfaces.Ajax.IRequest>{
 					offset: offset,
-					limit: this.grid.GetServerConfig().itemsPerPage,
+					limit: this.grid.GetLimit(),
 					sorting: sorting,
 					filtering: filtering,
 				},
@@ -514,6 +514,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 		}
 		public HandleResponseLoaded (response: AgGrids.Interfaces.Ajax.IResponse, selectFirstRow: boolean = false): void {
 			this.grid
+				.SetGridPath(response.path)
 				.SetOffset(response.offset)
 				.SetTotalCount(response.totalCount)
 				.SetSorting(response.sorting)
