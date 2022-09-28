@@ -76,6 +76,11 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Columns {
 			cont.className = sels.CONT_CLS;
 			var input = document.createElement('input');
 			input.type = 'text';
+			input.autocomplete = 'off';
+			input.name = 'filter_' + this.columnId;
+			var renderingCfg = this.grid.GetServerConfig().renderConfig;
+			if (renderingCfg.tableHeadFilteringTitle != null)
+				input.title = renderingCfg.tableHeadFilteringTitle;
 			input.className = sels.INPUT_CLS;
 			var remove = document.createElement('div');
 			remove.className = sels.REMOVE_CLS;
