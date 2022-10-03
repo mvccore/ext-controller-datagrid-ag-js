@@ -2,18 +2,11 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Columns {
 	export class ViewHelper {
 		public Static: typeof ViewHelper;
 		
-		public static readonly PARSER_PATTERN_DATE: string 		= 'YYYY-MM-DD';
-		public static readonly PARSER_PATTERN_DATE_TIME: string = 'YYYY-MM-DD HH:mm:ss';
-		public static readonly PARSER_PATTERN_TIME: string 		= 'HH:mm:ss';
-
-		public static readonly FORMAT_PATTERN_DATE: string 		= 'YYYY-MM-DD';
-		public static readonly FORMAT_PATTERN_DATE_TIME: string = 'YYYY-MM-DD HH:mm:ss';
-		public static readonly FORMAT_PATTERN_TIME: string 		= 'HH:mm:ss';
-
 		protected static defaults: Map<Enums.ServerType, Types.ViewHelper>;
 
 		protected grid: AgGrid;
 		protected serverConfig: Interfaces.IServerConfig;
+		protected localesConfig: Interfaces.IServerConfigs.ILocales;
 		protected localeNumeric: string;
 		protected localeMoney: string;
 		protected localeDateTime: string;
@@ -27,13 +20,14 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Columns {
 			this.grid = grid;
 			this.translator = grid.GetTranslator();
 			this.serverConfig = grid.GetServerConfig();
-			this.localeNumeric = this.serverConfig.locales.localeNumeric.join(
+			this.localesConfig = this.serverConfig.locales;
+			this.localeNumeric = this.localesConfig.localeNumeric.join(
 				AgGrids.Options.Manager.SYSTEM_LOCALE_SEPARATOR
 			);
-			this.localeMoney = this.serverConfig.locales.localeMoney.join(
+			this.localeMoney = this.localesConfig.localeMoney.join(
 				AgGrids.Options.Manager.SYSTEM_LOCALE_SEPARATOR
 			);
-			this.localeDateTime = this.serverConfig.locales.localeDateTime.join(
+			this.localeDateTime = this.localesConfig.localeDateTime.join(
 				AgGrids.Options.Manager.SYSTEM_LOCALE_SEPARATOR
 			);
 			this.formattersInt = new Map<string, Intl.NumberFormat>([
@@ -48,8 +42,8 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Columns {
 				['default', new Intl.NumberFormat(
 					this.localeNumeric,
 					<Intl.NumberFormatOptions>{
-						minimumFractionDigits: this.serverConfig.locales.floatFractions,
-						maximumFractionDigits: this.serverConfig.locales.floatFractions
+						minimumFractionDigits: this.localesConfig.floatFractions,
+						maximumFractionDigits: this.localesConfig.floatFractions
 					}
 				)]
 			]);
@@ -58,10 +52,10 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Columns {
 					this.localeMoney,
 					<Intl.NumberFormatOptions>{
 						style: 'currency',
-						currency: this.serverConfig.locales.currencyCode,
+						currency: this.localesConfig.currencyCode,
 						currencySign: 'standard',
-						minimumFractionDigits: this.serverConfig.locales.currencyFractions,
-						maximumFractionDigits: this.serverConfig.locales.currencyFractions
+						minimumFractionDigits: this.localesConfig.currencyFractions,
+						maximumFractionDigits: this.localesConfig.currencyFractions
 					}
 				)]
 			]);
@@ -121,8 +115,8 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Columns {
 		protected getFloatFormater (formatterKey: string, formatArgs: string[]): Intl.NumberFormat {
 			if (this.formattersFloat.has(formatterKey))
 				return this.formattersFloat.get(formatterKey);
-			var minimumFractionDigits = this.serverConfig.locales.floatFractions,
-				maximumFractionDigits = this.serverConfig.locales.floatFractions;
+			var minimumFractionDigits = this.localesConfig.floatFractions,
+				maximumFractionDigits = this.localesConfig.floatFractions;
 			if (formatArgs.length > 0) {
 				minimumFractionDigits = parseInt(formatArgs[0], 10);
 				if (formatArgs.length > 1) 
@@ -142,8 +136,8 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Columns {
 		protected getMoneyFormater (formatterKey: string, formatArgs: string[]): Intl.NumberFormat {
 			if (this.formattersMoney.has(formatterKey))
 				return this.formattersMoney.get(formatterKey);
-			var minimumFractionDigits = this.serverConfig.locales.floatFractions,
-				maximumFractionDigits = this.serverConfig.locales.floatFractions;
+			var minimumFractionDigits = this.localesConfig.floatFractions,
+				maximumFractionDigits = this.localesConfig.floatFractions;
 			if (formatArgs.length > 0) {
 				minimumFractionDigits = parseInt(formatArgs[0], 10);
 				if (formatArgs.length > 1) 
@@ -155,7 +149,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Columns {
 				this.localeMoney,
 				<Intl.NumberFormatOptions>{
 					style: 'currency',
-					currency: this.serverConfig.locales.currencyCode,
+					currency: this.localesConfig.currencyCode,
 					currencySign: 'standard',
 					minimumFractionDigits: minimumFractionDigits,
 					maximumFractionDigits: maximumFractionDigits
@@ -180,24 +174,24 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Columns {
 			return this.getMoneyFormater(formatterKey, formatArgs).format(params.data[propName]);
 		}
 		protected formatDate (params: agGrid.ValueFormatterParams<any, any>, propName: string, parserArgs: string[], formatArgs: string[]): string {
-			if (parserArgs == null || parserArgs.length === 0) parserArgs = [this.Static.PARSER_PATTERN_DATE];
+			if (parserArgs == null || parserArgs.length === 0) parserArgs = this.localesConfig.parserArgsDate;
 			var dateTime = moment(params.data[propName], parserArgs[parserArgs.length - 1]);
 			dateTime.add(this.serverConfig.timeZoneOffset, 's');
-			if (formatArgs == null || formatArgs.length === 0) formatArgs = [this.Static.FORMAT_PATTERN_DATE];
+			if (formatArgs == null || formatArgs.length === 0) formatArgs = this.localesConfig.formatArgsDate;
 			return dateTime.format(formatArgs[0]);
 		}
 		protected formatDateTime (params: agGrid.ValueFormatterParams<any, any>, propName: string, parserArgs: string[], formatArgs: string[]): string {
-			if (parserArgs == null || parserArgs.length === 0) parserArgs = [this.Static.PARSER_PATTERN_DATE_TIME];
+			if (parserArgs == null || parserArgs.length === 0) parserArgs = this.localesConfig.parserArgsDateTime;
 			var dateTime = moment(params.data[propName], parserArgs[parserArgs.length - 1]);
 			dateTime.add(this.serverConfig.timeZoneOffset, 's');
-			if (formatArgs == null || formatArgs.length === 0) formatArgs = [this.Static.FORMAT_PATTERN_DATE_TIME];
+			if (formatArgs == null || formatArgs.length === 0) formatArgs = this.localesConfig.formatArgsDateTime;
 			return dateTime.format(formatArgs[0]);
 		}
 		protected formatTime (params: agGrid.ValueFormatterParams<any, any>, propName: string, parserArgs: string[], formatArgs: string[]): string {
-			if (parserArgs == null || parserArgs.length === 0) parserArgs = [this.Static.PARSER_PATTERN_TIME];
+			if (parserArgs == null || parserArgs.length === 0) parserArgs = this.localesConfig.parserArgsTime;
 			var dateTime = moment(params.data[propName], parserArgs[parserArgs.length - 1]);
 			dateTime.add(this.serverConfig.timeZoneOffset, 's');
-			if (formatArgs == null || formatArgs.length === 0) formatArgs = [this.Static.FORMAT_PATTERN_TIME];
+			if (formatArgs == null || formatArgs.length === 0) formatArgs = this.localesConfig.formatArgsTime;
 			return dateTime.format(formatArgs[0]);
 		}
 	}

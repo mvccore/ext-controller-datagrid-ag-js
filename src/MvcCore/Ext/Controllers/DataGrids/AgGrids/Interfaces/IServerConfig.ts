@@ -14,6 +14,7 @@ declare namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Interfaces {
 		clientPageMode: Enums.ClientPageMode;
 		urlData: string;
 		urlColumnsChanges: string;
+		gridUrlParamName: string;
 		gridActionParamName: string;
 		gridActionColumnStates: string;
 		ignoreDisabledColumns: boolean;
@@ -26,6 +27,8 @@ declare namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Interfaces {
 		filteringMode: Enums.FilteringMode;
 		controlsTexts: Map<Enums.ControlText, string>;
 		timeZoneOffset: number;
+		clientChangeHistory: boolean;
+		clientTitleTemplate?: string;
 		clientRequestBlockSize: number;
 		clientRowBuffer: number;
 		clientMaxRowsInCache: number;

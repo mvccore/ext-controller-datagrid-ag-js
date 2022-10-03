@@ -444,10 +444,10 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 					sorting: sorting,
 					filtering: filtering,
 				},
-				reqDataRaw = dataSource.Static.RetypeRequestMaps2Objects(reqData),
+				reqDataRaw = this.helpers.RetypeRequestMaps2Objects(reqData),
 				
 				oldOffset = this.grid.GetOffset(),
-				oldFiltering = JSON.stringify(dataSource.Static.RetypeFilteringMap2Obj(this.grid.GetFiltering())),
+				oldFiltering = JSON.stringify(this.helpers.RetypeFilteringMap2Obj(this.grid.GetFiltering())),
 				oldSorting = JSON.stringify(this.grid.GetSorting()),
 				
 				newFiltering = JSON.stringify(reqDataRaw.filtering),
@@ -481,11 +481,11 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 			var dataSource = this.grid.GetDataSource() as AgGrids.DataSource,
 				reqDataRaw = e.state as Interfaces.Ajax.IReqRawObj,
 				oldOffset = this.grid.GetOffset(),
-				oldFiltering = JSON.stringify(dataSource.Static.RetypeFilteringMap2Obj(this.grid.GetFiltering())),
+				oldFiltering = JSON.stringify(this.helpers.RetypeFilteringMap2Obj(this.grid.GetFiltering())),
 				oldSorting = JSON.stringify(this.grid.GetSorting()),
 				newFiltering = JSON.stringify(reqDataRaw.filtering),
 				newSorting = JSON.stringify(reqDataRaw.sorting),
-				reqData = dataSource.Static.RetypeRequestObjects2Maps(reqDataRaw);
+				reqData = this.helpers.RetypeRequestObjects2Maps(reqDataRaw);
 			
 			this.grid
 				.SetOffset(reqData.offset)

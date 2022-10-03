@@ -27,7 +27,10 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.DataSources {
 			this.initLocationHref = location.href;
 
 			this.initPageReqDataAndCache();
-			history.replaceState(this.pageReqData, document.title, location.href);
+			this.browserHistoryReplace(
+				this.pageReqData, location.href, 
+				this.initialData.page, this.initialData.count
+			);
 			//this.pageReqData = null;
 
 			this.changeUrlSwitches = new Map<string, boolean>();
@@ -75,7 +78,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.DataSources {
 				(params.endRow <= this.initialData.offset + this.initialData.dataCount || totalCount < params.endRow)
 			);
 			if (!result) return false;
-			var reqData: Interfaces.Ajax.IReqRawObj = this.Static.RetypeRequestMaps2Objects({
+			var reqData: Interfaces.Ajax.IReqRawObj = this.helpers.RetypeRequestMaps2Objects({
 				offset: this.grid.GetOffset(),
 				limit: this.grid.GetLimit(),
 				sorting: this.grid.GetSorting(),
@@ -93,7 +96,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.DataSources {
 				totalCount
 			);
 			if (this.pageLoadedState > 0) {
-				var reqData: Interfaces.Ajax.IReqRawObj = this.Static.RetypeRequestMaps2Objects({
+				var reqData: Interfaces.Ajax.IReqRawObj = this.helpers.RetypeRequestMaps2Objects({
 					offset: this.grid.GetOffset(),
 					limit: this.grid.GetLimit(),
 					sorting: this.grid.GetSorting(),
@@ -104,7 +107,10 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.DataSources {
 					this.changeUrlSwitches.delete(cacheKey);
 				} else {
 					//console.log("pushState init data", reqData);
-					history.pushState(reqData, document.title, this.initLocationHref);
+					this.browserHistoryPush(
+						reqData, this.initLocationHref, 
+						this.initialData.page,this.initialData.count
+					);
 				}
 				if (this.autoSelectFirstRow)
 					this.grid.GetEvents().SelectRowByIndex(0);
@@ -141,7 +147,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.DataSources {
 			var agGridApi: agGrid.GridApi<any> = this.optionsManager.GetAgOptions().api;
 			agGridApi.showLoadingOverlay();
 			var [reqDataUrl, reqMethod, reqType] = this.getReqUrlMethodAndType();
-			var reqData = this.Static.RetypeRequestMaps2Objects({
+			var reqData = this.helpers.RetypeRequestMaps2Objects({
 				offset: params.startRow,
 				limit: params.endRow - params.startRow,
 				sorting: this.grid.GetSorting(),
@@ -155,7 +161,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.DataSources {
 				success: (rawResponse: AgGrids.Interfaces.Ajax.IResponse) => {
 					agGridApi.hideOverlay();
 
-					var response = this.Static.RetypeRawServerResponse(rawResponse);
+					var response = this.helpers.RetypeRawServerResponse(rawResponse);
 					
 					if (response.controls != null) {
 						this.optionsManager.InitBottomControls();
@@ -174,7 +180,10 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.DataSources {
 						this.changeUrlSwitches.delete(cacheKey);
 					} else {
 						if (this.pageLoadedState > 3) {
-							history.pushState(reqData, document.title, response.url);
+							this.browserHistoryPush(
+								reqData, response.url, 
+								response.page, response.count
+							);
 							this.grid.GetColumnsVisibilityMenu().UpdateFormAction();
 						}
 					}

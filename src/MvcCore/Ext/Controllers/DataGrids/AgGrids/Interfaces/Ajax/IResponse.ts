@@ -12,6 +12,8 @@ declare namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Interfaces.Ajax {
 		};
 		url: string;
 		path: string;
+		page: number;
+		count: number;
 		dataCount: number;
 		data: any[];
 	}

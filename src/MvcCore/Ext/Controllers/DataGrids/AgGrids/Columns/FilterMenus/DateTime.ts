@@ -1,21 +1,24 @@
 namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Columns.FilterMenus {
 	export class DateTime extends FilterMenu {
-		public static PARSER_ARGS_DEFAULT = [Columns.ViewHelper.PARSER_PATTERN_DATE_TIME];
-		public static FORMAT_ARGS_DEFAULT = [Columns.ViewHelper.PARSER_PATTERN_DATE_TIME];
 		public static VALUE_TYPE = 'datetime-local';
 		public Static: typeof DateTime;
 		protected timeZoneOffset: number;
 		protected parserArgs: string[];
 		protected formatArgs: string[];
+		protected serverConfig: Interfaces.IServerConfig;
 		public init (agParams: Interfaces.FilterMenus.IParams<any>): void {
 			super.init(agParams);
-			this.timeZoneOffset = this.grid.GetServerConfig().timeZoneOffset;
+			this.serverConfig = this.grid.GetServerConfig();
+			this.timeZoneOffset = this.serverConfig.timeZoneOffset;
+			this.initParserAndFormatArgs();
+		}
+		protected initParserAndFormatArgs (): void {
 			this.parserArgs = this.serverColumnCfg.parserArgs;
 			this.formatArgs = this.serverColumnCfg.formatArgs;
 			if (this.parserArgs == null || this.parserArgs.length === 0) 
-				this.parserArgs = this.Static.PARSER_ARGS_DEFAULT;
+				this.parserArgs = this.serverConfig.locales.parserArgsDateTime;
 			if (this.formatArgs == null || this.formatArgs.length === 0) 
-				this.formatArgs = this.Static.FORMAT_ARGS_DEFAULT;
+				this.formatArgs = this.serverConfig.locales.formatArgsDateTime;
 		}
 		protected changeValueInputType (index: number, currentControlType: Enums.FilterControlType): this {
 			var sectionElms = this.elms.sections[index];

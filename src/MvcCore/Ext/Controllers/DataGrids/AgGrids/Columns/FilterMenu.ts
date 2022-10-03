@@ -17,6 +17,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Columns {
 		public Static: typeof FilterMenu;
 		protected params: Interfaces.FilterMenus.IParams<any>;
 		protected grid: AgGrid;
+		protected helpers: AgGrids.Tools.Helpers;
 		protected translator: Tools.Translator;
 		protected columnId: string;
 		protected serverColumnCfg: Interfaces.IServerConfigs.IColumn;
@@ -94,6 +95,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Columns {
 			this.elms = null;
 			// local props
 			this.grid = null;
+			this.helpers = null;
 			this.translator = null;
 			this.columnId = null;
 			this.serverColumnCfg = null;
@@ -118,6 +120,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Columns {
 		protected initParams (agParams: AgGrids.Interfaces.FilterMenus.IParams<any>): this {
 			this.params = agParams;
 			this.grid = this.params.grid;
+			this.helpers = this.grid.GetHelpers();
 			this.translator = this.grid.GetTranslator();
 			this.columnId = this.params.columnId;
 			this.serverColumnCfg = this.params.serverColumnCfg;
@@ -311,10 +314,13 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Columns {
 			var allControlTypes = allServerTypesControlTypesOrders.has(this.serverType)
 					? allServerTypesControlTypesOrders.get(this.serverType)
 					: allServerTypesControlTypesOrders.get(Enums.ServerType.STRING);
-			var currentControlType = this.getControlTypeByOperatorAndValue(
-					operator, value, allControlTypes.length > 0
+			var currentControlType = this.helpers.GetControlTypeByOperatorAndValue(
+					operator, 
+					value, 
+					allControlTypes.length > 0
 						? allControlTypes[0]
-						: Enums.FilterControlType.UNKNOWN
+						: Enums.FilterControlType.UNKNOWN,
+					this.serverType
 				),
 				allowedControlTypes = this.params.controlTypes;
 			for (var controlType of allControlTypes) {
@@ -484,61 +490,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Columns {
 			this.hideMenuCallback = null;
 			return this;
 		}
-		protected getControlTypeByOperatorAndValue (operator: Enums.Operator | null, value: string | null, defaultResult: Enums.FilterControlType): Enums.FilterControlType {
-			var result = Enums.FilterControlType.UNKNOWN;
-			if (operator == null || value == null) return defaultResult;
-			var isEqual = operator === Enums.Operator.EQUAL,
-				isNotEqual = operator === Enums.Operator.NOT_EQUAL,
-				isLike = operator === Enums.Operator.LIKE,
-				isNotLike = operator === Enums.Operator.NOT_LIKE;
-			if (isEqual || isNotEqual) {
-				if (isEqual && this.serverType === Enums.ServerType.BOOL) {
-					result = value === '1'
-						? Enums.FilterControlType.IS_TRUE
-						: Enums.FilterControlType.IS_FALSE;
-				} else if (value === 'null') {
-					result = isEqual
-						? Enums.FilterControlType.IS_NULL
-						: Enums.FilterControlType.IS_NOT_NULL;
-				} else {
-					result = isEqual
-						? Enums.FilterControlType.EQUAL
-						: Enums.FilterControlType.NOT_EQUAL;
-				}
-			} else if (operator === Enums.Operator.LOWER) {
-				result = Enums.FilterControlType.LOWER;
-			} else if (operator === Enums.Operator.GREATER) {
-				result = Enums.FilterControlType.GREATER;
-			} else if (operator === Enums.Operator.LOWER_EQUAL) {
-				result = Enums.FilterControlType.LOWER_EQUAL;
-			} else if (operator === Enums.Operator.GREATER_EQUAL) {
-				result = Enums.FilterControlType.GREATER_EQUAL;
-			} else if (isLike || isNotLike) {
-				var startsAndEndsRegExp = /^%(.*)%$/g,
-					startsWithRegExp = /([^%_]+)%$/g,
-					endsWithRegExp = /^%([^%_]+)/g;
-				if (value.match(startsAndEndsRegExp)) {
-					result = isLike
-						? Enums.FilterControlType.CONTAINS
-						: Enums.FilterControlType.NOT_CONTAINS;
-				} else if (value.match(startsWithRegExp)) {
-					result = isLike
-						? Enums.FilterControlType.STARTS_WITH
-						: Enums.FilterControlType.NOT_STARTS_WITH;
-				} else if (value.match(endsWithRegExp)) {
-					result = isLike
-						? Enums.FilterControlType.ENDS_WITH
-						: Enums.FilterControlType.NOT_ENDS_WITH;
-				} else {
-					result = isLike
-						? Enums.FilterControlType.CONTAINS
-						: Enums.FilterControlType.NOT_CONTAINS;
-				}
-			}
-			if (result === Enums.FilterControlType.UNKNOWN)
-				result = defaultResult;
-			return result;
-		}
+		
 		protected stopEvent (e: Event): this {
 			if (e == null) return this;
 			e.preventDefault();

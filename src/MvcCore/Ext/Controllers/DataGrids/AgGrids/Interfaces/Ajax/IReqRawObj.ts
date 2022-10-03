@@ -3,7 +3,7 @@ declare namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Interfaces.Ajax {
 		id: string;
 		mode: number;
 		path: string;
-		sorting: object;
-		filtering: object;
+		sorting: any;
+		filtering: any;
 	}
 }

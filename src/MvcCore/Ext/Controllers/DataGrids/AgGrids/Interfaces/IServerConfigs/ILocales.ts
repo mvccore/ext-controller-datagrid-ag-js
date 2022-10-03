@@ -8,8 +8,11 @@ declare namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Interfaces.IServerCo
 		currencySign: string;
 		currencyFractions: number;
 		floatFractions: number;
-		formatPatternDate: string;
-		formatPatternDateTime: string;
-		formatPatternTime: string;
+		parserArgsDate: string[];
+		parserArgsDateTime: string[];
+		parserArgsTime: string[];
+		formatArgsDate: string[];
+		formatArgsDateTime: string[];
+		formatArgsTime: string[];
 	}
 }

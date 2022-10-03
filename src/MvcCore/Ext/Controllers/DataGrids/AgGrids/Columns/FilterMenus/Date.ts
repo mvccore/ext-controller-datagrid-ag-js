@@ -1,7 +1,13 @@
 namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Columns.FilterMenus {
 	export class Date extends DateTime {
-		public static PARSER_ARGS_DEFAULT = [Columns.ViewHelper.PARSER_PATTERN_DATE];
-		public static FORMAT_ARGS_DEFAULT = [Columns.ViewHelper.PARSER_PATTERN_DATE];
 		public static VALUE_TYPE = 'date';
+		protected initParserAndFormatArgs (): void {
+			this.parserArgs = this.serverColumnCfg.parserArgs;
+			this.formatArgs = this.serverColumnCfg.formatArgs;
+			if (this.parserArgs == null || this.parserArgs.length === 0) 
+				this.parserArgs = this.serverConfig.locales.parserArgsDate;
+			if (this.formatArgs == null || this.formatArgs.length === 0) 
+				this.formatArgs = this.serverConfig.locales.formatArgsDate;
+		}
 	}
 }

@@ -9,7 +9,10 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.DataSources {
 			this.eventsManager = grid.GetEvents() as AgGrids.EventsManagers.MultiplePagesMode;
 
 			this.initPageReqDataAndCache();
-			history.replaceState(this.pageReqData, document.title, location.href);
+			this.browserHistoryReplace(
+				this.pageReqData, location.href, 
+				this.initialData.page, this.initialData.count
+			);
 			this.pageReqData = null;
 		}
 
@@ -29,7 +32,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.DataSources {
 		}
 
 		public Load (): this {
-			var reqData: Interfaces.Ajax.IReqRawObj = this.Static.RetypeRequestMaps2Objects({
+			var reqData: Interfaces.Ajax.IReqRawObj = this.helpers.RetypeRequestMaps2Objects({
 				offset: this.grid.GetOffset(),
 				limit: this.grid.GetLimit(),
 				sorting: this.grid.GetSorting(),
@@ -66,7 +69,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.DataSources {
 			if (cached) {
 				response = rawResponse;	
 			} else {
-				response = this.Static.RetypeRawServerResponse(rawResponse);
+				response = this.helpers.RetypeRawServerResponse(rawResponse);
 				this.cache.Add(cacheKey, response);
 
 				//this.grid.GetEvents().HandleResponseLoaded(response);
@@ -89,7 +92,10 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.DataSources {
 			
 			if (changeUrl) {
 				reqData.path = response.path;
-				history.pushState(reqData, document.title, response.url);
+				this.browserHistoryPush(
+					reqData, response.url, 
+					response.page, response.count
+				);
 				this.grid.GetColumnsVisibilityMenu().UpdateFormAction();
 			}
 		}

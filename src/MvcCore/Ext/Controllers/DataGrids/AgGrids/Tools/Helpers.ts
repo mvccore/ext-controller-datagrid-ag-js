@@ -8,6 +8,113 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Tools {
 			this.Static = new.target;
 			this.grid = grid;
 		}
+		public GetControlTypeByOperatorAndValue (
+			operator: Enums.Operator | null, 
+			value: string | null, 
+			defaultResult: Enums.FilterControlType, 
+			serverType: Enums.ServerType
+		): Enums.FilterControlType {
+			var result = Enums.FilterControlType.UNKNOWN;
+			if (operator == null || value == null) return defaultResult;
+			var isEqual = operator === Enums.Operator.EQUAL,
+				isNotEqual = operator === Enums.Operator.NOT_EQUAL,
+				isLike = operator === Enums.Operator.LIKE,
+				isNotLike = operator === Enums.Operator.NOT_LIKE;
+			if (isEqual || isNotEqual) {
+				if (isEqual && serverType === Enums.ServerType.BOOL) {
+					result = value === '1'
+						? Enums.FilterControlType.IS_TRUE
+						: Enums.FilterControlType.IS_FALSE;
+				} else if (value === 'null') {
+					result = isEqual
+						? Enums.FilterControlType.IS_NULL
+						: Enums.FilterControlType.IS_NOT_NULL;
+				} else {
+					result = isEqual
+						? Enums.FilterControlType.EQUAL
+						: Enums.FilterControlType.NOT_EQUAL;
+				}
+			} else if (operator === Enums.Operator.LOWER) {
+				result = Enums.FilterControlType.LOWER;
+			} else if (operator === Enums.Operator.GREATER) {
+				result = Enums.FilterControlType.GREATER;
+			} else if (operator === Enums.Operator.LOWER_EQUAL) {
+				result = Enums.FilterControlType.LOWER_EQUAL;
+			} else if (operator === Enums.Operator.GREATER_EQUAL) {
+				result = Enums.FilterControlType.GREATER_EQUAL;
+			} else if (isLike || isNotLike) {
+				var startsAndEndsRegExp = /^%(.*)%$/g,
+					startsWithRegExp = /([^%_]+)%$/g,
+					endsWithRegExp = /^%([^%_]+)/g;
+				if (value.match(startsAndEndsRegExp)) {
+					result = isLike
+						? Enums.FilterControlType.CONTAINS
+						: Enums.FilterControlType.NOT_CONTAINS;
+				} else if (value.match(startsWithRegExp)) {
+					result = isLike
+						? Enums.FilterControlType.STARTS_WITH
+						: Enums.FilterControlType.NOT_STARTS_WITH;
+				} else if (value.match(endsWithRegExp)) {
+					result = isLike
+						? Enums.FilterControlType.ENDS_WITH
+						: Enums.FilterControlType.NOT_ENDS_WITH;
+				} else {
+					result = isLike
+						? Enums.FilterControlType.CONTAINS
+						: Enums.FilterControlType.NOT_CONTAINS;
+				}
+			}
+			if (result === Enums.FilterControlType.UNKNOWN)
+				result = defaultResult;
+			return result;
+		}
+		public RetypeFilteringMap2Obj (filtering: Map<string, Map<Enums.Operator, string[]>>): any {
+			var newFiltering: any = {};
+			for (var [idColumn, filterValues] of filtering.entries()) {
+				newFiltering[idColumn] = Tools.Helpers.ConvertMap2Object<Enums.Operator, string[]>(
+					filterValues
+				) as any;
+			}
+			return newFiltering;
+		}
+		public RetypeRequestMaps2Objects (serverRequest: Interfaces.Ajax.IRequest): Interfaces.Ajax.IReqRawObj {
+			var result: Interfaces.Ajax.IReqRawObj = { ...serverRequest } as any;
+			if (serverRequest.filtering instanceof Map) {
+				result.filtering = this.RetypeFilteringMap2Obj(serverRequest.filtering);
+			}
+			return this.addRequestSystemData(result);
+		}
+		protected addRequestSystemData (serverRequest: Interfaces.Ajax.IReqRawObj): Interfaces.Ajax.IReqRawObj {
+			var serverConfig = this.grid.GetServerConfig();
+			serverRequest.id = serverConfig.id;
+			serverRequest.mode = serverConfig.clientPageMode;
+			serverRequest.path = this.grid.GetGridPath();
+			return serverRequest;
+		}
+		public RetypeRawServerResponse (serverResponse: Interfaces.Ajax.IResponse): Interfaces.Ajax.IResponse {
+			serverResponse.filtering = this.retypeFilteringObj2Map(serverResponse.filtering);
+			return serverResponse;
+		}
+		public RetypeRequestObjects2Maps (serverRequest: Interfaces.Ajax.IReqRawObj): Interfaces.Ajax.IRequest {
+			var result: Interfaces.Ajax.IRequest = { ...serverRequest } as any;
+			result.filtering = this.retypeFilteringObj2Map(serverRequest.filtering);
+			return result;
+		}
+		protected retypeFilteringObj2Map (filtering: any): Map<string, Map<Enums.Operator, string[]>> {
+			var columnsIds = Object.keys(filtering);
+			if (columnsIds.length > 0) {
+				var filtering = filtering;
+				var newFiltering = new Map<string, Map<Enums.Operator, string[]>>();
+				for (var idColumn of columnsIds) {
+					newFiltering.set(idColumn, Tools.Helpers.ConvertObject2Map<Enums.Operator, string[]>(
+						filtering[idColumn] as any
+					));
+				}
+				return newFiltering;
+			} else {
+				return new Map<string, Map<Enums.Operator, string[]>>();
+			}
+		}
 		public IsTouchDevice (): boolean {
 			return this.touchDevice ?? (this.touchDevice = (
 				('ontouchstart' in window) ||

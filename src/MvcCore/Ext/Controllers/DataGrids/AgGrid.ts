@@ -280,7 +280,7 @@ namespace MvcCore.Ext.Controllers.DataGrids {
 			return this;
 		}
 		protected initData (initialData: AgGrids.Interfaces.Ajax.IResponse): this {
-			this.initialData = AgGrids.DataSource.RetypeRawServerResponse(initialData);
+			this.initialData = this.helpers.RetypeRawServerResponse(initialData);
 			this.sorting = this.initialData.sorting;
 			this.filtering = this.initialData.filtering;
 			this.totalCount = this.initialData.totalCount;
