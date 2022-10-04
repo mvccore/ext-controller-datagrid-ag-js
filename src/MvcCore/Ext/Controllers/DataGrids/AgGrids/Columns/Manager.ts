@@ -13,8 +13,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Columns {
 			suppressMenu: true,
 			resizable: true,
 			editable: false,
-			flex: 1,
-			headerComponent: AgGrids.Columns.SortHeader,
+			flex: 1
 		};
 		protected sortHeaderDefaults: AgGrids.Interfaces.SortHeaders.IParams = <AgGrids.Interfaces.SortHeaders.IParams>{
 			renderDirection: true,
@@ -55,7 +54,6 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Columns {
 			this.serverColumnsSortedAll = [];
 			this.serverColumnsUserSortedAll = [];
 			this.serverColumnsSortedActive = [];
-			this.agColumnDefaults.headerComponent = grid.Static.Classes.Columns.SortHeader;
 		}
 
 		public SetServerColumnsMapAll (serverColumnsMapAll: Map<string, Interfaces.IServerConfigs.IColumn>): this {
@@ -122,9 +120,6 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Columns {
 			var renderConfig = this.serverConfig.renderConfig;
 			this.sortingEnabled = renderConfig.renderTableHead && renderConfig.renderTableHeadSorting;
 			this.filteringEnabled = renderConfig.renderTableHead && renderConfig.renderTableHeadFiltering;
-			if (!this.sortingEnabled) {
-				delete this.agColumnDefaults.headerComponent;
-			}
 			if (!this.filteringEnabled) {
 				this.agColumnDefaults.floatingFilter = false;
 			}
@@ -134,9 +129,17 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Columns {
 			this.agColumnsConfigs = new Map<string, AgGrids.Types.GridColumn>();
 			var agColumn: AgGrids.Types.GridColumn,
 				serverColumnCfg: AgGrids.Interfaces.IServerConfigs.IColumn,
-				columnUrlName: string
-			this.serverColumnsSortedAll = this.helpers.SortConfigColumns(this.serverConfig.columns, 'columnIndex');
-			this.serverColumnsUserSortedAll = this.helpers.SortConfigColumns(this.serverConfig.columns, 'columnIndexUser');
+				serverColumnsArr: AgGrids.Interfaces.IServerConfigs.IColumn[] = [],
+				columnUrlName: string;
+			Object.keys(this.serverConfig.columns).forEach(
+				columnUrlName => serverColumnsArr.push(this.serverConfig.columns[columnUrlName])
+			);
+			this.serverColumnsSortedAll = this.helpers.SortConfigColumns(
+				serverColumnsArr, 'columnIndex'
+			);
+			this.serverColumnsUserSortedAll = this.helpers.SortConfigColumns(
+				this.serverColumnsSortedAll, 'columnIndexUser'
+			);
 			this.grid.SetSortHeaders(new Map<string, AgGrids.Columns.SortHeader>());
 			this.grid.SetFilterHeaders(new Map<string, AgGrids.Columns.FilterHeader>());
 			this.grid.SetFilterMenus(new Map<string, AgGrids.Columns.FilterMenu>());
@@ -169,6 +172,8 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Columns {
 				headerName: serverColumnCfg.headingName,
 				tooltipField: serverColumnCfg.propName
 			};
+			if (serverColumnCfg.cssClasses != null && serverColumnCfg.cssClasses.length > 0)
+				column.headerClass = column.cellClass = serverColumnCfg.cssClasses.join(' ');
 			this.initColumnSorting(column, serverColumnCfg);
 			this.initColumnFiltering(column, serverColumnCfg);
 			this.viewHelper.SetUpColumnCfg(column, serverColumnCfg);
@@ -186,6 +191,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Columns {
 					sortable: column.sortable
 				}
 			};
+			column.headerComponent = this.grid.Static.Classes.Columns.SortHeader;
 			column.headerComponentParams = headerComponentParams;
 			return this;
 		}

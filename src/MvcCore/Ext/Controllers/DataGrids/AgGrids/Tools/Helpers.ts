@@ -206,15 +206,14 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Tools {
 			return allowedOperators;
 		}
 		public SortConfigColumns (
-			serverColumns: {[columnUrlName: string]: AgGrids.Interfaces.IServerConfigs.IColumn }, 
+			serverColumns: AgGrids.Interfaces.IServerConfigs.IColumn[], 
 			columnIndexPropName: keyof AgGrids.Interfaces.IServerConfigs.IColumnIndexes
 		): AgGrids.Interfaces.IServerConfigs.IColumn[] {
 			var indexedMap = new Map<number, AgGrids.Interfaces.IServerConfigs.IColumn[]>(),
 				notIndexedSet = new Set<AgGrids.Interfaces.IServerConfigs.IColumn>(),
 				serverColumnCfg: AgGrids.Interfaces.IServerConfigs.IColumn,
 				columnIndex: number | null;
-			for (var columnUrlName in serverColumns) {
-				serverColumnCfg = serverColumns[columnUrlName];
+			for (var serverColumnCfg of serverColumns) {
 				columnIndex = serverColumnCfg[columnIndexPropName];
 				if (columnIndex == null) {
 					notIndexedSet.add(serverColumnCfg);
