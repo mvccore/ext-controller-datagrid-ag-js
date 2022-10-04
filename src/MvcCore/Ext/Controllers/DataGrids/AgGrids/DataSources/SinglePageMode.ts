@@ -180,11 +180,12 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.DataSources {
 						this.changeUrlSwitches.delete(cacheKey);
 					} else {
 						if (this.pageLoadedState > 3) {
+							reqData.path = response.path;
 							this.browserHistoryPush(
 								reqData, response.url, 
 								response.page, response.count
 							);
-							this.grid.GetColumnsVisibilityMenu().UpdateFormAction();
+							this.grid.GetColumnsVisibilityMenu().UpdateFormAction(response.path);
 						}
 					}
 

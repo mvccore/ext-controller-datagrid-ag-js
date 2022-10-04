@@ -494,7 +494,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 
 			this.handleUrlChangeSortsFilters(reqData);
 			dataSource.ExecRequest(reqDataRaw, false);
-			this.grid.GetColumnsVisibilityMenu().UpdateFormAction();
+			this.grid.GetColumnsVisibilityMenu().UpdateFormAction(reqDataRaw.path);
 
 			if (oldOffset !== reqData.offset) {
 				this.FireHandlers("pageChange", <Interfaces.Events.IPageChange>{

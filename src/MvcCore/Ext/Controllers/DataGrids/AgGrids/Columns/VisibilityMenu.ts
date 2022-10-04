@@ -12,6 +12,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Columns {
 			BTN_CANCEL_CLS: 'columns-menu-btn-cancel',
 
 			FORM_CLS: 'columns-menu-form',
+			FORM_SMALL_CLS: 'columns-menu-form-small',
 			FORM_HIDDEN_CLS: 'columns-menu-form-hidden',
 			FORM_HEAD_CLS: 'columns-menu-heading',
 			FORM_CTRLS_CLS: 'columns-menu-controls',
@@ -28,6 +29,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Columns {
 		protected elms: Interfaces.ColumnsMenus.IElements;
 		protected displayed: boolean;
 		protected formClick: boolean;
+		protected formBaseClasses: string[];
 		protected handlers: {
 			handleDocumentClick?: (e: MouseEvent) => void;
 			handleFormClick?: (e: MouseEvent) => void;
@@ -49,7 +51,8 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Columns {
 			if (this.elms.form) {
 				this.displayed = false;
 				var sels = this.Static.SELECTORS;
-				this.elms.form.className = [sels.FORM_CLS, sels.FORM_HIDDEN_CLS].join(' ');
+				this.formBaseClasses = [sels.FORM_CLS, sels.FORM_HIDDEN_CLS];
+				this.elms.form.className = this.formBaseClasses.join(' ');
 				this.removeShownEvents();
 			}
 			return this;
@@ -58,7 +61,8 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Columns {
 			if (this.displayed) return this;
 			if (this.elms.form) {
 				this.displayed = true;
-				this.elms.form.className = this.Static.SELECTORS.FORM_CLS;
+				this.formBaseClasses = [this.Static.SELECTORS.FORM_CLS];
+				this.elms.form.className = this.formBaseClasses.join(' ');
 				this
 					.ResizeControls()
 					.disableUsedColumns()
@@ -74,13 +78,23 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Columns {
 		public ResizeControls (): this {
 			if (!this.displayed) return this;
 			var gridElm = this.grid.GetOptionsManager().GetElements().agGridElement,
-				gridElmParent = gridElm.parentNode as HTMLElement,
-				heightDiff = this.elms.heading.offsetHeight + this.elms.buttons.offsetHeight + 20;
-			var offsetHeight = Math.max((gridElmParent.offsetHeight * 0.75) - heightDiff, 200);
+				heightDiff = this.elms.heading.offsetHeight + this.elms.buttons.offsetHeight + 10,
+				sels = this.Static.SELECTORS,
+				pos = this.formBaseClasses.indexOf(sels.FORM_SMALL_CLS),
+				offsetHeight = Math.max((gridElm.offsetHeight * 0.75) - heightDiff);
+			if (offsetHeight < 300) {
+				offsetHeight = Math.max(gridElm.offsetHeight - heightDiff);
+				if (pos === -1)
+					this.formBaseClasses.push(sels.FORM_SMALL_CLS);
+			} else {
+				if (pos !== -1)
+					this.formBaseClasses.splice(pos, 1);
+			}
+			this.elms.form.className = this.formBaseClasses.join(' ');
 			this.elms.controls.style.maxHeight = offsetHeight + 'px';
 			return this;
 		}
-		public UpdateFormAction (): this {
+		public UpdateFormAction (gridPath: string): this {
 			if (!this.elms.form) return this;
 			var formAction = location.href,
 				delim = '?',
@@ -89,6 +103,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Columns {
 				delim = (pos == formAction.length - 1) ? '' : '&';
 			formAction += delim + this.serverConfig.gridActionParamName + '=' + this.serverConfig.gridActionColumnStates;
 			this.elms.form.action = formAction;
+			this.elms.hidden.value = gridPath;
 			return this;
 		}
 		protected removeShownEvents(): this {
@@ -166,14 +181,20 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Columns {
 			this.initFormControls();
 			var btns = this.createElm<HTMLDivElement>('div', [sels.FORM_BTNS_CLS]);
 			this.elms.buttons = form.appendChild(btns);
+			var hiddenInput = this.createElm<HTMLInputElement>('input', [], null, {
+				type: 'hidden',
+				name: this.serverConfig.gridUrlParamName,
+				value: this.grid.GetInitialData().path
+			});
 			var btnApply = this.createBtn(this.translator.Translate('applyFilter'), sels.BTN_APPLY_CLS, true);
 			var btnCancel = this.createBtn(this.translator.Translate('cancelFilter'), sels.BTN_CANCEL_CLS, false);
+			this.elms.hidden = btns.appendChild(hiddenInput);
 			this.elms.btnApply = btns.appendChild(btnApply);
 			this.elms.btnCancel = btns.appendChild(btnCancel);
 			this.elms.buttons = btns;
 			this.elms.menuCont.appendChild(form);
 			this.elms.form = form;
-			this.UpdateFormAction();
+			this.UpdateFormAction(this.grid.GetGridPath());
 			return this;
 		}
 		protected initFormControls (): this {

@@ -96,7 +96,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.DataSources {
 					reqData, response.url, 
 					response.page, response.count
 				);
-				this.grid.GetColumnsVisibilityMenu().UpdateFormAction();
+				this.grid.GetColumnsVisibilityMenu().UpdateFormAction(response.path);
 			}
 		}
 		protected handleResponseControls (response: AgGrids.Interfaces.Ajax.IResponse): void {

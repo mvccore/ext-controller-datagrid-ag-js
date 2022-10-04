@@ -7,6 +7,7 @@ declare namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Interfaces.ColumnsMe
 		heading: HTMLDivElement;
 		controls: HTMLDivElement;
 		inputs: Map<string, HTMLInputElement>;
+		hidden: HTMLInputElement;
 		buttons: HTMLDivElement;
 		
 		btnApply: HTMLButtonElement;
