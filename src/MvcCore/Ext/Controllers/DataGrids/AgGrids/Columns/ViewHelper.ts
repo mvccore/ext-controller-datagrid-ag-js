@@ -99,15 +99,19 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Columns {
 		protected getIntFormater (formatterKey: string, formatArgs: string[]): Intl.NumberFormat {
 			if (this.formattersInt.has(formatterKey))
 				return this.formattersInt.get(formatterKey);
-			var minimumIntegerDigits = 1;
+			var minimumIntegerDigits = 1,
+				useGrouping = true;
 			if (formatArgs.length > 0)
 				minimumIntegerDigits = parseInt(formatArgs[0], 10);
 			if (minimumIntegerDigits < 1)
 				minimumIntegerDigits = 1;
+			if (formatArgs.length > 1)
+				useGrouping = !!formatArgs[1];
 			this.formattersInt.set(formatterKey, new Intl.NumberFormat(
 				this.localeNumeric,
 				<Intl.NumberFormatOptions>{
-					minimumIntegerDigits: minimumIntegerDigits
+					minimumIntegerDigits: minimumIntegerDigits,
+					useGrouping: useGrouping
 				}
 			));
 			return this.formattersInt.get(formatterKey);
