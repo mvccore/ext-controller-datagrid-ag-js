@@ -1,6 +1,6 @@
 {
   "name": "@mvccore/ext-controller-datagrid-ag-js",
-  "version": "5.1.10",
+  "version": "5.1.12",
   "description": "MvcCore controller datagrid extension for administration environments with AgGrid JS/TS front-end.",
   "author": {
     "name": "Tom Flídr",
