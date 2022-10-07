@@ -1,5 +1,8 @@
 namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Columns {
 	export class ViewHelper {
+		public static BOOL_FALSE_VALUES = new Set<any>([
+			'0', 0, false, 'false', 'False', 'FALSE', 'n', 'N', 'no', 'No', 'NO'
+		])
 		public Static: typeof ViewHelper;
 		
 		protected static defaults: Map<Enums.ServerType, Types.ViewHelper>;
@@ -163,7 +166,8 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Columns {
 		}
 
 		protected formatBool (params: agGrid.ValueFormatterParams<any, any>, propName: string, parserArgs: string[], formatArgs: string[]): string {
-			return this.translator.Translate(params.data[propName] ? 'yes' : 'no');
+			var boolFalse = this.Static.BOOL_FALSE_VALUES.has(params.data[propName]);
+			return this.translator.Translate(boolFalse ? 'no' : 'yes');
 		}
 		protected formatInt (params: agGrid.ValueFormatterParams<any, any>, propName: string, parserArgs: string[], formatArgs: string[]): string {
 			var formatterKey = formatArgs == null ? 'default' : formatArgs.join('|');

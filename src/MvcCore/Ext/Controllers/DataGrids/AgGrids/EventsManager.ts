@@ -1,8 +1,7 @@
 namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
-	export class EventsManager {
-		public static readonly COLUMN_CHANGES_TIMEOUT = 500;
+	export class EventsManager extends AgGrids.EventsManagers.Base {
 		public Static: typeof EventsManager;
-		protected grid: AgGrid;
+		
 		protected multiSorting: boolean;
 		protected multiFiltering: boolean;
 		protected defaultAllowedOperators: Map<Enums.Operator, Interfaces.SortHeaders.IAllowedOperator>;
@@ -13,16 +12,10 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 		protected columnsChanges: Map<string, Interfaces.EventArgs.IColumnChange>;
 		protected columnsChangesTimeout: number;
 		protected columnsChangesSending: boolean;
-		protected handlers: Map<Types.GridEventName, Types.GridEventHandler[]>;
 		
-		protected autoSelectFirstRow: boolean;
-		protected onLoadSelectionIndex: number | null = null;
-		protected onLoadSelectionCallback: () => void = null;
-
 		public constructor (grid: AgGrid) {
-			this.Static = new.target;
-			this.grid = grid;
 			var serverConfig = grid.GetServerConfig();
+			super(grid, serverConfig);
 			this.multiSorting = (
 				(serverConfig.sortingMode & Enums.SortingMode.SORT_MULTIPLE_COLUMNS) != 0
 			);
@@ -56,52 +49,6 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 			this.handlers = new Map<Types.GridEventName, Types.GridEventHandler[]>();
 			this.columnsChanges = new Map<string, Interfaces.EventArgs.IColumnChange>();
 			this.columnsChangesSending = false;
-			this.autoSelectFirstRow = (
-				(serverConfig.rowSelection & AgGrids.Enums.RowSelection.ROW_SELECTION_AUTOSELECT_FIRST) != 0
-			);
-		}
-		public SetAutoSelectFirstRow (autoSelectFirstRow: boolean): this {
-			this.autoSelectFirstRow = autoSelectFirstRow;
-			return this;
-		}
-		public GetAutoSelectFirstRow (): boolean {
-			return this.autoSelectFirstRow;
-		}
-		public SetOnLoadSelectionIndex (rowIndexToSelectAfterLoad: number, onLoadSelectionCallback: () => void = null): this {
-			this.onLoadSelectionIndex = rowIndexToSelectAfterLoad;
-			this.onLoadSelectionCallback = onLoadSelectionCallback;
-			return this;
-		}
-		public AddEventListener <K extends keyof Interfaces.Events.IHandlersMap>(eventName: Types.GridEventName, handler: (e: Interfaces.Events.IHandlersMap[K]) => void): this {
-			var handlers = this.handlers.has(eventName)
-				? this.handlers.get(eventName)
-				: [];
-			handlers.push(handler);
-			this.handlers.set(eventName, handlers);
-			return this;
-		}
-		public RemoveEventListener <K extends keyof Interfaces.Events.IHandlersMap>(eventName: Types.GridEventName, handler: (e: Interfaces.Events.IHandlersMap[K]) => void): this {
-			var handlers = this.handlers.has(eventName)
-				? this.handlers.get(eventName)
-				: [];
-			var newHandlers = [];
-			for (var handlersItem of handlers)
-				if (handlersItem !== handler)
-					newHandlers.push(handlersItem);
-			this.handlers.set(eventName, newHandlers);
-			return this;
-		}
-		public FireHandlers (eventName: Types.GridEventName, event: Interfaces.Events.IBase): this {
-			if (!this.handlers.has(eventName)) return this;
-			var handlers = this.handlers.get(eventName);
-			event.grid = this.grid;
-			event.eventName = eventName;
-			for (var handler of handlers) {
-				try {
-					handler(event);
-				} catch (e) {}
-			}
-			return this;
 		}
 		public HandleModelUpdated (params: agGrid.ModelUpdatedEvent<any>): void {
 			//console.log("onModelUpdated", this.onLoadSelectionIndex)
@@ -178,7 +125,6 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 				allIndexOld = columnConfig.columnIndexUser,
 				allIndexNew = allColumnsSorted[activeIndexNex].columnIndexUser;
 
-			// přehodit reálné all indexy
 			var [allColumnCfg] = allColumnsSorted.splice(allIndexOld, 1);
 			allColumnsSorted.splice(allIndexNew, 0, allColumnCfg);
 			var [activeColumnCfg] = activeColumnsSorted.splice(activeIndexOld, 1);
@@ -208,30 +154,6 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 				this.Static.COLUMN_CHANGES_TIMEOUT
 			);
 		}
-		protected handleColumnChangesSent (): void {
-			if (this.columnsChangesSending) return;
-			var plainObj = AgGrids.Tools.Helpers.ConvertMap2Object(this.columnsChanges);
-			this.columnsChanges = new Map<string, Interfaces.EventArgs.IColumnChange>();
-			Ajax.load(<Ajax.LoadConfig>{
-				url: this.grid.GetServerConfig().urlColumnsChanges,
-				data: { changes: plainObj },
-				type: 'json',
-				method: 'POST',
-				success: this.handleColumnChangesResponse.bind(this),
-				error: this.handleColumnChangesResponse.bind(this)
-			});
-		}
-		protected handleColumnChangesResponse (): void {
-			this.columnsChangesSending = false;
-			if (this.columnsChanges.size === 0) return;
-			if (this.columnsChangesTimeout) 
-				clearTimeout(this.columnsChangesTimeout);
-			this.columnsChangesTimeout = setTimeout(
-				this.handleColumnChangesSent.bind(this), 
-				this.Static.COLUMN_CHANGES_TIMEOUT
-			);
-		}
-
 		public HandleFilterMenuChange (columnId: string, filteringItem: Map<Enums.Operator, string[]> | null, clearAllOther: boolean = false): void {
 			var filtering = this.grid.GetFiltering(),
 				filterRemoving = filteringItem == null || filteringItem.size === 0,
@@ -285,7 +207,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 					// complete possible operator prefixes from submitted value
 					operatorsAndPrefixes = this.getOperatorsAndPrefixesByRawValue(rawValue);
 					// complete operator value from submitted value
-					[rawValue, operator] = this.getOperatorByRawValue(rawValue, operatorsAndPrefixes, columnFilterCfg);
+					[rawValue, operator] = this.Static.getOperatorByRawValue(rawValue, operatorsAndPrefixes, columnFilterCfg);
 					// check if operator is allowed
 					if (operator == null || !allowedOperators.has(operator)) continue;
 					// check if operator configuration allowes submitted value form
@@ -333,26 +255,6 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 				filterMenu?.SetUpControls(filteringItem);
 			}
 			this.firefiltering(filtering);
-		}
-		public firefiltering (filtering: Map<string, Map<Enums.Operator, string[]>>): this {
-			this.grid
-				.SetOffset(0)
-				.SetFiltering(filtering)
-				.SetTotalCount(null);
-			var pageMode = this.grid.GetPageMode();
-			if ((pageMode & AgGrids.Enums.ClientPageMode.CLIENT_PAGE_MODE_SINGLE) != 0) {
-				var dataSource = this.grid.GetDataSource() as AgGrids.DataSources.SinglePageMode;
-				dataSource.SetBodyScrolled(false);
-				var gridOptionsManager = this.grid.GetOptionsManager().GetAgOptions();
-				gridOptionsManager.api.onFilterChanged();
-			} else if ((pageMode & AgGrids.Enums.ClientPageMode.CLIENT_PAGE_MODE_MULTI) != 0) {
-				var dataSourceMp: AgGrids.DataSources.MultiplePagesMode = this.grid.GetDataSource() as any;
-				dataSourceMp.Load();
-			}
-			this.FireHandlers("filterChange", <Interfaces.Events.IFilterChange>{
-				filtering: filtering
-			});
-			return this;
 		}
 		public HandleSortChange (columnId: string, direction: AgGrids.Types.SortDirNullable): void {
 			var sortRemoving = direction == null,
@@ -547,6 +449,50 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 			if (selectFirstRow)
 				this.SelectRowByIndex(0);
 		}
+
+		protected firefiltering (filtering: Map<string, Map<Enums.Operator, string[]>>): this {
+			this.grid
+				.SetOffset(0)
+				.SetFiltering(filtering)
+				.SetTotalCount(null);
+			var pageMode = this.grid.GetPageMode();
+			if ((pageMode & AgGrids.Enums.ClientPageMode.CLIENT_PAGE_MODE_SINGLE) != 0) {
+				var dataSource = this.grid.GetDataSource() as AgGrids.DataSources.SinglePageMode;
+				dataSource.SetBodyScrolled(false);
+				var gridOptionsManager = this.grid.GetOptionsManager().GetAgOptions();
+				gridOptionsManager.api.onFilterChanged();
+			} else if ((pageMode & AgGrids.Enums.ClientPageMode.CLIENT_PAGE_MODE_MULTI) != 0) {
+				var dataSourceMp: AgGrids.DataSources.MultiplePagesMode = this.grid.GetDataSource() as any;
+				dataSourceMp.Load();
+			}
+			this.FireHandlers("filterChange", <Interfaces.Events.IFilterChange>{
+				filtering: filtering
+			});
+			return this;
+		}
+		protected handleColumnChangesSent (): void {
+			if (this.columnsChangesSending) return;
+			var plainObj = AgGrids.Tools.Helpers.ConvertMap2Object(this.columnsChanges);
+			this.columnsChanges = new Map<string, Interfaces.EventArgs.IColumnChange>();
+			Ajax.load(<Ajax.LoadConfig>{
+				url: this.grid.GetServerConfig().urlColumnsChanges,
+				data: { changes: plainObj },
+				type: 'json',
+				method: 'POST',
+				success: this.handleColumnChangesResponse.bind(this),
+				error: this.handleColumnChangesResponse.bind(this)
+			});
+		}
+		protected handleColumnChangesResponse (): void {
+			this.columnsChangesSending = false;
+			if (this.columnsChanges.size === 0) return;
+			if (this.columnsChangesTimeout) 
+				clearTimeout(this.columnsChangesTimeout);
+			this.columnsChangesTimeout = setTimeout(
+				this.handleColumnChangesSent.bind(this), 
+				this.Static.COLUMN_CHANGES_TIMEOUT
+			);
+		}
 		protected handleUrlChangeSortsFilters (reqData: Interfaces.Ajax.IRequest): this {
 			// set up sort headers:
 			var sortHeaders = this.grid.GetSortHeaders(),
@@ -587,42 +533,6 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 				operatorsAndPrefixes = this.notLikeOperatorsAndPrefixes;
 			}
 			return operatorsAndPrefixes;
-		}
-		protected getOperatorByRawValue (
-			rawValue: string, 
-			operatorsAndPrefixes: Map<Enums.Operator, string>, 
-			columnFilterCfg: number | boolean
-		): [string, Enums.Operator | null] {
-			var operator: Enums.Operator = null,
-				columnFilterCfgInt = Number(columnFilterCfg),
-				columnFilterCfgIsInt = columnFilterCfg === columnFilterCfgInt,
-				columnFilterCfgIsBool = !columnFilterCfgIsInt;
-			for (var [operatorKey, valuePrefix] of operatorsAndPrefixes.entries()) {
-				var valuePrefixLen = valuePrefix.length;
-				if (valuePrefixLen > 0) {
-					var valuePrefixChars = rawValue.substring(0, valuePrefixLen);
-					if (valuePrefixChars === valuePrefix) {
-						operator = operatorKey;
-						rawValue = rawValue.substring(valuePrefixLen);
-						break;
-					}
-				} else {
-					if (
-						(columnFilterCfgIsBool && columnFilterCfg) ||
-						(columnFilterCfgIsInt && columnFilterCfgInt & Enums.FilteringMode.ALLOW_EQUALS) != 0
-					) {
-						operator = operatorKey;
-					} else if (
-						(columnFilterCfgInt & Enums.FilteringMode.ALLOW_LIKE_ANYWHERE) != 0 ||
-						(columnFilterCfgInt & Enums.FilteringMode.ALLOW_LIKE_RIGHT_SIDE) != 0 ||
-						(columnFilterCfgInt & Enums.FilteringMode.ALLOW_LIKE_LEFT_SIDE) != 0
-					) {
-						operator = Enums.Operator.LIKE;
-					}
-					break;
-				}
-			}
-			return [rawValue, operator];
 		}
 	}
 }

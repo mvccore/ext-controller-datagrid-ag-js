@@ -5,5 +5,12 @@ declare namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Interfaces.Events {
 		"sortChange": ISortChange;
 		"filterChange": IFilterChange;
 		"pageChange": IPageChange;
+		/*
+		"beforePopState": IBase;
+		"beforeSelectionChange": ISelectionChange;
+		"beforeSortChange": ISortChange;
+		"beforeFilterChange": IFilterChange;
+		"beforePageChange": IPageChange;
+		*/
 	}
 }
