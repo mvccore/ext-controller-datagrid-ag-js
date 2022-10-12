@@ -9,7 +9,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.DataSources {
 			this.eventsManager = grid.GetEvents() as AgGrids.EventsManagers.MultiplePagesMode;
 
 			this.initPageReqDataAndCache();
-			this.browserHistoryReplace(
+			this.BrowserHistoryReplace(
 				this.pageReqData, location.href, 
 				this.initialData.page, this.initialData.count
 			);
@@ -92,7 +92,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.DataSources {
 			
 			if (changeUrl) {
 				reqData.path = response.path;
-				this.browserHistoryPush(
+				this.BrowserHistoryPush(
 					reqData, response.url, 
 					response.page, response.count
 				);
@@ -105,30 +105,34 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.DataSources {
 				controls = response.controls;
 			if (elms.countScalesControl != null) {
 				if (controls.countScales == null) {
+					this.eventsManager.RemoveCountScalesEvents();
 					elms.countScalesControl.innerHTML = '';
+					this.optionsManager.InitBottomControlsCountScales();
 				} else {
+					this.eventsManager.RemoveCountScalesEvents();
 					elms.countScalesControl.parentNode.replaceChild(
 						this.helpers.GetHtmlElementFromString(controls.countScales),
 						elms.countScalesControl
 					);
+					this.optionsManager.InitBottomControlsCountScales();
+					this.eventsManager.AddCountScalesEvents();
 				}
 			}
 			if (elms.pagingControl != null) {
 				if (controls.paging == null) {
 					this.eventsManager.RemovePagingEvents();
 					elms.pagingControl.innerHTML = '';
-					this.optionsManager.InitBottomControls();
+					this.optionsManager.InitBottomControlsPaging();
 				} else {
 					this.eventsManager.RemovePagingEvents();
 					elms.pagingControl.parentNode.replaceChild(
 						this.helpers.GetHtmlElementFromString(controls.paging),
 						elms.pagingControl
 					);
-					this.optionsManager.InitBottomControls();
+					this.optionsManager.InitBottomControlsPaging();
 					this.eventsManager.AddPagingEvents();
 				}
 			}
 		}
-
 	}
 }

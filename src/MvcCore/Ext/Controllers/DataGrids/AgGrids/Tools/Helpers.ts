@@ -8,6 +8,17 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Tools {
 			this.Static = new.target;
 			this.grid = grid;
 		}
+		public CloneFiltering (filtering: Map<string, Map<Enums.Operator, string[]>>): Map<string, Map<Enums.Operator, string[]>> {
+			var result = new Map<string, Map<Enums.Operator, string[]>>(),
+				resultItem: Map<Enums.Operator, string[]>;
+			for (var [columnId, filteringItem] of filtering) {
+				resultItem = new Map<Enums.Operator, string[]>();
+				for (var [operator, filteringValues] of filteringItem)
+					resultItem.set(operator, [].slice.apply(filteringValues));
+				result.set(columnId, resultItem);
+			}
+			return result;
+		}
 		public GetControlTypeByOperatorAndValue (
 			operator: Enums.Operator | null, 
 			value: string | null, 

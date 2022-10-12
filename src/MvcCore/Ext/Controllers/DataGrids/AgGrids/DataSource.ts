@@ -13,6 +13,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 		protected serverConfig: Interfaces.IServerConfig;
 		protected docTitleChange: boolean;
 		protected docTitlePattern: string;
+		protected lastHistory: [Interfaces.Ajax.IReqRawObj, string, number, number] = [null, null, null, null];
 
 		public constructor (grid: AgGrid) {
 			this.Static = new.target;
@@ -28,23 +29,32 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 
 		public abstract ExecRequest (reqData: Interfaces.Ajax.IReqRawObj, changeUrl: boolean): this;
 
-		protected browserHistoryReplace (stateData: Interfaces.Ajax.IReqRawObj, url: string, page: number, count: number): this {
+		public SetLastHistory (lastHistory: [Interfaces.Ajax.IReqRawObj, string, number, number]): this {
+			this.lastHistory = lastHistory;
+			return this;
+		}
+		public GetLastHistory (): [Interfaces.Ajax.IReqRawObj, string, number, number] {
+			return this.lastHistory;
+		}
+		public BrowserHistoryReplace (stateData: Interfaces.Ajax.IReqRawObj, url: string, page: number, count: number): this {
 			if (this.serverConfig.clientChangeHistory) {
 				var title = this.docTitleChange
 					? this.completeDocumentTitle(stateData, page, count)
 					: document.title;
 				history.replaceState(stateData, title, url);
+				this.SetLastHistory([stateData, url, page, count]);
 				if (this.docTitleChange)
 					document.title = title;
 			}
 			return this;
 		}
-		protected browserHistoryPush (stateData: Interfaces.Ajax.IReqRawObj, url: string, page: number, count: number): this {
+		public BrowserHistoryPush (stateData: Interfaces.Ajax.IReqRawObj, url: string, page: number, count: number): this {
 			if (this.serverConfig.clientChangeHistory) {
 				var title = this.docTitleChange
 					? this.completeDocumentTitle(stateData, page, count)
 					: document.title;
 				history.pushState(stateData, title, url);
+				this.SetLastHistory([stateData, url, page, count]);
 				if (this.docTitleChange)
 					document.title = title;
 			}

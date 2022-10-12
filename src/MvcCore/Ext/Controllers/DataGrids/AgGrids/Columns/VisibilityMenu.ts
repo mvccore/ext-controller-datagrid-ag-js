@@ -33,6 +33,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Columns {
 		protected handlers: {
 			handleDocumentClick?: (e: MouseEvent) => void;
 			handleFormClick?: (e: MouseEvent) => void;
+			handleFormSubmit?: (e: MouseEvent) => void;
 		}
 		public constructor (grid: AgGrid) {
 			this.Static = new.target;
@@ -58,7 +59,8 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Columns {
 			return this;
 		}
 		public Show (): this {
-			if (this.displayed) return this;
+			if (this.displayed) 
+				return this;
 			if (this.elms.form) {
 				this.displayed = true;
 				this.formBaseClasses = [this.Static.SELECTORS.FORM_CLS];
@@ -109,6 +111,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Columns {
 		protected removeShownEvents(): this {
 			document.removeEventListener('click', this.handlers.handleDocumentClick);
 			this.elms.form.removeEventListener('click', this.handlers.handleFormClick, true);
+			this.elms.form.removeEventListener('submit', this.handlers.handleFormSubmit);
 			return this;
 		}
 		protected disableUsedColumns (): this {
@@ -133,6 +136,9 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Columns {
 					'click', this.handlers.handleFormClick = this.handleFormClick.bind(this), true
 				);
 			});
+			this.elms.form.addEventListener(
+				'submit', this.handlers.handleFormSubmit = this.handleFormSubmit.bind(this)	
+			);
 			return this;
 		}
 		protected handleDocumentClick (e: MouseEvent): void {
@@ -143,6 +149,17 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Columns {
 		}
 		protected handleFormClick (e: MouseEvent): void {
 			this.formClick = true;
+		}
+		protected handleFormSubmit (e: Event): void {
+			var continueToBrowserActions = this.grid.GetEvents().FireHandlers(
+				"beforeColumnsVisibilityChange", 
+				new EventsManagers.Events.ColumnsVisibilityChange(this.elms.form)	
+			);
+			if (continueToBrowserActions === false) {
+				e.cancelBubble = true;
+				e.preventDefault();
+				e.stopPropagation();
+			}
 		}
 		protected initElements (): this {
 			var gridElm = this.optionsManager.GetElements().contElement,

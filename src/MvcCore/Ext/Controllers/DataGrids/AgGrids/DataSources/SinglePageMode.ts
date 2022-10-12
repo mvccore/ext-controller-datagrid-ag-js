@@ -27,7 +27,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.DataSources {
 			this.initLocationHref = location.href;
 
 			this.initPageReqDataAndCache();
-			this.browserHistoryReplace(
+			this.BrowserHistoryReplace(
 				this.pageReqData, location.href, 
 				this.initialData.page, this.initialData.count
 			);
@@ -107,7 +107,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.DataSources {
 					this.changeUrlSwitches.delete(cacheKey);
 				} else {
 					//console.log("pushState init data", reqData);
-					this.browserHistoryPush(
+					this.BrowserHistoryPush(
 						reqData, this.initLocationHref, 
 						this.initialData.page,this.initialData.count
 					);
@@ -181,7 +181,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.DataSources {
 					} else {
 						if (this.pageLoadedState > 3) {
 							reqData.path = response.path;
-							this.browserHistoryPush(
+							this.BrowserHistoryPush(
 								reqData, response.url, 
 								response.page, response.count
 							);

@@ -59,8 +59,10 @@ namespace MvcCore.Ext.Controllers.DataGrids {
 		protected offset: number = 0;
 		protected limit: number = 0;
 		protected gridPath: string = '';
+		protected selectedRowNodes: agGrid.RowNode<any>[] = [];
 		protected pageMode: AgGrids.Enums.ClientPageMode;
 		protected columnsVisibilityMenu: AgGrids.Columns.VisibilityMenu;
+		protected internalSelectionChange: boolean = false;
 		
 		public constructor (serverConfig: AgGrids.Interfaces.IServerConfig, initialData: AgGrids.Interfaces.Ajax.IResponse) {
 			//console.log("AgGrid.ctor - serverConfig", serverConfig);
@@ -202,6 +204,27 @@ namespace MvcCore.Ext.Controllers.DataGrids {
 		public GetGridPath (): string {
 			return this.gridPath;
 		}
+		public SetSelectedRowNodes (selectedRowNodes: agGrid.RowNode<any>[], fireChangeEvent: boolean = true): this {
+			this.selectedRowNodes = selectedRowNodes;
+			if (fireChangeEvent === false) {
+				this.internalSelectionChange = true;
+				this.agGridApi.deselectAll();
+				selectedRowNodes.forEach(row => row.setSelected(true));
+				setTimeout(() => {
+					this.internalSelectionChange = false;
+				}, 10);
+			} else if (fireChangeEvent === true) {
+				this.agGridApi.deselectAll();
+				selectedRowNodes.forEach(row => row.setSelected(true));
+			}
+			return this;
+		}
+		public GetSelectedRowNodes (): agGrid.RowNode<any>[] {
+			return this.selectedRowNodes;
+		}
+		public GetInternalSelectionChange (): boolean {
+			return this.internalSelectionChange;
+		}
 		public SetSortHeaders (sortHeaders: Map<string, AgGrids.Columns.SortHeader>): this {
 			this.sortHeaders = sortHeaders;
 			return this;
@@ -230,11 +253,11 @@ namespace MvcCore.Ext.Controllers.DataGrids {
 		public GetColumnsVisibilityMenu (): AgGrids.Columns.VisibilityMenu {
 			return this.columnsVisibilityMenu;
 		}
-		public AddEventListener <K extends keyof AgGrids.Interfaces.Events.IHandlersMap>(eventName: K, handler: (a: AgGrids.Interfaces.Events.IHandlersMap[K]) => void): this {
+		public AddEventListener <TEventName extends keyof AgGrids.Interfaces.IHandlersMap>(eventName: TEventName, handler: (a: AgGrids.Interfaces.IHandlersMap[TEventName]) => void): this {
 			this.eventsManager.AddEventListener(eventName, handler);
 			return this;
 		}
-		public RemoveEventListener <K extends keyof AgGrids.Interfaces.Events.IHandlersMap>(eventName: K, handler: (e: AgGrids.Interfaces.Events.IHandlersMap[K]) => void): this {
+		public RemoveEventListener <TEventName extends keyof AgGrids.Interfaces.IHandlersMap>(eventName: TEventName, handler: (e: AgGrids.Interfaces.IHandlersMap[TEventName]) => void): this {
 			this.eventsManager.RemoveEventListener(eventName, handler);
 			return this;
 		}
@@ -273,6 +296,7 @@ namespace MvcCore.Ext.Controllers.DataGrids {
 				var emMultiplePages = new this.Static.Classes.EventsManager.MultiplePagesMode(this);
 				this.eventsManager = emMultiplePages;
 				emMultiplePages
+					.AddCountScalesEvents()
 					.AddPagingEvents()
 					.AddUrlChangeEvent();
 				this.limit = this.serverConfig.count;

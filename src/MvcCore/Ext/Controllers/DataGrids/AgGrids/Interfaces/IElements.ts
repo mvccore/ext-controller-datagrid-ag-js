@@ -7,5 +7,7 @@ declare namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Interfaces.SortHeade
 		countScalesControl: HTMLElement;
 		statusControl: HTMLElement;
 		pagingAnchors: HTMLAnchorElement[];
+		pagingAnchorsMaps: Map<number, HTMLAnchorElement[]>;
+		countScalesAnchors: HTMLAnchorElement[];
 	}
 }

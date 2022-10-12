@@ -7,7 +7,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.EventsManagers {
 		protected handlers: Map<Types.GridEventName, Types.GridEventHandler[]>;
 		protected onLoadSelectionIndex: number | null = null;
 		protected onLoadSelectionCallback: () => void = null;
-		public constructor (grid: AgGrid, serverConfig: AgGrids.Interfaces.IServerConfig) {
+		public constructor (grid: AgGrid, serverConfig: AgGrids.Interfaces.IServerConfig = null) {
 			this.Static = new.target;
 			this.grid = grid;
 			this.autoSelectFirstRow = (
@@ -21,7 +21,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.EventsManagers {
 		public GetAutoSelectFirstRow (): boolean {
 			return this.autoSelectFirstRow;
 		}
-		public AddEventListener <K extends keyof Interfaces.Events.IHandlersMap>(eventName: Types.GridEventName, handler: (e: Interfaces.Events.IHandlersMap[K]) => void): this {
+		public AddEventListener <K extends keyof Interfaces.IHandlersMap>(eventName: Types.GridEventName, handler: (e: Interfaces.IHandlersMap[K]) => void): this {
 			var handlers = this.handlers.has(eventName)
 				? this.handlers.get(eventName)
 				: [];
@@ -29,7 +29,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.EventsManagers {
 			this.handlers.set(eventName, handlers);
 			return this;
 		}
-		public RemoveEventListener <K extends keyof Interfaces.Events.IHandlersMap>(eventName: Types.GridEventName, handler: (e: Interfaces.Events.IHandlersMap[K]) => void): this {
+		public RemoveEventListener <K extends keyof Interfaces.IHandlersMap>(eventName: Types.GridEventName, handler: (e: Interfaces.IHandlersMap[K]) => void): this {
 			var handlers = this.handlers.has(eventName)
 				? this.handlers.get(eventName)
 				: [];
@@ -40,17 +40,24 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.EventsManagers {
 			this.handlers.set(eventName, newHandlers);
 			return this;
 		}
-		public FireHandlers (eventName: Types.GridEventName, event: Interfaces.Events.IBase): this {
-			if (!this.handlers.has(eventName)) return this;
+		public FireHandlers <TGridEventName extends Types.GridEventName>(eventName: TGridEventName, event: DataGrids.AgGrids.Interfaces.IHandlersMap[TGridEventName]): boolean {
+			var continueNextEvents = true;
+			if (!this.handlers.has(eventName)) 
+				return continueNextEvents;
 			var handlers = this.handlers.get(eventName);
-			event.grid = this.grid;
-			event.eventName = eventName;
+			event.SetGrid(this.grid).SetEventName(eventName);
 			for (var handler of handlers) {
 				try {
 					handler(event);
+					if (event.GetStopNextEventsPropagation())  {
+						continueNextEvents = false;
+						break;
+					} else if (event.GetStopCurrentEventPropagation()) {
+						break;
+					}
 				} catch (e) {}
 			}
-			return this;
+			return continueNextEvents;
 		}
 		public SetOnLoadSelectionIndex (rowIndexToSelectAfterLoad: number, onLoadSelectionCallback: () => void = null): this {
 			this.onLoadSelectionIndex = rowIndexToSelectAfterLoad;

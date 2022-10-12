@@ -123,7 +123,21 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Columns {
 			this.stopEvent(e);
 			var value = this.elms.input.value;
 			if (e.key === 'Enter') {
-				this.grid.GetEvents().HandleFilterHeaderChange(this.columnId, value);
+				var eventsManager = this.grid.GetEvents(),
+					filteringBefore = this.grid.GetFiltering(),
+					[filterRemoving, filteringAfter] = eventsManager.GetNewFilteringByHeader(
+						this.columnId, value
+					);
+				var continueToNextEvent = eventsManager.FireHandlers(
+					"beforeFilterChange", new EventsManagers.Events.FilterChange(
+						filteringBefore, filteringAfter
+					)
+				);
+				if (continueToNextEvent === false) 
+					return;
+				eventsManager.HandleFilterHeaderChange(
+					this.columnId, filterRemoving, filteringBefore, filteringAfter
+				);
 			} else {
 				if (value == null || (value.trim() === '')) {
 					this.setHeaderActive(false);
@@ -146,15 +160,43 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Columns {
 		}
 		protected handleRemove (e: KeyboardEvent): void {
 			this.stopEvent(e);
+			var eventsManager = this.grid.GetEvents(),
+				filteringBefore = this.grid.GetFiltering(),
+				[filterRemoving, filteringAfter] = eventsManager.GetNewFilteringByHeader(
+					this.columnId, null
+				);
+			var continueToNextEvent = eventsManager.FireHandlers(
+				"beforeFilterChange", new EventsManagers.Events.FilterChange(
+					filteringBefore, filteringAfter
+				)
+			);
+			if (continueToNextEvent === false) 
+				return;
 			this.elms.input.value = '';
-			this.grid.GetEvents().HandleFilterHeaderChange(this.columnId, null);
+			eventsManager.HandleFilterHeaderChange(
+				this.columnId, filterRemoving, filteringBefore, filteringAfter
+			);
 		}
 		protected handleChange (e: Event): void {
 			this.stopEvent(e);
 			if (this.handlers.changeDelayTimeout)
 				clearTimeout(this.handlers.changeDelayTimeout);
-			setTimeout(() => {
-				this.grid.GetEvents().HandleFilterHeaderChange(this.columnId, this.elms.input.value.trim());
+			this.handlers.changeDelayTimeout = setTimeout(() => {
+				var eventsManager = this.grid.GetEvents(),
+					filteringBefore = this.grid.GetFiltering(),
+					[filterRemoving, filteringAfter] = eventsManager.GetNewFilteringByHeader(
+						this.columnId, this.elms.input.value.trim()
+					);
+				var continueToNextEvent = eventsManager.FireHandlers(
+					"beforeFilterChange", new EventsManagers.Events.FilterChange(
+						filteringBefore, filteringAfter
+					)
+				);
+				if (continueToNextEvent === false) 
+					return;
+				eventsManager.HandleFilterHeaderChange(
+					this.columnId, filterRemoving, filteringBefore, filteringAfter
+				);
 			}, this.params.submitDelayMs);
 		}
 		protected stopEvent (e: Event): this {

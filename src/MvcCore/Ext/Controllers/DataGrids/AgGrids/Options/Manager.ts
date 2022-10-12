@@ -7,6 +7,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Options {
 				COUNT_SCALES_SEL: '.grid-control-count-scales',
 				STATUS_SEL: '.grid-control-status',
 				PAGING_SEL: '.grid-control-paging',
+				COUNT_SCALES_ANCHOR_SEL: '.grid-count a',
 				PAGING_ANCHOR_SEL: '.grid-page a',
 			}
 		}
@@ -79,7 +80,9 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Options {
 				countScalesControl: null,
 				pagingControl: null,
 				statusControl: null,
-				pagingAnchors: []
+				pagingAnchors: [],
+				pagingAnchorsMaps: new Map<number, HTMLAnchorElement[]>(),
+				countScalesAnchors: []
 			}
 			this.InitBottomControls();
 			return this;
@@ -88,16 +91,50 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Options {
 			var bcSels = this.Static.SELECTORS.BOTTOM_CONTROLS,
 				bottomControlsElement = this.elements.bottomControlsElement;
 			if (bottomControlsElement == null) return this;
-			this.elements.countScalesControl = bottomControlsElement.querySelector<HTMLElement>(bcSels.COUNT_SCALES_SEL);
-			this.elements.pagingControl = bottomControlsElement.querySelector<HTMLElement>(bcSels.PAGING_SEL);
 			this.elements.statusControl = bottomControlsElement.querySelector<HTMLElement>(bcSels.STATUS_SEL);
+			this
+				.InitBottomControlsCountScales()
+				.InitBottomControlsPaging();
+			return this;
+		}
+		public InitBottomControlsCountScales (): this {
+			var bcSels = this.Static.SELECTORS.BOTTOM_CONTROLS,
+				bottomControlsElement = this.elements.bottomControlsElement;
+			if (bottomControlsElement == null) return this;
+			this.elements.countScalesControl = bottomControlsElement.querySelector<HTMLElement>(bcSels.COUNT_SCALES_SEL);
+			if (this.elements.countScalesControl != null) {
+				var countScalesAnchors = this.elements.countScalesControl.querySelectorAll<HTMLAnchorElement>(
+					this.Static.SELECTORS.BOTTOM_CONTROLS.COUNT_SCALES_ANCHOR_SEL
+				);
+				this.elements.countScalesAnchors = (countScalesAnchors.length > 0)
+					? [].slice.apply(countScalesAnchors)
+					: [];
+			}
+			return this;
+		}
+		public InitBottomControlsPaging (): this {
+			var bcSels = this.Static.SELECTORS.BOTTOM_CONTROLS,
+				bottomControlsElement = this.elements.bottomControlsElement;
+			if (bottomControlsElement == null) return this;
+			this.elements.pagingControl = bottomControlsElement.querySelector<HTMLElement>(bcSels.PAGING_SEL);
 			if (this.elements.pagingControl != null) {
 				var paginationAnchors = this.elements.pagingControl.querySelectorAll<HTMLAnchorElement>(
 					this.Static.SELECTORS.BOTTOM_CONTROLS.PAGING_ANCHOR_SEL
 				);
-				this.elements.pagingAnchors = (paginationAnchors.length > 0)
-					? [].slice.apply(paginationAnchors)
-					: [];
+				if (paginationAnchors.length > 0) {
+					this.elements.pagingAnchors = [].slice.apply(paginationAnchors);
+					var paginationAnchorsMaps = new Map<number, HTMLAnchorElement[]>(),
+						pagingAnchorOffset: number;
+					for (var paginationAnchor of paginationAnchors) {
+						pagingAnchorOffset = parseInt(paginationAnchor.dataset.offset, 10);
+						if (paginationAnchorsMaps.has(pagingAnchorOffset)) {
+							paginationAnchorsMaps.get(pagingAnchorOffset).push(paginationAnchor);
+						} else {
+							paginationAnchorsMaps.set(pagingAnchorOffset, [paginationAnchor]);
+						}
+					}
+					this.elements.pagingAnchorsMaps = paginationAnchorsMaps;
+				}
 			}
 			return this;
 		}

@@ -210,18 +210,46 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Columns {
 
 		protected handleApply (e?: MouseEvent): void {
 			this.stopEvent(e);
-			var filtering = this.getFilteringFromControls();
-			this.grid.GetEvents().HandleFilterMenuChange(this.columnId, filtering);
+			var eventsManager = this.grid.GetEvents(),
+				filteringBefore = this.grid.GetFiltering(),
+				newFilteringItem = this.getFilteringFromControls(),
+				[filterRemoving, filteringAfter] = eventsManager.GetNewFilteringByMenu(
+					this.columnId, newFilteringItem
+				);
+			var continueToNextEvent = eventsManager.FireHandlers(
+				"beforeFilterChange", new EventsManagers.Events.FilterChange(
+					filteringBefore, filteringAfter
+				)
+			);
+			if (continueToNextEvent === false) 
+				return;
+			eventsManager.HandleFilterMenuChange(
+				this.columnId, filterRemoving, filteringBefore, filteringAfter
+			);
 			this.hide();
 		}
 		protected handleClear (e: MouseEvent): void {
 			this.stopEvent(e);
+			var eventsManager = this.grid.GetEvents(),
+				filteringBefore = this.grid.GetFiltering(),
+				[filterRemoving, filteringAfter] = eventsManager.GetNewFilteringByMenu(
+					this.columnId, null
+				);
+			var continueToNextEvent = eventsManager.FireHandlers(
+				"beforeFilterChange", new EventsManagers.Events.FilterChange(
+					filteringBefore, filteringAfter
+				)
+			);
+			if (continueToNextEvent === false) 
+				return;
 			this.filteringStr = '';
 			this.latestFiltering = null;
 			this
 				.destroySections()
 				.createSections(null);
-			this.grid.GetEvents().HandleFilterMenuChange(this.columnId, null);
+			eventsManager.HandleFilterMenuChange(
+				this.columnId, filterRemoving, filteringBefore, filteringAfter
+			);
 			this.hide();
 		}
 		protected handleCancel (e: MouseEvent): void {
