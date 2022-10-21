@@ -46,7 +46,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 					this.notLikeOperatorsAndPrefixes.set(operator, prefix);
 				}
 			}
-			this.handlers = new Map<Types.GridEventName, Types.GridEventHandler[]>();
+			this.handlers = new Map<Types.GridEventName, [Types.GridEventHandler, boolean][]>();
 			this.columnsChanges = new Map<string, Interfaces.EventArgs.IColumnChange>();
 			this.columnsChangesSending = false;
 		}

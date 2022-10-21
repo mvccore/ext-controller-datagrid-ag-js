@@ -4,7 +4,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.EventsManagers {
 		public Static: typeof Base;
 		protected grid: AgGrid;
 		protected autoSelectFirstRow: boolean;
-		protected handlers: Map<Types.GridEventName, Types.GridEventHandler[]>;
+		protected handlers: Map<Types.GridEventName, [Types.GridEventHandler, boolean][]>;
 		protected onLoadSelectionIndex: number | null = null;
 		protected onLoadSelectionCallback: () => void = null;
 		public constructor (grid: AgGrid, serverConfig: AgGrids.Interfaces.IServerConfig = null) {
@@ -21,11 +21,11 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.EventsManagers {
 		public GetAutoSelectFirstRow (): boolean {
 			return this.autoSelectFirstRow;
 		}
-		public AddEventListener <K extends keyof Interfaces.IHandlersMap>(eventName: Types.GridEventName, handler: (e: Interfaces.IHandlersMap[K]) => void): this {
+		public AddEventListener <K extends keyof Interfaces.IHandlersMap>(eventName: Types.GridEventName, handler: (e: Interfaces.IHandlersMap[K]) => void, useTryCatch: boolean = false): this {
 			var handlers = this.handlers.has(eventName)
 				? this.handlers.get(eventName)
 				: [];
-			handlers.push(handler);
+			handlers.push([handler, useTryCatch]);
 			this.handlers.set(eventName, handlers);
 			return this;
 		}
@@ -33,10 +33,10 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.EventsManagers {
 			var handlers = this.handlers.has(eventName)
 				? this.handlers.get(eventName)
 				: [];
-			var newHandlers = [];
-			for (var handlersItem of handlers)
+			var newHandlers: [Types.GridEventHandler, boolean][] = [];
+			for (var [handlersItem, useTryCatchLocal] of handlers)
 				if (handlersItem !== handler)
-					newHandlers.push(handlersItem);
+					newHandlers.push([handlersItem, useTryCatchLocal]);
 			this.handlers.set(eventName, newHandlers);
 			return this;
 		}
@@ -46,8 +46,18 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.EventsManagers {
 				return continueNextEvents;
 			var handlers = this.handlers.get(eventName);
 			event.SetGrid(this.grid).SetEventName(eventName);
-			for (var handler of handlers) {
-				try {
+			for (var [handler, useTryCatch] of handlers) {
+				if (useTryCatch) {
+					try {
+						handler(event);
+						if (event.GetStopNextEventsPropagation())  {
+							continueNextEvents = false;
+							break;
+						} else if (event.GetStopCurrentEventPropagation()) {
+							break;
+						}
+					} catch (e) {}
+				} else {
 					handler(event);
 					if (event.GetStopNextEventsPropagation())  {
 						continueNextEvents = false;
@@ -55,7 +65,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.EventsManagers {
 					} else if (event.GetStopCurrentEventPropagation()) {
 						break;
 					}
-				} catch (e) {}
+				}
 			}
 			return continueNextEvents;
 		}
