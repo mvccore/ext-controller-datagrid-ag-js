@@ -305,12 +305,12 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Columns {
 				}
 			} else {
 				this
-					.createSectionElements(null, null)
+					.createSectionElements(null, null, 0, 1)
 					.initSectionEvents(index);
 			}
 			return this;
 		}
-		protected createSectionElements (operator: Enums.Operator | null, value: string | null, index: number = 0, filteringItemsCount: number = 1): this {
+		protected createSectionElements (operator: Enums.Operator | null, value: string | null, index: number, filteringItemsCount: number): this {
 			var section = document.createElement('div');
 			section.className = this.Static.SELECTORS.SECTION_CLS;
 			var [typeSelect, currentControlType] = this.createSectionElementTypeSelect(
@@ -342,15 +342,23 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Columns {
 			var allControlTypes = allServerTypesControlTypesOrders.has(this.serverType)
 					? allServerTypesControlTypesOrders.get(this.serverType)
 					: allServerTypesControlTypesOrders.get(Enums.ServerType.STRING);
-			var currentControlType = this.helpers.GetControlTypeByOperatorAndValue(
-					operator, 
-					value, 
-					allControlTypes.length > 0
+			var currentControlType: Enums.FilterControlType;
+			var allowedControlTypes = this.params.controlTypes;
+			if (operator == null && value == null) {
+				for (var controlType of allControlTypes) {
+					if ((allowedControlTypes & controlType) != 0) {
+						currentControlType = controlType;
+						break;
+					}
+				}
+			} else {
+				currentControlType = this.helpers.GetControlTypeByOperatorAndValue(
+					operator, value, allControlTypes.length > 0
 						? allControlTypes[0]
 						: Enums.FilterControlType.UNKNOWN,
 					this.serverType
-				),
-				allowedControlTypes = this.params.controlTypes;
+				);
+			}
 			for (var controlType of allControlTypes) {
 				if ((allowedControlTypes & controlType) != 0) {
 					var option = document.createElement('option');
