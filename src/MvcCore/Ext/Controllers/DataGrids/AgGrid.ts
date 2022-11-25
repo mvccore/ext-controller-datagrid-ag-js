@@ -72,7 +72,7 @@ namespace MvcCore.Ext.Controllers.DataGrids {
 		) {
 			//console.log("AgGrid.ctor - serverConfig", serverConfig);
 			//console.log("AgGrid.ctor - initialData", initialData);
-			console.log("AgGrid.ctor - viewHelpers", viewHelpers);
+			//console.log("AgGrid.ctor - viewHelpers", viewHelpers);
 			this.Static = new.target;
 			this
 				.initSubClasses()
