@@ -76,11 +76,10 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Columns {
 		public SetUpColumnCfg (agColumnCfg: agGrid.ColDef, serverColumnCfg: AgGrids.Interfaces.IServerConfigs.IColumn): this {
 			var viewHelper: Types.ViewHelper = null;
 			if (serverColumnCfg.viewHelper != null) {
-				try {
-					var formatter = eval(serverColumnCfg.viewHelper);
-					if (typeof formatter === 'function') viewHelper = formatter;
-				} catch (e) {
-				}
+				var allViewHelpers = this.grid.GetViewHelpers(),
+					viewHelperName: string = serverColumnCfg.viewHelper;
+				if (allViewHelpers.has(viewHelperName))
+					viewHelper = allViewHelpers.get(viewHelperName);
 			}
 			if (viewHelper == null) {
 				var serverType = serverColumnCfg.types[serverColumnCfg.types.length - 1] as Enums.ServerType;

@@ -39,6 +39,7 @@ namespace MvcCore.Ext.Controllers.DataGrids {
 
 		protected serverConfig: AgGrids.Interfaces.IServerConfig;
 		protected initialData: AgGrids.Interfaces.Ajax.IResponse;
+		protected viewHelpers: Map<string, AgGrids.Types.ViewHelper>;
 		protected grid: agGrid.Grid;
 		protected agGridApi: agGrid.GridApi<any>;
 		protected agColumnApi: agGrid.ColumnApi;
@@ -64,13 +65,19 @@ namespace MvcCore.Ext.Controllers.DataGrids {
 		protected columnsVisibilityMenu: AgGrids.Columns.VisibilityMenu;
 		protected internalSelectionChange: boolean = false;
 		
-		public constructor (serverConfig: AgGrids.Interfaces.IServerConfig, initialData: AgGrids.Interfaces.Ajax.IResponse) {
+		public constructor (
+			serverConfig: AgGrids.Interfaces.IServerConfig, 
+			initialData: AgGrids.Interfaces.Ajax.IResponse,
+			viewHelpers: AgGrids.Interfaces.IViewHelpers
+		) {
 			//console.log("AgGrid.ctor - serverConfig", serverConfig);
 			//console.log("AgGrid.ctor - initialData", initialData);
+			console.log("AgGrid.ctor - viewHelpers", viewHelpers);
 			this.Static = new.target;
 			this
 				.initSubClasses()
 				.initServerConfig(serverConfig)
+				.SetViewHelpers(viewHelpers)
 				.initTranslator();
 			this.optionsManager.InitElements()
 			this
@@ -126,6 +133,15 @@ namespace MvcCore.Ext.Controllers.DataGrids {
 		}
 		public GetServerConfig (): AgGrids.Interfaces.IServerConfig {
 			return this.serverConfig;
+		}
+		public SetViewHelpers (viewHelpers: AgGrids.Interfaces.IViewHelpers): this {
+			this.viewHelpers = new Map<string, AgGrids.Types.ViewHelper>();
+			for (var columnUrlName in viewHelpers)
+				this.viewHelpers.set(columnUrlName, viewHelpers[columnUrlName]);
+			return this;
+		}
+		public GetViewHelpers (): Map<string, AgGrids.Types.ViewHelper> {
+			return this.viewHelpers;
 		}
 		public SetInitialData (initialData: AgGrids.Interfaces.Ajax.IResponse): this {
 			this.initialData = initialData;
