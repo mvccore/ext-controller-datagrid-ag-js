@@ -81,7 +81,7 @@ namespace MvcCore.Ext.Controllers.DataGrids {
 				.initTranslator();
 			this.optionsManager.InitElements()
 			this
-				.initPageModeSpecifics()
+				.initPageModeSpecifics(initialData)
 				.initData(initialData);
 			document.addEventListener('DOMContentLoaded', () => {
 				this
@@ -301,7 +301,7 @@ namespace MvcCore.Ext.Controllers.DataGrids {
 			this.translator = new this.Static.Classes.Tools.Translator(this);
 			return this;
 		}
-		protected initPageModeSpecifics (): this {
+		protected initPageModeSpecifics (initialData: AgGrids.Interfaces.Ajax.IResponse): this {
 			if ((this.pageMode & AgGrids.Enums.ClientPageMode.CLIENT_PAGE_MODE_SINGLE) != 0) {
 				var emSinglePage = new this.Static.Classes.EventsManager.SinglePageMode(this);
 				this.eventsManager = emSinglePage;
@@ -315,7 +315,12 @@ namespace MvcCore.Ext.Controllers.DataGrids {
 					.AddCountScalesEvents()
 					.AddPagingEvents()
 					.AddUrlChangeEvent();
-				this.limit = this.serverConfig.count;
+				this.limit = this.serverConfig.count > 0
+					? this.serverConfig.count
+					: Math.max(
+						initialData.totalCount, 
+						this.serverConfig.clientRequestBlockSize
+					);
 			}
 			return this;
 		}
