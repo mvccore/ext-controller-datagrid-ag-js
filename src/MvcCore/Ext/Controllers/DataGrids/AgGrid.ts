@@ -315,12 +315,7 @@ namespace MvcCore.Ext.Controllers.DataGrids {
 					.AddCountScalesEvents()
 					.AddPagingEvents()
 					.AddUrlChangeEvent();
-				this.limit = this.serverConfig.count > 0
-					? this.serverConfig.count
-					: Math.max(
-						initialData.totalCount, 
-						this.serverConfig.clientRequestBlockSize
-					);
+				this.limit = this.serverConfig.count;
 			}
 			return this;
 		}
