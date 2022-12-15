@@ -225,13 +225,13 @@ namespace MvcCore.Ext.Controllers.DataGrids {
 			if (fireChangeEvent === false) {
 				this.internalSelectionChange = true;
 				this.agGridApi.deselectAll();
-				selectedRowNodes.forEach(row => row.setSelected(true));
+				selectedRowNodes.forEach(row => row.setSelected(true, true, true));
 				setTimeout(() => {
 					this.internalSelectionChange = false;
 				}, 10);
 			} else if (fireChangeEvent === true) {
 				this.agGridApi.deselectAll();
-				selectedRowNodes.forEach(row => row.setSelected(true));
+				selectedRowNodes.forEach(row => row.setSelected(true, true, false));
 			}
 			return this;
 		}
