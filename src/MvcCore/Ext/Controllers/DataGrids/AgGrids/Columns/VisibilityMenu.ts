@@ -99,9 +99,15 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Columns {
 		public UpdateFormAction (gridPath: string): this {
 			if (!this.elms.form) return this;
 			var formAction = location.href,
+				hash = location.hash,
 				delim = '?',
-				pos = formAction.indexOf(delim);
-			if (pos > -1) 
+				pos = 0;
+			pos = formAction.indexOf(hash);
+			if (pos !== -1)
+				formAction = formAction.substring(0, pos);
+			formAction = AgGrids.Tools.Helpers.Trim(formAction, '#?&');
+			pos = formAction.indexOf(delim);
+			if (pos !== -1)
 				delim = (pos == formAction.length - 1) ? '' : '&';
 			formAction += delim + this.serverConfig.gridActionParamName + '=' + this.serverConfig.gridActionColumnStates;
 			this.elms.form.action = formAction;
