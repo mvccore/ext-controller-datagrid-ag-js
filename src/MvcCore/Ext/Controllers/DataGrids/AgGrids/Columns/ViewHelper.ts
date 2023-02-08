@@ -182,22 +182,22 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Columns {
 		}
 		protected formatDate (params: agGrid.ValueFormatterParams<any, any>, propName: string, parserArgs: string[], formatArgs: string[]): string {
 			if (parserArgs == null || parserArgs.length === 0) parserArgs = this.localesConfig.parserArgsDate;
-			var dateTime = moment(params.data[propName], parserArgs[parserArgs.length - 1]);
-			dateTime.add(this.serverConfig.timeZoneOffset, 's');
+			var dateTime: moment.Moment = moment.parseZone(params.data[propName], parserArgs[parserArgs.length - 1]);
+			dateTime.add((dateTime.utcOffset() * 60) + this.serverConfig.timeZoneOffset, 's');
 			if (formatArgs == null || formatArgs.length === 0) formatArgs = this.localesConfig.formatArgsDate;
 			return dateTime.format(formatArgs[0]);
 		}
 		protected formatDateTime (params: agGrid.ValueFormatterParams<any, any>, propName: string, parserArgs: string[], formatArgs: string[]): string {
 			if (parserArgs == null || parserArgs.length === 0) parserArgs = this.localesConfig.parserArgsDateTime;
-			var dateTime = moment(params.data[propName], parserArgs[parserArgs.length - 1]);
-			dateTime.add(this.serverConfig.timeZoneOffset, 's');
+			var dateTime: moment.Moment = moment.parseZone(params.data[propName], parserArgs[parserArgs.length - 1]);
+			dateTime.add((dateTime.utcOffset() * 60) + this.serverConfig.timeZoneOffset, 's');
 			if (formatArgs == null || formatArgs.length === 0) formatArgs = this.localesConfig.formatArgsDateTime;
 			return dateTime.format(formatArgs[0]);
 		}
 		protected formatTime (params: agGrid.ValueFormatterParams<any, any>, propName: string, parserArgs: string[], formatArgs: string[]): string {
 			if (parserArgs == null || parserArgs.length === 0) parserArgs = this.localesConfig.parserArgsTime;
-			var dateTime = moment(params.data[propName], parserArgs[parserArgs.length - 1]);
-			dateTime.add(this.serverConfig.timeZoneOffset, 's');
+			var dateTime: moment.Moment = moment.parseZone(params.data[propName], parserArgs[parserArgs.length - 1]);
+			dateTime.add((dateTime.utcOffset() * 60) + this.serverConfig.timeZoneOffset, 's');
 			if (formatArgs == null || formatArgs.length === 0) formatArgs = this.localesConfig.formatArgsTime;
 			return dateTime.format(formatArgs[0]);
 		}

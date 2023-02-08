@@ -166,6 +166,8 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Tools {
 			serverConfig.controlsTexts = this.Static.ConvertObject2Map<Enums.ControlText, string>(
 				serverConfig.controlsTexts
 			);
+			for (var columnName in serverConfig.columns)
+				this.normalizeColumnParserArgs(serverConfig.columns[columnName]);
 			return serverConfig;
 		}
 		public GetAllowedOperators (columnFilterFlags: Enums.FilteringMode): Map<Enums.Operator, AgGrids.Interfaces.SortHeaders.IAllowedOperator> {
@@ -338,6 +340,17 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Tools {
 				}
 			}
 			return this.MergeObjectsRecursively(target, ...sources);
+		}
+		protected normalizeColumnParserArgs (configColumn: Interfaces.IServerConfigs.IColumn): void {
+			if (configColumn.parserArgs == null || Array.isArray(configColumn.parserArgs)) return;
+			if (typeof configColumn.parserArgs == 'object') {
+				var parserArgsObj: any = configColumn.parserArgs,
+					parserArgsArr: string[] = [];
+				for (var key in parserArgsObj)
+					if (Number.isSafeInteger(parseInt(key, 10)))
+						parserArgsArr.push(parserArgsObj[key]);
+				configColumn.parserArgs = parserArgsArr;
+			}
 		}
 		protected isObject (item: any): boolean {
 			return (item && typeof item === 'object' && !Array.isArray(item));
