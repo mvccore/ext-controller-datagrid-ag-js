@@ -2,7 +2,10 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Columns {
 	export class ViewHelper {
 		public static BOOL_FALSE_VALUES = new Set<any>([
 			'0', 0, false, 'false', 'False', 'FALSE', 'n', 'N', 'no', 'No', 'NO'
-		])
+		]);
+		public static MONEY_DISPLAY_VALUES = new Set<any>([
+			'symbol', 'narrowSymbol', 'code', 'name'
+		]);
 		public Static: typeof ViewHelper;
 		
 		protected static defaults: Map<Enums.ServerType, Types.ViewHelper>;
@@ -56,7 +59,8 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Columns {
 					<Intl.NumberFormatOptions>{
 						style: 'currency',
 						currency: this.localesConfig.currencyCode,
-						currencySign: 'standard',
+						currencySign: 'standard', // 'accounting'
+						currencyDisplay: 'narrowSymbol', // 'symbol', 'narrowSymbol', 'code', 'name'
 						minimumFractionDigits: this.localesConfig.currencyFractions,
 						maximumFractionDigits: this.localesConfig.currencyFractions
 					}
@@ -88,8 +92,8 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Columns {
 			}
 			if (viewHelper != null) {
 				var propName = serverColumnCfg.propName,
-					parserArgs: string[] = serverColumnCfg.parserArgs,
-					formatArgs: string[] = serverColumnCfg.formatArgs;
+					parserArgs: string[] | null = serverColumnCfg.parserArgs,
+					formatArgs: string[] | null = serverColumnCfg.formatArgs;
 				agColumnCfg.valueFormatter = (params: agGrid.ValueFormatterParams<any, any>): string => {
 					if (params.data == null || params.data[propName] == null) return '';
 					return viewHelper.call(this, params, propName, parserArgs, formatArgs);
@@ -98,16 +102,16 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Columns {
 			return this;
 		}
 
-		protected getIntFormater (formatterKey: string, formatArgs: string[]): Intl.NumberFormat {
+		protected getIntFormater (formatterKey: string, formatArgs: string[] | null): Intl.NumberFormat {
 			if (this.formattersInt.has(formatterKey))
 				return this.formattersInt.get(formatterKey);
 			var minimumIntegerDigits = 1,
 				useGrouping = true;
-			if (formatArgs.length > 0)
+			if (formatArgs != null && formatArgs.length > 0)
 				minimumIntegerDigits = parseInt(formatArgs[0], 10);
 			if (minimumIntegerDigits < 1)
 				minimumIntegerDigits = 1;
-			if (formatArgs.length > 1)
+			if (formatArgs != null && formatArgs.length > 1)
 				useGrouping = !!formatArgs[1];
 			this.formattersInt.set(formatterKey, new Intl.NumberFormat(
 				this.localeNumeric,
@@ -118,12 +122,12 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Columns {
 			));
 			return this.formattersInt.get(formatterKey);
 		}
-		protected getFloatFormater (formatterKey: string, formatArgs: string[]): Intl.NumberFormat {
+		protected getFloatFormater (formatterKey: string, formatArgs: string[] | null): Intl.NumberFormat {
 			if (this.formattersFloat.has(formatterKey))
 				return this.formattersFloat.get(formatterKey);
 			var minimumFractionDigits = this.localesConfig.floatFractions,
 				maximumFractionDigits = this.localesConfig.floatFractions;
-			if (formatArgs.length > 0) {
+			if (formatArgs != null && formatArgs.length > 0) {
 				minimumFractionDigits = parseInt(formatArgs[0], 10);
 				if (formatArgs.length > 1) 
 					maximumFractionDigits = parseInt(formatArgs[1], 10);
@@ -139,15 +143,19 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Columns {
 			));
 			return this.formattersFloat.get(formatterKey);
 		}
-		protected getMoneyFormater (formatterKey: string, formatArgs: string[]): Intl.NumberFormat {
+		protected getMoneyFormater (formatterKey: string, formatArgs: string[] | null): Intl.NumberFormat {
 			if (this.formattersMoney.has(formatterKey))
 				return this.formattersMoney.get(formatterKey);
 			var minimumFractionDigits = this.localesConfig.floatFractions,
-				maximumFractionDigits = this.localesConfig.floatFractions;
-			if (formatArgs.length > 0) {
-				minimumFractionDigits = parseInt(formatArgs[0], 10);
-				if (formatArgs.length > 1) 
+				maximumFractionDigits = this.localesConfig.floatFractions,
+				currencyDisplay = 'narrowSymbol';
+			if (formatArgs != null && formatArgs.length > 0) {
+				if (formatArgs[0] != null)
+					minimumFractionDigits = parseInt(formatArgs[0], 10);
+				if (formatArgs.length > 1 && formatArgs[1] != null) 
 					maximumFractionDigits = parseInt(formatArgs[1], 10);
+				if (formatArgs.length > 2 && this.Static.MONEY_DISPLAY_VALUES.has(formatArgs[2])) 
+					currencyDisplay = formatArgs[2];
 			}
 			if (maximumFractionDigits < minimumFractionDigits)
 				maximumFractionDigits = minimumFractionDigits;
@@ -156,7 +164,8 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Columns {
 				<Intl.NumberFormatOptions>{
 					style: 'currency',
 					currency: this.localesConfig.currencyCode,
-					currencySign: 'standard',
+					currencySign: 'standard', // 'accounting'
+					currencyDisplay: currencyDisplay, // 'symbol', 'narrowSymbol', 'code', 'name'
 					minimumFractionDigits: minimumFractionDigits,
 					maximumFractionDigits: maximumFractionDigits
 				}
@@ -164,37 +173,37 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Columns {
 			return this.formattersMoney.get(formatterKey);
 		}
 
-		protected formatBool (params: agGrid.ValueFormatterParams<any, any>, propName: string, parserArgs: string[], formatArgs: string[]): string {
+		protected formatBool (params: agGrid.ValueFormatterParams<any, any>, propName: string, parserArgs: string[] | null, formatArgs: string[] | null): string {
 			var boolFalse = this.Static.BOOL_FALSE_VALUES.has(params.data[propName]);
 			return this.translator.Translate(boolFalse ? 'no' : 'yes');
 		}
-		protected formatInt (params: agGrid.ValueFormatterParams<any, any>, propName: string, parserArgs: string[], formatArgs: string[]): string {
+		protected formatInt (params: agGrid.ValueFormatterParams<any, any>, propName: string, parserArgs: string[] | null, formatArgs: string[] | null): string {
 			var formatterKey = formatArgs == null ? 'default' : formatArgs.join('|');
 			return this.getIntFormater(formatterKey, formatArgs).format(params.data[propName]);
 		}
-		protected formatFloat (params: agGrid.ValueFormatterParams<any, any>, propName: string, parserArgs: string[], formatArgs: string[]): string {
+		protected formatFloat (params: agGrid.ValueFormatterParams<any, any>, propName: string, parserArgs: string[] | null, formatArgs: string[] | null): string {
 			var formatterKey = formatArgs == null ? 'default' : formatArgs.join('|');
 			return this.getFloatFormater(formatterKey, formatArgs).format(params.data[propName]);
 		}
-		protected formatMoney (params: agGrid.ValueFormatterParams<any, any>, propName: string, parserArgs: string[], formatArgs: string[]): string {
+		protected formatMoney (params: agGrid.ValueFormatterParams<any, any>, propName: string, parserArgs: string[] | null, formatArgs: string[] | null): string {
 			var formatterKey = formatArgs == null ? 'default' : formatArgs.join('|');
 			return this.getMoneyFormater(formatterKey, formatArgs).format(params.data[propName]);
 		}
-		protected formatDate (params: agGrid.ValueFormatterParams<any, any>, propName: string, parserArgs: string[], formatArgs: string[]): string {
+		protected formatDate (params: agGrid.ValueFormatterParams<any, any>, propName: string, parserArgs: string[] | null, formatArgs: string[] | null): string {
 			if (parserArgs == null || parserArgs.length === 0) parserArgs = this.localesConfig.parserArgsDate;
 			var dateTime: moment.Moment = moment.parseZone(params.data[propName], parserArgs[parserArgs.length - 1]);
 			dateTime.add((dateTime.utcOffset() * 60) + this.serverConfig.timeZoneOffset, 's');
 			if (formatArgs == null || formatArgs.length === 0) formatArgs = this.localesConfig.formatArgsDate;
 			return dateTime.format(formatArgs[0]);
 		}
-		protected formatDateTime (params: agGrid.ValueFormatterParams<any, any>, propName: string, parserArgs: string[], formatArgs: string[]): string {
+		protected formatDateTime (params: agGrid.ValueFormatterParams<any, any>, propName: string, parserArgs: string[] | null, formatArgs: string[] | null): string {
 			if (parserArgs == null || parserArgs.length === 0) parserArgs = this.localesConfig.parserArgsDateTime;
 			var dateTime: moment.Moment = moment.parseZone(params.data[propName], parserArgs[parserArgs.length - 1]);
 			dateTime.add((dateTime.utcOffset() * 60) + this.serverConfig.timeZoneOffset, 's');
 			if (formatArgs == null || formatArgs.length === 0) formatArgs = this.localesConfig.formatArgsDateTime;
 			return dateTime.format(formatArgs[0]);
 		}
-		protected formatTime (params: agGrid.ValueFormatterParams<any, any>, propName: string, parserArgs: string[], formatArgs: string[]): string {
+		protected formatTime (params: agGrid.ValueFormatterParams<any, any>, propName: string, parserArgs: string[] | null, formatArgs: string[] | null): string {
 			if (parserArgs == null || parserArgs.length === 0) parserArgs = this.localesConfig.parserArgsTime;
 			var dateTime: moment.Moment = moment.parseZone(params.data[propName], parserArgs[parserArgs.length - 1]);
 			dateTime.add((dateTime.utcOffset() * 60) + this.serverConfig.timeZoneOffset, 's');
