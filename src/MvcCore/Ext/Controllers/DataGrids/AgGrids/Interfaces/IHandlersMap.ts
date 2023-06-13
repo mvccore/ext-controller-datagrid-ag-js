@@ -21,5 +21,14 @@ declare namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Interfaces {
 		"beforeHistoryChange": Events.HistoryChange;
 		"historyChange": Events.HistoryChange;
 
+		"beforeColumnMove": Events.ColumnMove;
+		"columnMove": Events.ColumnMove;
+
+		"beforeColumnResize": Events.ColumnResize;
+		"columnResize": Events.ColumnResize;
+		
+		"gridSizeChange": Events.GridSizeChange;
+
+		"bodyScroll": Events.GridBodyScroll;
 	}
 }

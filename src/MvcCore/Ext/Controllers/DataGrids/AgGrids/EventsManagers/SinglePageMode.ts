@@ -5,9 +5,11 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.EventsManagers {
 		public constructor (grid: AgGrid) {
 			super(grid);
 		}
-		public HandleBodyScroll (params: agGrid.BodyScrollEvent<any>): void {
+		public HandleBodyScroll (event: agGrid.BodyScrollEvent<any>): void {
 			var dataSource = this.grid.GetDataSource() as AgGrids.DataSources.SinglePageMode;
-			dataSource.SetBodyScrolled(params.top > 0);
+			if (event.direction === 'vertical')
+				dataSource.SetBodyScrolled(event.top > 0);
+			super.HandleBodyScroll(event);
 		}
 	}
 }

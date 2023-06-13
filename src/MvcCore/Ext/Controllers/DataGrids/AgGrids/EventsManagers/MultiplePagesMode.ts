@@ -72,17 +72,16 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.EventsManagers {
 			e.preventDefault();
 			e.stopPropagation();
 			var offsetBefore = this.grid.GetOffset();
-			var continueToNextEvent = this.FireHandlers("beforePageChange", new EventsManagers.Events.PageChange(
+			var pageChangeEvent = new EventsManagers.Events.PageChange(
 				offsetBefore, offsetAfter, e.target as HTMLAnchorElement
-			));
+			);
+			var continueToNextEvent = this.FireHandlers("beforePageChange", pageChangeEvent);
 			if (continueToNextEvent === false) 
 				return;
 			var dataSource = this.grid.GetDataSource() as AgGrids.DataSources.MultiplePagesMode;
 			this.grid.SetOffset(offsetAfter);
 			dataSource.Load();
-			this.FireHandlers("pageChange", new EventsManagers.Events.PageChange(
-				offsetBefore, offsetAfter, e.target as HTMLAnchorElement
-			));
+			this.FireHandlers("pageChange", pageChangeEvent);
 		}
 	}
 }

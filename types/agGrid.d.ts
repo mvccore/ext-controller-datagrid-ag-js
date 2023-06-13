@@ -12,6 +12,8 @@ declare global {
 		class Grid extends AgGridAll.Grid {}
 		type InbuiltParentType = AgGridAll.IFloatingFilterParent & AgGridAll.IFilter;
 		type IFloatingFilterParentCallback<P = InbuiltParentType> = AgGridAll.IFloatingFilterParentCallback<P>;
+		type ScrollDirection = AgGridAll.ScrollDirection;
+		interface Column extends AgGridAll.Column {}
 		interface GridApi<TData = any> extends AgGridAll.GridApi<TData> {}
 		interface ColumnApi extends AgGridAll.ColumnApi {}
 		interface IHeaderComp extends AgGridAll.IHeaderComp {}
@@ -55,5 +57,7 @@ declare global {
 			filterType: string | 'scalar' | 'number' | 'text' | 'date';
 		}
 		class RowNode<TData = any> extends AgGridAll.RowNode<TData> {}
+
+		
 	}
 }

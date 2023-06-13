@@ -73,10 +73,11 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Options {
 			this.agOptions.onGridSizeChanged = this.eventsManager.HandleGridSizeChanged.bind(this.eventsManager, false);
 			this.agOptions.onSelectionChanged = this.eventsManager.HandleSelectionChange.bind(this.eventsManager);
 			this.agOptions.onModelUpdated = this.eventsManager.HandleModelUpdated.bind(this.eventsManager);
-			if ((this.grid.GetPageMode() & AgGrids.Enums.ClientPageMode.CLIENT_PAGE_MODE_SINGLE) != 0) {
+			this.agOptions.onBodyScroll = this.eventsManager.HandleBodyScroll.bind(this.eventsManager);
+			/*if ((this.grid.GetPageMode() & AgGrids.Enums.ClientPageMode.CLIENT_PAGE_MODE_SINGLE) != 0) {
 				var eventsManagerSpm = this.eventsManager as AgGrids.EventsManagers.SinglePageMode;
 				this.agOptions.onBodyScroll = eventsManagerSpm.HandleBodyScroll.bind(this.eventsManager);
-			}
+			}*/
 			return this;
 		}
 	}
