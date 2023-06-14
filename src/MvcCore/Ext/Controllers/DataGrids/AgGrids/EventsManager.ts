@@ -59,11 +59,11 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 				event.left, event.top, event.direction, event
 			));
 		}
-		public HandleModelUpdated (params: agGrid.ModelUpdatedEvent<any>): void {
+		public HandleModelUpdated (event: agGrid.ModelUpdatedEvent<any>): void {
 			//console.log("onModelUpdated", this.onLoadSelectionIndex)
 			if (this.onLoadSelectionIndex != null) {
-				var nextIndex = this.onLoadSelectionIndex;
-				var nextRow = params.api.getDisplayedRowAtIndex(nextIndex);
+				var nextIndex = this.onLoadSelectionIndex,
+					nextRow = event.api.getDisplayedRowAtIndex(nextIndex);
 				this.grid.SetSelectedRowNodes([nextRow], null);
 				if (nextRow.data == null) {
 					//console.log("onModelUpdated1", nextIndex, nextRow.data);
@@ -78,6 +78,10 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 					this.onLoadSelectionIndex = null;
 				}
 			}
+			this.FireHandlers('modelUpdate', new EventsManagers.Events.ModelUpdate(
+				event.newData, event.newPage, event.animate, 
+				event.keepRenderedRows, event.keepUndoRedoStack, event
+			));
 		}
 		public SelectRowByIndex (rowIndex: number, onLoadSelectionCallback: () => void = null): this {
 			var gridApi = this.grid.GetGridApi();
@@ -397,6 +401,11 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 				gridWidth = gridElmParent.offsetWidth,
 				gridHeight = gridElmParent.offsetHeight,
 				gridSizeChange = this.gridWidth !== gridWidth || this.gridHeight !== gridHeight;
+			/*if (this.gridWidth == null && this.gridHeight == null) {
+				this.gridWidth = gridWidth;
+				this.gridHeight = gridHeight;
+				return;
+			}*/
 			if (!gridSizeChange) return;
 			this.gridWidth = gridWidth;
 			this.gridHeight = gridHeight;
