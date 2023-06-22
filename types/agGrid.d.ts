@@ -34,6 +34,7 @@ declare global {
 		interface GridReadyEvent<TData = any> extends AgGridAll.GridReadyEvent<TData> {}
 		interface BodyScrollEvent<TData = any> extends AgGridAll.BodyScrollEvent<TData> {}
 		interface ModelUpdatedEvent<TData = any> extends AgGridAll.ModelUpdatedEvent<TData> {}
+		interface RowDataUpdatedEvent<TData = any> extends AgGridAll.RowDataUpdatedEvent<TData> {}
 		interface GridOptions<TData = any> extends AgGridAll.GridOptions<TData> {}
 		interface GridApi<TData = any> extends AgGridAll.GridApi<TData> {}
 		interface ColDef<TData = any> extends AgGridAll.ColDef<TData> {}

@@ -64,7 +64,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 			if (this.onLoadSelectionIndex != null) {
 				var nextIndex = this.onLoadSelectionIndex,
 					nextRow = event.api.getDisplayedRowAtIndex(nextIndex);
-				this.grid.SetSelectedRowNodes([nextRow], null);
+				//this.grid.SetSelectedRowNodes([nextRow], null);
 				if (nextRow.data == null) {
 					//console.log("onModelUpdated1", nextIndex, nextRow.data);
 				} else {
@@ -81,6 +81,29 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 			this.FireHandlers('modelUpdate', new EventsManagers.Events.ModelUpdate(
 				event.newData, event.newPage, event.animate, 
 				event.keepRenderedRows, event.keepUndoRedoStack, event
+			));
+		}
+		public HandleRowDataUpdated (event: agGrid.RowDataUpdatedEvent<any>): void {
+			//console.log("onRowDataUpdated", this.onLoadSelectionIndex)
+			if (this.onLoadSelectionIndex != null) {
+				var nextIndex = this.onLoadSelectionIndex,
+					nextRow = event.api.getDisplayedRowAtIndex(nextIndex);
+				//this.grid.SetSelectedRowNodes([nextRow], null);
+				if (nextRow.data == null) {
+					//console.log("onModelUpdated1", nextIndex, nextRow.data);
+				} else {
+					//console.log("onModelUpdated2", nextIndex, nextRow.data);
+					this.automaticSelectionChange = true;
+					nextRow.setSelected(true);
+					if (this.onLoadSelectionCallback) {
+						this.onLoadSelectionCallback();
+						this.onLoadSelectionCallback = null;
+					}
+					this.onLoadSelectionIndex = null;
+				}
+			}
+			this.FireHandlers('rowDataUpdate', new EventsManagers.Events.RowDataUpdate(
+				event
 			));
 		}
 		public SelectRowByIndex (rowIndex: number, onLoadSelectionCallback: () => void = null): this {
@@ -449,13 +472,18 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 			}, true);
 			return this;
 		}
-		public HandleExecChange (offset: number = 0, sorting?: Types.SortItem[] | false, filtering?: Map<string, Map<Enums.Operator, string[]>> | false): void {
+		public HandleExecChange (offset: number | false | null = null, sorting: Types.SortItem[] | false | null = null, filtering: Map<string, Map<Enums.Operator, string[]>> | false | null = null): void {
 			var dataSource = this.grid.GetDataSource() as AgGrids.DataSource,
 				sortingBefore = this.grid.GetSorting(),
 				sortingAfter: Types.SortItem[],
 				filteringBefore = this.grid.GetFiltering(),
 				filteringAfter: Map<string, Map<Enums.Operator, string[]>>;
-			if (sorting === false) {
+			if (offset === false) {
+				offset = 0;
+			} else if (offset == null) {
+				offset = this.grid.GetOffset();
+			}
+			if (sorting == false) {
 				sortingAfter = [];
 			} else if (sorting == null) {
 				sortingAfter = [].slice.apply(sortingBefore) as Types.SortItem[];
@@ -469,7 +497,6 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 			} else {
 				filteringAfter = filtering;
 			}
-
 			var reqData = <Interfaces.Ajax.IRequest>{
 					offset: offset,
 					limit: this.grid.GetLimit(),
