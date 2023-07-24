@@ -54,13 +54,18 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.DataSources {
 					this.cache.Get(cacheKey)
 				);
 			} else {
-				Ajax.load(<Ajax.LoadConfig>{
+				this.AjaxLoad(
+					reqDataUrl, reqMethod, reqData, reqType, (rawResponse: AgGrids.Interfaces.Ajax.IResponse): void => {
+						this.handleResponse(reqData, changeUrl, cacheKey, false, rawResponse);
+					}
+				);
+				/*Ajax.load(<Ajax.LoadConfig>{
 					url: reqDataUrl,
 					method: reqMethod,
 					data: reqData,
 					type: reqType,
 					success: this.handleResponse.bind(this, reqData, changeUrl, cacheKey, false)
-				});
+				});*/
 			}
 			return this;
 		}

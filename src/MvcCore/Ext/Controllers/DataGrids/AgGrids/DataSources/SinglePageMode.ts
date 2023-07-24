@@ -144,8 +144,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.DataSources {
 		}
 		protected resolveByAjaxRequest (params: agGrid.IGetRowsParams): void {
 			//console.log("resolveByAjaxRequest");
-			var agGridApi: agGrid.GridApi<any> = this.optionsManager.GetAgOptions().api;
-			agGridApi.showLoadingOverlay();
+			this.optionsManager.GetAgOptions().api.showLoadingOverlay();
 			var [reqDataUrl, reqMethod, reqType] = this.getReqUrlMethodAndType();
 			var reqData = this.helpers.RetypeRequestMaps2Objects({
 				offset: params.startRow,
@@ -153,49 +152,57 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.DataSources {
 				sorting: this.grid.GetSorting(),
 				filtering: this.grid.GetFiltering(),
 			});
-			Ajax.load(<Ajax.LoadConfig>{
+			this.AjaxLoad(
+				reqDataUrl, reqMethod, Object.assign({}, reqData), reqType, (rawResponse: AgGrids.Interfaces.Ajax.IResponse): void => {
+					this.handleResponse(reqData, params, rawResponse);
+				}
+			);
+			/*Ajax.load(<Ajax.LoadConfig>{
 				url: reqDataUrl,
 				method: reqMethod,
 				data: Object.assign({}, reqData),
 				type: reqType,
 				success: (rawResponse: AgGrids.Interfaces.Ajax.IResponse) => {
-					agGridApi.hideOverlay();
-
-					var response = this.helpers.RetypeRawServerResponse(rawResponse);
-					
-					if (response.controls != null) {
-						this.optionsManager.InitBottomControls();
-						this.handleResponseControls(response);
-					}
-					
-					var serverCfg = this.grid.GetServerConfig();
-					if (serverCfg.page > 1) {
-						this.pageLoadedState++;
-					} else if (serverCfg.page === 1) {
-						this.pageLoadedState = 4;
-					}
-
-					var cacheKey = this.cache.Key(reqData);
-					if (this.changeUrlSwitches.has(cacheKey) && this.changeUrlSwitches.get(cacheKey)) {
-						this.changeUrlSwitches.delete(cacheKey);
-					} else {
-						if (this.pageLoadedState > 3) {
-							reqData.path = response.path;
-							this.BrowserHistoryPush(
-								reqData, response.url, 
-								response.page, response.count
-							);
-							this.grid.GetColumnsVisibilityMenu().UpdateFormAction(response.path);
-						}
-					}
-
-					var selectFirstRow = !this.scrolled && this.pageLoadedState > 3;
-
-					params.successCallback(response.data, response.totalCount);
-					
-					this.grid.GetEvents().HandleResponseLoaded(response, selectFirstRow);
+					this.handleResponse(reqData, params, rawResponse);
 				}
-			});
+			});*/
+		}
+		protected handleResponse (reqData: Interfaces.Ajax.IReqRawObj, params: agGrid.IGetRowsParams, rawResponse: AgGrids.Interfaces.Ajax.IResponse): void {
+			this.optionsManager.GetAgOptions().api.hideOverlay();
+
+			var response = this.helpers.RetypeRawServerResponse(rawResponse);
+			
+			if (response.controls != null) {
+				this.optionsManager.InitBottomControls();
+				this.handleResponseControls(response);
+			}
+			
+			var serverCfg = this.grid.GetServerConfig();
+			if (serverCfg.page > 1) {
+				this.pageLoadedState++;
+			} else if (serverCfg.page === 1) {
+				this.pageLoadedState = 4;
+			}
+
+			var cacheKey = this.cache.Key(reqData);
+			if (this.changeUrlSwitches.has(cacheKey) && this.changeUrlSwitches.get(cacheKey)) {
+				this.changeUrlSwitches.delete(cacheKey);
+			} else {
+				if (this.pageLoadedState > 3) {
+					reqData.path = response.path;
+					this.BrowserHistoryPush(
+						reqData, response.url, 
+						response.page, response.count
+					);
+					this.grid.GetColumnsVisibilityMenu().UpdateFormAction(response.path);
+				}
+			}
+
+			var selectFirstRow = !this.scrolled && this.pageLoadedState > 3;
+
+			params.successCallback(response.data, response.totalCount);
+			
+			this.grid.GetEvents().HandleResponseLoaded(response, selectFirstRow);
 		}
 	}
 }

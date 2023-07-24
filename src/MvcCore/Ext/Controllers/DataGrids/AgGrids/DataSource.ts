@@ -39,8 +39,9 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 		public BrowserHistoryReplace (stateData: Interfaces.Ajax.IReqRawObj, url: string, page: number, count: number): this {
 			if (this.serverConfig.clientChangeHistory) {
 				var title = this.docTitleChange
-					? this.completeDocumentTitle(stateData, page, count)
+					? this.CompleteDocumentTitle(stateData, page, count)
 					: document.title;
+				stateData.title = title;
 				history.replaceState(stateData, title, url);
 				this.SetLastHistory([stateData, url, page, count]);
 				if (this.docTitleChange)
@@ -51,8 +52,9 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 		public BrowserHistoryPush (stateData: Interfaces.Ajax.IReqRawObj, url: string, page: number, count: number): this {
 			if (this.serverConfig.clientChangeHistory) {
 				var title = this.docTitleChange
-					? this.completeDocumentTitle(stateData, page, count)
+					? this.CompleteDocumentTitle(stateData, page, count)
 					: document.title;
+				stateData.title = title;
 				history.pushState(stateData, title, url);
 				this.SetLastHistory([stateData, url, page, count]);
 				if (this.docTitleChange)
@@ -60,7 +62,16 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 			}
 			return this;
 		}
-		protected completeDocumentTitle (stateData: Interfaces.Ajax.IReqRawObj, page: number, count: number): string {
+		public AjaxLoad (url: string, method: string, data: Interfaces.Ajax.IReqRawObj, type: string, success: (rawResponse: AgGrids.Interfaces.Ajax.IResponse) => void): void {
+			Ajax.load(<Ajax.LoadConfig>{
+				url: url,
+				method: method,
+				data: data,
+				type: type,
+				success: success
+			});
+		}
+		public CompleteDocumentTitle (stateData: Interfaces.Ajax.IReqRawObj, page: number, count: number): string {
 			var controlsTexts = this.serverConfig.controlsTexts,
 				docTitleReplacements = [
 					controlsTexts.get(Enums.ControlText.TITLE_PAGE)

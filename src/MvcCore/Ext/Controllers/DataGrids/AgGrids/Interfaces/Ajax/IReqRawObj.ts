@@ -5,5 +5,6 @@ declare namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Interfaces.Ajax {
 		path: string;
 		sorting: any;
 		filtering: any;
+		title?: string;
 	}
 }

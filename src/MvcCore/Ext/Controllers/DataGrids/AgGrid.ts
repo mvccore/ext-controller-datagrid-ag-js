@@ -281,6 +281,12 @@ namespace MvcCore.Ext.Controllers.DataGrids {
 			this.eventsManager.HandleExecChange(offset, sorting, filtering);
 			return this;
 		}
+		public GetDocumentTitle (): string {
+			if (!this.serverConfig.clientChangeHistory) 
+				return document.title;
+			var [stateData, , page, count] = this.dataSource.GetLastHistory();
+			return this.dataSource.CompleteDocumentTitle(stateData, page, count);
+		}
 
 		protected initSubClasses (): this {
 			var extendedClasses = this.Static.Classes,

@@ -17,6 +17,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 		protected internalColumnMove: boolean = false;
 		protected gridWidth: number | null = null;
 		protected gridHeight: number | null = null;
+		protected docTitleChange: boolean;
 
 		public constructor (grid: AgGrid, serverConfig: AgGrids.Interfaces.IServerConfig = null) {
 			super(grid, serverConfig = grid.GetServerConfig());
@@ -53,6 +54,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 			this.handlers = new Map<Types.GridEventName, [Types.GridEventHandler, boolean][]>();
 			this.columnsChanges = new Map<string, Interfaces.EventArgs.IColumnChange>();
 			this.columnsChangesSending = false;
+			this.docTitleChange = serverConfig.clientTitleTemplate != null;
 		}
 		public HandleBodyScroll (event: agGrid.BodyScrollEvent<any>): void {
 			this.FireHandlers("bodyScroll", new EventsManagers.Events.GridBodyScroll(
@@ -580,7 +582,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 				offsetChange = offsetBefore !== offsetAfter,
 				filteringChange = oldFilteringStr !== newFilteringStr,
 				sortingChange = oldSortingStr !== newSortingStr;
-
+			
 			var continueToNextEvents = this.FireHandlers(
 				"beforeHistoryChange", new EventsManagers.Events.HistoryChange(
 					offsetBefore, offsetAfter, 
@@ -596,6 +598,9 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 				e.stopPropagation();
 				return;
 			}
+
+			if (this.docTitleChange)
+				document.title = reqDataRaw.title;
 			
 			if (offsetChange) {
 				var pagingAnchorsMaps = this.grid.GetOptionsManager().GetElements().pagingAnchorsMaps;
