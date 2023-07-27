@@ -87,9 +87,12 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Columns {
 		protected initElements (): this {
 			var sels = this.Static.SELECTORS,
 				cont = document.createElement('div'),
+				columnServerConfig = this.params.grid.GetServerConfig().columns[this.columnId],
+				displayName = this.params.displayName,
+				title = columnServerConfig.title ?? displayName,
 				innerCode: string[] = [];
 			var innerCodes = {
-				label:		`<div class="${sels.LABEL_CLS}">${this.params.displayName}</div>`,
+				label:		`<div class="${sels.LABEL_CLS}" title="${title}">${displayName}</div>`,
 				sequence:	`<div class="${sels.ORDER_CLS}"></div>`,
 				direction:	`<div class="${sels.DIRECTION_CLS}"></div>`,
 				remove:		`<div class="${sels.REMOVE_CLS}"></div>`,
