@@ -14,6 +14,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 		protected docTitleChange: boolean;
 		protected docTitlePattern: string;
 		protected lastHistory: [Interfaces.Ajax.IReqRawObj, string, number, number] = [null, null, null, null];
+		protected autoSelectFirstRow: boolean;
 
 		public constructor (grid: AgGrid) {
 			this.Static = new.target;
@@ -25,6 +26,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 			this.serverConfig = grid.GetServerConfig();
 			this.docTitleChange = this.serverConfig.clientTitleTemplate != null;
 			this.docTitlePattern = `<${this.serverConfig.gridUrlParamName}>`;
+			this.autoSelectFirstRow = this.eventsManager.GetAutoSelectFirstRow();
 		}
 
 		public abstract ExecRequest (reqData: Interfaces.Ajax.IReqRawObj, changeUrl: boolean): this;

@@ -10,9 +10,8 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.DataSources {
 		protected initLocationHref: string;
 		
 		protected scrolled: boolean;
-		protected autoSelectFirstRow: boolean = false;
-		specialCase: boolean;
-		
+		//specialCase: boolean;
+
 		public SetBodyScrolled (scrolled: boolean): this {
 			this.scrolled = scrolled;
 			return this;
@@ -34,6 +33,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.DataSources {
 			//this.pageReqData = null;
 
 			this.changeUrlSwitches = new Map<string, boolean>();
+			this.autoSelectFirstRow = false;
 		}
 
 		protected initPageReqDataAndCache (): void {
@@ -125,18 +125,18 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.DataSources {
 					this.optionsManager.GetAgOptions().api.ensureIndexVisible(
 						scrollOffset, "top"
 					);
-					this.specialCase = true;
+					//this.specialCase = true;
 					
 					this.grid.GetEvents().SelectRowByIndex(scrollOffset, () => {
 						setTimeout(() => {
-							this.autoSelectFirstRow = true;
+							this.autoSelectFirstRow = this.eventsManager.GetAutoSelectFirstRow();
 						}, 1000);
 					});
 					
 				} else {
 					this.grid.GetEvents().SelectRowByIndex(0, () => {
 						setTimeout(() => {
-							this.autoSelectFirstRow = true;
+							this.autoSelectFirstRow = this.eventsManager.GetAutoSelectFirstRow();
 						}, 1000);
 					});
 				}
