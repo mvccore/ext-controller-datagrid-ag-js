@@ -62,7 +62,8 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Columns {
 						currencySign: 'standard', // 'accounting'
 						currencyDisplay: 'narrowSymbol', // 'symbol', 'narrowSymbol', 'code', 'name'
 						minimumFractionDigits: this.localesConfig.currencyFractions,
-						maximumFractionDigits: this.localesConfig.currencyFractions
+						maximumFractionDigits: this.localesConfig.currencyFractions,
+						roundingIncrement: this.localesConfig.currencyRoundIncrement
 					}
 				)]
 			]);
@@ -153,19 +154,17 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Columns {
 		protected getMoneyFormater (formatterKey: string, formatArgs: string[] | null): Intl.NumberFormat {
 			if (this.formattersMoney.has(formatterKey))
 				return this.formattersMoney.get(formatterKey);
-			var minimumFractionDigits = this.localesConfig.floatFractions,
-				maximumFractionDigits = this.localesConfig.floatFractions,
+			var currencyFractions = this.localesConfig.currencyFractions,
+				roundIncrement = this.localesConfig.currencyRoundIncrement,
 				currencyDisplay = 'narrowSymbol';
 			if (formatArgs != null && formatArgs.length > 0) {
 				if (formatArgs[0] != null)
-					minimumFractionDigits = parseInt(formatArgs[0], 10);
+					currencyFractions = parseInt(formatArgs[0], 10);
 				if (formatArgs.length > 1 && formatArgs[1] != null) 
-					maximumFractionDigits = parseInt(formatArgs[1], 10);
+					roundIncrement = parseInt(formatArgs[1], 10);
 				if (formatArgs.length > 2 && this.Static.MONEY_DISPLAY_VALUES.has(formatArgs[2])) 
 					currencyDisplay = formatArgs[2];
 			}
-			if (maximumFractionDigits < minimumFractionDigits)
-				maximumFractionDigits = minimumFractionDigits;
 			this.formattersMoney.set(formatterKey, new Intl.NumberFormat(
 				this.localeMoney,
 				<Intl.NumberFormatOptions>{
@@ -173,8 +172,9 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Columns {
 					currency: this.localesConfig.currencyCode,
 					currencySign: 'standard', // 'accounting'
 					currencyDisplay: currencyDisplay, // 'symbol', 'narrowSymbol', 'code', 'name'
-					minimumFractionDigits: minimumFractionDigits,
-					maximumFractionDigits: maximumFractionDigits
+					minimumFractionDigits: currencyFractions,
+					maximumFractionDigits: currencyFractions,
+					roundingIncrement: roundIncrement
 				}
 			));
 			return this.formattersMoney.get(formatterKey);

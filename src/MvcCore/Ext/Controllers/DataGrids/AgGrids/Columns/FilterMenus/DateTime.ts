@@ -3,8 +3,8 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Columns.FilterMenus {
 		public static VALUE_TYPE = 'datetime-local';
 		public Static: typeof DateTime;
 		protected timeZoneOffset: number;
-		protected parserArgs: string[];
-		protected formatArgs: string[];
+		protected parserArgs: string[] | null;
+		protected formatArgs: string[] | null;
 		protected serverConfig: Interfaces.IServerConfig;
 		public init (agParams: Interfaces.FilterMenus.IParams<any>): void {
 			super.init(agParams);
@@ -15,9 +15,9 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Columns.FilterMenus {
 		protected initParserAndFormatArgs (): void {
 			this.parserArgs = this.serverColumnCfg.parserArgs;
 			this.formatArgs = this.serverColumnCfg.formatArgs;
-			if (this.parserArgs == null || this.parserArgs.length === 0) 
+			if (this.parserArgs == null || this.parserArgs?.length === 0) 
 				this.parserArgs = this.serverConfig.locales.parserArgsDateTime;
-			if (this.formatArgs == null || this.formatArgs.length === 0) 
+			if (this.formatArgs == null || this.formatArgs?.length === 0) 
 				this.formatArgs = this.serverConfig.locales.formatArgsDateTime;
 		}
 		protected changeValueInputType (index: number, currentControlType: Enums.FilterControlType): this {
@@ -41,7 +41,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Columns.FilterMenus {
 			) {
 				var dateTime = moment(value, this.parserArgs[this.parserArgs.length - 1]);
 				dateTime.add(this.timeZoneOffset, 's');
-				value = dateTime.format(this.formatArgs[0]);
+				value = dateTime.format(this.formatArgs[0] ?? null);
 			}
 			valueInput.value = value;
 			return this;
@@ -57,7 +57,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Columns.FilterMenus {
 					value = value.replace(/T|Z/g, ' ');
 				var dateTime = moment(value, this.parserArgs[this.parserArgs.length - 1]);
 				dateTime.add(-(this.timeZoneOffset), 's');
-				value = dateTime.format(this.formatArgs[0]);
+				value = dateTime.format(this.formatArgs[0] ?? null);
 			}
 			return value;
 		}

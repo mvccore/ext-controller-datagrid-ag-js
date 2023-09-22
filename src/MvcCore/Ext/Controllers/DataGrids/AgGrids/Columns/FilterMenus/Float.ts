@@ -2,14 +2,14 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Columns.FilterMenus {
 	export class Float extends FilterMenu {
 		public static VALUE_TYPE = 'number';
 		public Static: typeof Float;
-		protected parserArgs: string[];
-		protected formatArgs: string[];
+		protected parserArgs: string[] | null;
+		protected formatArgs: string[] | null;
 		protected step: string;
 		public init (agParams: Interfaces.FilterMenus.IParams<any>): void {
 			super.init(agParams);
 			this.parserArgs = this.serverColumnCfg.parserArgs;
 			this.formatArgs = this.serverColumnCfg.formatArgs;
-			var fractionsCount: number = this.formatArgs.length > 0
+			var fractionsCount: number = this.formatArgs?.length > 0
 				? Number(this.formatArgs[0])
 				: this.grid.GetServerConfig().locales.floatFractions;
 			var stepItems = ['0.'];

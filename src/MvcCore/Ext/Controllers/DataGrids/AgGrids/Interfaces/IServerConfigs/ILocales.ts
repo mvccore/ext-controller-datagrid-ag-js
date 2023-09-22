@@ -7,6 +7,7 @@ declare namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Interfaces.IServerCo
 		currencyCode: string;
 		currencySign: string;
 		currencyFractions: number;
+		currencyRoundIncrement: number;
 		floatFractions: number;
 		parserArgsDate: string[];
 		parserArgsDateTime: string[];
