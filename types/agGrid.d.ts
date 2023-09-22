@@ -47,6 +47,19 @@ declare global {
 		interface GridReadyEvent<TData = any> extends AgGridAll.GridReadyEvent<TData> {}
 		interface GridSizeChangedEvent<TData = any> extends AgGridAll.GridSizeChangedEvent<TData> {}
 		interface ViewportChangedEvent<TData = any> extends AgGridAll.ViewportChangedEvent<TData> {}
+		interface ICellRendererParams<TData = any, TValue = any> extends AgGridAll.ICellRendererParams<TData, TValue> {}
+		interface CellKeyDownEvent<TData = any, TValue = any> extends AgGridAll.CellKeyDownEvent<TData, TValue> {}
+		interface CellKeyPressEvent<TData = any, TValue = any> extends AgGridAll.CellKeyPressEvent<TData, TValue> {}
+		interface CellClickedEvent<TData = any, TValue = any> extends AgGridAll.CellClickedEvent<TData, TValue> {}
+		interface CellMouseDownEvent<TData = any, TValue = any> extends AgGridAll.CellMouseDownEvent<TData, TValue> {}
+		interface CellDoubleClickedEvent<TData = any, TValue = any> extends AgGridAll.CellDoubleClickedEvent<TData, TValue> {}
+		interface CellMouseOverEvent<TData = any, TValue = any> extends AgGridAll.CellMouseOverEvent<TData, TValue> {}
+		interface CellMouseOutEvent<TData = any, TValue = any> extends AgGridAll.CellMouseOutEvent<TData, TValue> {}
+		interface CellContextMenuEvent<TData = any, TValue = any> extends AgGridAll.CellContextMenuEvent<TData, TValue> {}
+		interface CellEditingStartedEvent<TData = any, TValue = any> extends AgGridAll.CellEditingStartedEvent<TData, TValue> {}
+		interface CellEditingStoppedEvent<TData = any, TValue = any> extends AgGridAll.CellEditingStoppedEvent<TData, TValue> {}
+		interface CellValueChangedEvent<TData = any, TValue = any> extends AgGridAll.CellValueChangedEvent<TData, TValue> {}
+		interface CellEditRequestEvent<TData = any, TValue = any> extends AgGridAll.CellEditRequestEvent<TData, TValue> {}
 		interface IDatasource extends AgGridAll.IDatasource {}
 		interface IGetRowsParams extends AgGridAll.IGetRowsParams {}
 		interface SortModelItem extends AgGridAll.SortModelItem {}

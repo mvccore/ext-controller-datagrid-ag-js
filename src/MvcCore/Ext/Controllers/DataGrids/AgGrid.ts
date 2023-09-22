@@ -269,7 +269,7 @@ namespace MvcCore.Ext.Controllers.DataGrids {
 		public GetColumnsVisibilityMenu (): AgGrids.Columns.VisibilityMenu {
 			return this.columnsVisibilityMenu;
 		}
-		public AddEventListener <TEventName extends keyof AgGrids.Interfaces.IHandlersMap>(eventName: TEventName, handler: (a: AgGrids.Interfaces.IHandlersMap[TEventName]) => void, useTryCatch: boolean = false): this {
+		public AddEventListener <TEventName extends keyof AgGrids.Interfaces.IHandlersMap>(eventName: TEventName, handler: (e: AgGrids.Interfaces.IHandlersMap[TEventName]) => void, useTryCatch: boolean = false): this {
 			this.eventsManager.AddEventListener(eventName, handler, useTryCatch);
 			return this;
 		}
