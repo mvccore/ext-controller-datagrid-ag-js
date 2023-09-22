@@ -1,4 +1,5 @@
 namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Columns {
+	import IColumn = MvcCore.Ext.Controllers.DataGrids.AgGrids.Interfaces.IServerConfigs.IColumn;
 	export class VisibilityMenu {
 		public static SELECTORS = {
 			GRID_TOP_PLACE_BEFORE_SEL: '.ag-root .ag-overlay',
@@ -165,6 +166,10 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Columns {
 				e.cancelBubble = true;
 				e.preventDefault();
 				e.stopPropagation();
+			} else {
+				// remove all disabled attribute from checkbox inputs
+				for (var input of this.elms.inputs.values())
+					input.disabled = false;
 			}
 		}
 		protected initElements (): this {
@@ -221,31 +226,30 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Columns {
 			return this;
 		}
 		protected initFormControls (): this {
-			var columnCfg: Interfaces.IServerConfigs.IColumn,
-				inputId: string,
-				idColumn: string,
-				sels = this.Static.SELECTORS,
-				baseId = sels.INPUT_ID_BASE,
-				labelCls = sels.MENU_CTRL_CLS,
-				label: HTMLLabelElement,
-				text: string,
-				span: HTMLSpanElement,
-				checkbox: HTMLInputElement;
+			var columnCfgs = this.grid.GetOptionsManager().GetColumnManager().GetServerColumnsSortedAll();
 			this.elms.inputs = new Map<string, HTMLInputElement>();
-			for (var columnCfg of this.grid.GetOptionsManager().GetColumnManager().GetServerColumnsSortedAll()) {
-				idColumn = columnCfg.urlName;
-				text = columnCfg.title ?? columnCfg.headingName;
-				if (text === idColumn) continue;
-				inputId = baseId + idColumn;
-				label = this.createElm<HTMLLabelElement>('label', [labelCls], null, { for: inputId });
-				checkbox = this.createElm<HTMLInputElement>('input', [], null, { id: inputId, name: idColumn, type: 'checkbox' });
-				checkbox.checked = !columnCfg.disabled;
-				span = this.createElm<HTMLSpanElement>('span', [], text);
-				this.elms.inputs.set(idColumn, label.appendChild(checkbox));
-				label.appendChild(span);
-				this.elms.controls.appendChild(label);
+			for (var columnCfg of columnCfgs) {
+				var rowElm = this.initFormControl(columnCfg);
+				if (rowElm == null) continue;
+				this.elms.controls.appendChild(rowElm);
 			}
 			return this;
+		}
+		protected initFormControl (columnCfg: IColumn): HTMLElement | null {
+			var sels = this.Static.SELECTORS,
+				baseId = sels.INPUT_ID_BASE,
+				labelCls = sels.MENU_CTRL_CLS,
+				idColumn = columnCfg.urlName,
+				text = columnCfg.title ?? columnCfg.headingName;
+			if (text === idColumn) return null;
+			var inputId = baseId + idColumn,
+				label = this.createElm<HTMLLabelElement>('label', [labelCls], null, { for: inputId }),
+				checkbox = this.createElm<HTMLInputElement>('input', [], null, { id: inputId, name: idColumn, type: 'checkbox' });
+			checkbox.checked = !columnCfg.disabled;
+			var span = this.createElm<HTMLSpanElement>('span', [], text);
+			this.elms.inputs.set(idColumn, label.appendChild(checkbox));
+			label.appendChild(span);
+			return label;
 		}
 		protected initFormEvents (): this {
 			this.elms.btnCancel.addEventListener('click', this.handleCancel.bind(this));
