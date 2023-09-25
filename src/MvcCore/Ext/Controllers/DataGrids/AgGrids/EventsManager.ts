@@ -18,7 +18,6 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 		protected gridWidth: number | null = null;
 		protected gridHeight: number | null = null;
 		protected docTitleChange: boolean;
-
 		public constructor (grid: AgGrid, serverConfig: AgGrids.Interfaces.IServerConfig = null) {
 			super(grid, serverConfig = grid.GetServerConfig());
 			this.multiSorting = (
@@ -467,6 +466,14 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 				gridWidth, gridHeight, event
 			));
 		}
+		public AddRefreshEvent (): this {
+			if (!this.grid.GetServerConfig().renderConfig.renderControlRefresh) return this;
+			var optsMgr = this.grid.GetOptionsManager(),
+				refreshAnchor = optsMgr.GetElements().refreshAnchor,
+				loadingCls = optsMgr.Static.SELECTORS.BOTTOM_CONTROLS.REFRESH_ANCHOR_LOADING_CLS;
+			refreshAnchor.addEventListener('click', e => {this.handleRefreshClick(refreshAnchor, loadingCls, e);});
+			return this;
+		}
 		public AddUrlChangeEvent (): this {
 			window.addEventListener('popstate', (e: PopStateEvent): void => {
 				if (this.grid.GetHelpers().IsInstanceOfIServerRequestRaw(e.state))
@@ -717,6 +724,26 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 				filteringBefore, filteringAfter
 			));
 			return this;
+		}
+		protected handleRefreshClick (refreshAnchor: HTMLAnchorElement, loadingCls: string, e: MouseEvent): boolean {
+			e.cancelBubble = true;
+			e.preventDefault();
+			e.stopPropagation();
+			var cssClasses = refreshAnchor.className.replace(/\s+/g, ' ').split(' ');
+			if (cssClasses.indexOf(loadingCls) !== -1) return false;
+			cssClasses.push(loadingCls);
+			refreshAnchor.className = cssClasses.join(' ');
+			return true;
+		}
+		protected handleRefreshResponse (): void {
+			var optsMgr = this.grid.GetOptionsManager(),
+				refreshAnchor = optsMgr.GetElements().refreshAnchor,
+				loadingCls = optsMgr.Static.SELECTORS.BOTTOM_CONTROLS.REFRESH_ANCHOR_LOADING_CLS,
+				cssClasses = refreshAnchor.className.replace(/\s+/g, ' ').split(' '),
+				cssClassIndex = cssClasses.indexOf(loadingCls);
+			if (cssClassIndex !== -1)
+				cssClasses.splice(cssClassIndex, 1);
+			refreshAnchor.className = cssClasses.join(' ');
 		}
 		protected handleColumnChangesSent (): void {
 			if (this.columnsChangesSending) return;

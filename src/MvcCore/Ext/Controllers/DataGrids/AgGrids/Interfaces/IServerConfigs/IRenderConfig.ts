@@ -1,21 +1,33 @@
 declare namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Interfaces.IServerConfigs {
 	interface IRenderConfig {
-		controlPagingNearbyPagesCount: number;
-		controlPagingOuterPagesCount: number;
-		controlPagingOuterPagesDisplayRatio: number;
-		cssClassesControlCountScales: string[];
-		cssClassesControlPaging: string[];
-		cssClassesControlSorting: string[];
-		cssClassesControlStatus: string[];
-		renderControlCountScales: number;
-		renderControlPaging: number;
-		renderControlPagingFirstAndLast: boolean;
-		renderControlPagingPrevAndNext: boolean;
-		renderControlStatus: number;
+		theme: string;
 		renderTableHead: boolean;
 		renderTableHeadFiltering: boolean;
 		renderTableHeadSorting: boolean;
-		theme: string;
+		renderTableBodyFilteringLinks: boolean;
 		tableHeadFilteringTitle?: string;
+		renderControlSorting: boolean;
+		renderControlPaging: number;
+		renderControlPagingPrevAndNext: boolean;
+		renderControlPagingFirstAndLast: boolean;
+		renderControlCountScales: number;
+		renderControlRefresh: number;
+		renderControlStatus: number;
+		//renderFilterForm: boolean;
+		controlPagingNearbyPagesCount: number;
+		controlPagingOuterPagesCount: number;
+		controlPagingOuterPagesDisplayRatio: number;
+		//cssClassesContentTable: string[];
+		cssClassesControlsWrapper: string[];
+		cssClassesControlSorting: string[];
+		cssClassesControlPaging: string[];
+		cssClassesControlPagingButton: string[];
+		cssClassesControlPagingCurrent: string[];
+		cssClassesControlCountScales: string[];
+		cssClassesControlCountScalesButton: string[];
+		cssClassesControlCountScalesCurrent: string[];
+		cssClassesControlRefresh: string[];
+		cssClassesControlRefreshButton: string[];
+		cssClassesControlStatus: string[];
 	}
 }

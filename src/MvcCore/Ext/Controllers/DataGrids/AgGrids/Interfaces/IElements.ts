@@ -5,9 +5,11 @@ declare namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Interfaces.SortHeade
 		bottomControlsElement: HTMLDivElement;
 		pagingControl: HTMLElement;
 		countScalesControl: HTMLElement;
+		refreshControl: HTMLElement;
 		statusControl: HTMLElement;
 		pagingAnchors: HTMLAnchorElement[];
 		pagingAnchorsMaps: Map<number, HTMLAnchorElement[]>;
+		refreshAnchor: HTMLAnchorElement;
 		countScalesAnchors: HTMLAnchorElement[];
 	}
 }

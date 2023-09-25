@@ -31,6 +31,9 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 
 		public abstract ExecRequest (reqData: Interfaces.Ajax.IReqRawObj, changeUrl: boolean): this;
 
+		public GetCache (): DataSources.Cache {
+			return this.cache;
+		}
 		public SetLastHistory (lastHistory: [Interfaces.Ajax.IReqRawObj, string, number, number]): this {
 			this.lastHistory = lastHistory;
 			return this;

@@ -312,6 +312,7 @@ namespace MvcCore.Ext.Controllers.DataGrids {
 				var emSinglePage = new this.Static.Classes.EventsManager.SinglePageMode(this);
 				this.eventsManager = emSinglePage;
 				emSinglePage
+					.AddRefreshEvent()
 					.AddUrlChangeEvent();
 				this.limit = this.serverConfig.clientRequestBlockSize;
 			} else if ((this.pageMode & AgGrids.Enums.ClientPageMode.CLIENT_PAGE_MODE_MULTI) != 0) {
@@ -320,6 +321,7 @@ namespace MvcCore.Ext.Controllers.DataGrids {
 				emMultiplePages
 					.AddCountScalesEvents()
 					.AddPagingEvents()
+					.AddRefreshEvent()
 					.AddUrlChangeEvent();
 				this.limit = this.serverConfig.count;
 			}

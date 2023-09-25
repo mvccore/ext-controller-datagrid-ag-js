@@ -20,7 +20,6 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.DataSources {
 			return this;
 		}
 		public Key (obj: any): string {
-			if (!this.enabled) return '';
 			return MD5(JSON.stringify(obj));
 		}
 		public Has (key: string): boolean {

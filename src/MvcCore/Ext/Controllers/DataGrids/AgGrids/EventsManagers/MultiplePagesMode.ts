@@ -4,6 +4,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.EventsManagers {
 		protected grid: AgGrid;
 		protected countScalesHandlers: Map<number, (e: MouseEvent) => void>;
 		protected pagingHandlers: Map<number, (e: MouseEvent) => void>;
+		protected handleRefreshResponseCallback: (e: EventsManagers.Events.ModelUpdate) => void;
 		public constructor (grid: AgGrid) {
 			super(grid);
 		}
@@ -56,6 +57,21 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.EventsManagers {
 			});
 			this.pagingHandlers = new Map<number, (e: MouseEvent) => void>();
 			return this;
+		}
+		protected handleRefreshClick (refreshAnchor: HTMLAnchorElement, loadingCls: string, e: MouseEvent): boolean {
+			var exec = super.handleRefreshClick(refreshAnchor, loadingCls, e);
+			if (!exec) return false;
+			this.handleRefreshResponseCallback = this.handleRefreshResponse.bind(this, refreshAnchor, loadingCls);
+			var dataSourceCache = this.grid.GetDataSource().GetCache();
+			dataSourceCache.SetEnabled(false);
+			this.AddEventListener('modelUpdate', this.handleRefreshResponseCallback);
+			this.HandleExecChange();
+			dataSourceCache.SetEnabled(true);
+			return true;
+		}
+		protected handleRefreshResponse (): void {
+			super.handleRefreshResponse();
+			this.RemoveEventListener('modelUpdate', this.handleRefreshResponseCallback);
 		}
 		protected handleCountScalesClick (countAfter: number, e: MouseEvent): void {
 			var continueToBrowserActions = this.FireHandlers("beforeCountScaleChange", new EventsManagers.Events.CountScaleChange(
