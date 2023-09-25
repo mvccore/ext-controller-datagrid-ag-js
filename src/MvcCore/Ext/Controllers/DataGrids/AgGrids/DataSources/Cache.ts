@@ -39,9 +39,11 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.DataSources {
 		}
 		protected removeOldestRecord (): this {
 			var oldestKey = this.keys.shift();
-			var dataCount = this.store.get(oldestKey).dataCount;
-			this.store.delete(oldestKey);
-			this.rowsCount -= dataCount;
+			if (this.store.has(oldestKey)) {
+				var dataCount = this.store.get(oldestKey).dataCount;
+				this.store.delete(oldestKey);
+				this.rowsCount -= dataCount;
+			}
 			return this;
 		}
 	}
