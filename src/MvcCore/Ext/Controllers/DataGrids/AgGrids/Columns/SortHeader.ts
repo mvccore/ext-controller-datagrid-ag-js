@@ -49,7 +49,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Columns {
 
 		public SetSequence (sequence: number | null): this {
 			this.sequence = sequence;
-			if (this.params.renderSequence) {
+			if (this.params?.renderSequence) {
 				this.elms.sequence.innerHTML = (sequence == null
 					? ''
 					: Number(this.sequence + 1).toString());
@@ -265,15 +265,17 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Columns {
 		}
 		protected setSortInactive (): this {
 			this.sequence = null;
-			if (this.params.renderSequence)
+			if (this.params?.renderSequence)
 				this.elms.sequence.innerHTML = '';
 			var sels = this.Static.SELECTORS;
 			this.elms.cont.className = this.contBaseClass;
 			var parentCont = this.elms.cont.parentNode as HTMLDivElement;
-			var className = ' '+parentCont.className+' ';
-			parentCont.className = className.replace(
-				this.contActiveClsRegExp, ' '
-			);
+			if (parentCont != null) {
+				var className = ' '+parentCont.className+' ';
+				parentCont.className = className.replace(
+					this.contActiveClsRegExp, ' '
+				);
+			}
 			return this;
 		}
 	}
