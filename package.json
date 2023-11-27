@@ -1,6 +1,6 @@
 {
   "name": "@mvccore/ext-controller-datagrid-ag-js",
-  "version": "5.2.29",
+  "version": "5.2.30",
   "description": "MvcCore controller datagrid extension for administration environments with AgGrid JS/TS front-end.",
   "author": {
     "name": "Tom Flídr",
@@ -19,12 +19,16 @@
     "prepublish": "npm run build",
     "build": "tsc && copy-files-from-to"
   },
-  "copyFiles": [
-    {
-      "from": "./types/agGrid.d.ts",
-      "to": "../ext-controller-datagrid-ag/assets/declarations/agGrid.d.ts"
-    }
-  ],
+  "copyFiles": [{
+    "from": "./types/src/agGrid.d.ts",
+    "to": "./types/build/agGrid.d.ts"
+  },{
+	"from": "./types/build/*",
+	"to": "../ext-controller-datagrid-ag/assets/declarations"
+  },{
+	"from": "./types/build/**/*",
+	"to": "../ext-controller-datagrid-ag/assets/declarations"
+  }],
   "copyFilesSettings": {
     "whenFileExists": "overwrite",
     "removeSourceMappingURL": false,
