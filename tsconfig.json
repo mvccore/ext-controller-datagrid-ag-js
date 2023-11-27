@@ -17,7 +17,7 @@
     "checkJs": false,                       /* Report errors in .js files. */
     // "jsx": "preserve",                     /* Specify JSX code generation: 'preserve', 'react-native', or 'react'. */
     "declaration": true,                   /* Generates corresponding '.d.ts' file. */
-    "declarationDir": "../ext-controller-datagrid-ag/assets/declarations",
+    "declarationDir": "./types/build",
 	//"declarationMap": true,                /* Generates a sourcemap for each corresponding '.d.ts' file. */
     "sourceMap": true,                     /* Generates corresponding '.map' file. */
     // "outFile": "./build",                       /* Concatenate and emit output to single file. */
@@ -60,7 +60,7 @@
         "./types/"
     ],*/                        /* List of root folders whose combined content represents the structure of the project at runtime. */
     "typeRoots": [
-        "./types/",
+        "./types/src/",
         "./node_modules/@types/",
     ],                       /* List of folders to include type definitions from. */
     "types": [
@@ -88,7 +88,7 @@
   "include": [
     "./src/*",
     "./src/**/*",
-    "./types/*",
+    "./types/src/*"
   ],
   "mergeReferences": true
 }
