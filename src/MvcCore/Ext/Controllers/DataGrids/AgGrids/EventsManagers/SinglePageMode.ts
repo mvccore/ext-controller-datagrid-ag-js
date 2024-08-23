@@ -24,15 +24,23 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.EventsManagers {
 		}
 		protected handleRefreshClick (refreshAnchor: HTMLAnchorElement, loadingCls: string, e: MouseEvent): boolean {
 			var exec = super.handleRefreshClick(refreshAnchor, loadingCls, e);
-			if (!exec) return false;
+			if (!exec) 
+				return false;
 			var api = this.grid.GetOptionsManager().GetAgOptions().api,
 				limit = this.grid.GetLimit(),
 				firstRowIndex = api.getFirstDisplayedRow(), 
 				lastRowIndex = api.getLastDisplayedRow(),
 				start = Math.floor(firstRowIndex / limit) * limit,
 				end = Math.ceil(lastRowIndex / limit) * limit;
-			for (var i = start, l = end; i < l; i += limit)
-				this.refreshOffsets.push(i);
+			if (firstRowIndex === lastRowIndex) {
+				api.forEachNode(node => {
+					if (node.data != null)
+						this.refreshOffsets.push(node.rowIndex);
+				});
+			} else {
+				for (var i = start, l = end; i < l; i += limit)
+					this.refreshOffsets.push(i);
+			}
 			this.grid.GetOptionsManager().GetAgOptions().api.purgeInfiniteCache();
 			return true;
 		}
