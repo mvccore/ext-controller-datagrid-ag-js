@@ -60,7 +60,8 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.EventsManagers {
 		}
 		protected handleRefreshClick (refreshAnchor: HTMLAnchorElement, loadingCls: string, e: MouseEvent): boolean {
 			var exec = super.handleRefreshClick(refreshAnchor, loadingCls, e);
-			if (!exec) return false;
+			if (!exec) 
+				return false;
 			this.handleRefreshResponseCallback = this.handleRefreshResponse.bind(this, refreshAnchor, loadingCls);
 			var dataSourceCache = this.grid.GetDataSource().GetCache();
 			dataSourceCache.SetEnabled(false);
