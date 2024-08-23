@@ -730,7 +730,9 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 			e.preventDefault();
 			e.stopPropagation();
 			var cssClasses = refreshAnchor.className.replace(/\s+/g, ' ').split(' ');
-			if (cssClasses.indexOf(loadingCls) !== -1) return false;
+			if (cssClasses.indexOf(loadingCls) !== -1) 
+				return false;
+			this.FireHandlers("beforeRefresh", new EventsManagers.Events.Base());
 			cssClasses.push(loadingCls);
 			refreshAnchor.className = cssClasses.join(' ');
 			return true;
@@ -744,6 +746,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 			if (cssClassIndex !== -1)
 				cssClasses.splice(cssClassIndex, 1);
 			refreshAnchor.className = cssClasses.join(' ');
+			this.FireHandlers("refresh", new EventsManagers.Events.Base());
 		}
 		protected handleColumnChangesSent (): void {
 			if (this.columnsChangesSending) return;
