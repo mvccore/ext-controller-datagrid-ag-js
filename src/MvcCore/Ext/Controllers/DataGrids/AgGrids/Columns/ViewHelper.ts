@@ -60,7 +60,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Columns {
 						style: 'currency',
 						currency: this.localesConfig.currencyCode,
 						currencySign: 'standard', // 'accounting'
-						currencyDisplay: 'narrowSymbol', // 'symbol', 'narrowSymbol', 'code', 'name'
+						currencyDisplay: 'narrowSymbol' as any, // 'symbol', 'narrowSymbol', 'code', 'name'
 						minimumFractionDigits: this.localesConfig.currencyFractions,
 						maximumFractionDigits: this.localesConfig.currencyFractions,
 						roundingIncrement: this.localesConfig.currencyRoundIncrement
