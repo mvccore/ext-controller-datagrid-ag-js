@@ -38,7 +38,7 @@
   },
   "dependencies": {
     "ag-grid-community": "^28.2.1",
-    "ajax-min": "^1.0.15",
+    "ajax-min": "^1.0.16",
     "moment": "^2.29.4",
     "tslib": "^2.4.0"
   },
