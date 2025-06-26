@@ -99,12 +99,14 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Columns {
 		}
 		public UpdateFormAction (gridPath: string): this {
 			if (!this.elms.form) return this;
+			this.elms.hidden.value = gridPath;
+			/*
 			var formAction = location.href,
 				hash = location.hash,
 				delim = '?',
 				pos = 0;
 			pos = formAction.indexOf(hash);
-			if (pos !== -1)
+			if (pos > 0)
 				formAction = formAction.substring(0, pos);
 			formAction = AgGrids.Tools.Helpers.Trim(formAction, '#?&');
 			pos = formAction.indexOf(delim);
@@ -112,7 +114,8 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Columns {
 				delim = (pos == formAction.length - 1) ? '' : '&';
 			formAction += delim + this.serverConfig.gridActionParamName + '=' + this.serverConfig.gridActionColumnStates;
 			this.elms.form.action = formAction;
-			this.elms.hidden.value = gridPath;
+			*/
+			this.elms.form.action = this.serverConfig.urlColumnsStates;
 			return this;
 		}
 		protected removeShownEvents(): this {
