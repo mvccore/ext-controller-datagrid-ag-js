@@ -193,6 +193,10 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Columns {
 			if (continueToNextEvent === false) 
 				return;
 			this.grid.GetColumnsVisibilityMenu().Hide();
+			if (!eventsManager.GetMultiSorting() && sortingBefore.length > 0) {
+				var [columnIdBefore, ] = sortingBefore[0];
+				this.grid.GetSortHeaders().get(columnIdBefore).SetDirection(null);
+			}
 			if (this.params.renderRemove) {
 				this.setSortActive();
 			} else {
@@ -267,7 +271,6 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Columns {
 			this.sequence = null;
 			if (this.params?.renderSequence)
 				this.elms.sequence.innerHTML = '';
-			var sels = this.Static.SELECTORS;
 			this.elms.cont.className = this.contBaseClass;
 			var parentCont = this.elms.cont.parentNode as HTMLDivElement;
 			if (parentCont != null) {
