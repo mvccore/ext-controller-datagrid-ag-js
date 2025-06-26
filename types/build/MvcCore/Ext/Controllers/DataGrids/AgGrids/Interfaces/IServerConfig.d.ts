@@ -14,6 +14,7 @@ declare namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Interfaces {
         clientPageMode: Enums.ClientPageMode;
         urlData: string;
         urlColumnsChanges: string;
+        urlColumnsStates: string;
         gridUrlParamName: string;
         gridActionParamName: string;
         gridActionColumnStates: string;

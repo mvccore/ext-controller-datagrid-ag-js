@@ -22,6 +22,7 @@ declare namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
         HandleModelUpdated(event: agGrid.ModelUpdatedEvent<any>): void;
         HandleRowDataUpdated(event: agGrid.RowDataUpdatedEvent<any>): void;
         SelectRowByIndex(rowIndex: number, onLoadSelectionCallback?: () => void): this;
+        GetMultiSorting(): boolean;
         HandleGridReady(event: agGrid.GridReadyEvent<any>): void;
         HandleSelectionChange(event: agGrid.SelectionChangedEvent<any>): void;
         HandleColumnResized(event: agGrid.ColumnResizedEvent<any>): void;
