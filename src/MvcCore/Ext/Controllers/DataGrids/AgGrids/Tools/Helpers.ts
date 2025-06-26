@@ -168,6 +168,10 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Tools {
 			);
 			for (var columnName in serverConfig.columns)
 				this.normalizeColumnParserArgs(serverConfig.columns[columnName]);
+			var ampRe = /&amp;/g;
+			serverConfig.urlData = serverConfig.urlData.replace(ampRe, '&');
+			serverConfig.urlColumnsChanges = serverConfig.urlColumnsChanges.replace(ampRe, '&');
+			serverConfig.urlColumnsStates = serverConfig.urlColumnsStates.replace(ampRe, '&');
 			return serverConfig;
 		}
 		public GetAllowedOperators (columnFilterFlags: Enums.FilteringMode): Map<Enums.Operator, AgGrids.Interfaces.SortHeaders.IAllowedOperator> {
