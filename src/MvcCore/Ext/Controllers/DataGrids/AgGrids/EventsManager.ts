@@ -139,6 +139,9 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 			}
 			return this;
 		}
+		public GetMultiSorting (): boolean {
+			return this.multiSorting;
+		}
 		public HandleGridReady (event: agGrid.GridReadyEvent<any>): void {
 			this.FireHandlers("gridReady", new EventsManagers.Events.Base());
 		}
@@ -471,7 +474,8 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 			var optsMgr = this.grid.GetOptionsManager(),
 				refreshAnchor = optsMgr.GetElements().refreshAnchor,
 				loadingCls = optsMgr.Static.SELECTORS.BOTTOM_CONTROLS.REFRESH_ANCHOR_LOADING_CLS;
-			refreshAnchor.addEventListener('click', e => {this.handleRefreshClick(refreshAnchor, loadingCls, e);});
+			if (refreshAnchor != null)
+				refreshAnchor.addEventListener('click', e => {this.handleRefreshClick(refreshAnchor, loadingCls, e);});
 			return this;
 		}
 		public AddUrlChangeEvent (): this {
@@ -757,6 +761,14 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 				data: { changes: plainObj },
 				type: 'json',
 				method: 'POST',
+				headers: {
+					/**
+					 * Do not send AJAX header determination
+					 * to act wtih this request on server more 
+					 * like with form POST submit case.
+					 */
+					'X-Requested-With': null
+				},
 				success: this.handleColumnChangesResponse.bind(this),
 				error: this.handleColumnChangesResponse.bind(this)
 			});
