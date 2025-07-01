@@ -102,10 +102,14 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Columns {
 				var propName = serverColumnCfg.propName,
 					parserArgs: string[] | null = serverColumnCfg.parserArgs,
 					formatArgs: string[] | null = serverColumnCfg.formatArgs;
-				agColumnCfg.valueFormatter = (params: agGrid.ValueFormatterParams<any, any>): string => {
+				agColumnCfg.cellRenderer = (params: agGrid.ICellRendererParams<any, any>): string => {
 					if (params.data == null || params.data[propName] == null) return '';
 					return viewHelper.call(this, params, propName, parserArgs, formatArgs);
 				};
+				/*agColumnCfg.valueFormatter = (params: agGrid.ValueFormatterParams<any, any>): string => {
+					if (params.data == null || params.data[propName] == null) return '';
+					return viewHelper.call(this, params, propName, parserArgs, formatArgs);
+				};*/
 			}
 			return this;
 		}
@@ -182,40 +186,48 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Columns {
 
 		protected formatBool (params: agGrid.ValueFormatterParams<any, any>, propName: string, parserArgs: string[] | null, formatArgs: string[] | null): string {
 			var boolFalse = this.Static.BOOL_FALSE_VALUES.has(params.data[propName]);
-			return this.translator.Translate(boolFalse ? 'no' : 'yes');
+			return this.escape(this.translator.Translate(boolFalse ? 'no' : 'yes'));
 		}
 		protected formatInt (params: agGrid.ValueFormatterParams<any, any>, propName: string, parserArgs: string[] | null, formatArgs: string[] | null): string {
 			var formatterKey = formatArgs == null ? 'default' : formatArgs.join('|');
-			return this.getIntFormater(formatterKey, formatArgs).format(params.data[propName]);
+			return this.escape(this.getIntFormater(formatterKey, formatArgs).format(params.data[propName]));
 		}
 		protected formatFloat (params: agGrid.ValueFormatterParams<any, any>, propName: string, parserArgs: string[] | null, formatArgs: string[] | null): string {
 			var formatterKey = formatArgs == null ? 'default' : formatArgs.join('|');
-			return this.getFloatFormater(formatterKey, formatArgs).format(params.data[propName]);
+			return this.escape(this.getFloatFormater(formatterKey, formatArgs).format(params.data[propName]));
 		}
 		protected formatMoney (params: agGrid.ValueFormatterParams<any, any>, propName: string, parserArgs: string[] | null, formatArgs: string[] | null): string {
 			var formatterKey = formatArgs == null ? 'default' : formatArgs.join('|');
-			return this.getMoneyFormater(formatterKey, formatArgs).format(params.data[propName]);
+			return this.escape(this.getMoneyFormater(formatterKey, formatArgs).format(params.data[propName]));
 		}
 		protected formatDate (params: agGrid.ValueFormatterParams<any, any>, propName: string, parserArgs: string[] | null, formatArgs: string[] | null): string {
 			if (parserArgs == null || parserArgs.length === 0) parserArgs = this.localesConfig.parserArgsDate;
 			var dateTime: moment.Moment = moment.parseZone(params.data[propName], parserArgs[parserArgs.length - 1]);
 			dateTime.add((dateTime.utcOffset() * 60) + this.serverConfig.timeZoneOffset, 's');
 			if (formatArgs == null || formatArgs.length === 0) formatArgs = this.localesConfig.formatArgsDate;
-			return dateTime.format(formatArgs[0]);
+			return this.escape(dateTime.format(formatArgs[0]));
 		}
 		protected formatDateTime (params: agGrid.ValueFormatterParams<any, any>, propName: string, parserArgs: string[] | null, formatArgs: string[] | null): string {
 			if (parserArgs == null || parserArgs.length === 0) parserArgs = this.localesConfig.parserArgsDateTime;
 			var dateTime: moment.Moment = moment.parseZone(params.data[propName], parserArgs[parserArgs.length - 1]);
 			dateTime.add((dateTime.utcOffset() * 60) + this.serverConfig.timeZoneOffset, 's');
 			if (formatArgs == null || formatArgs.length === 0) formatArgs = this.localesConfig.formatArgsDateTime;
-			return dateTime.format(formatArgs[0]);
+			return this.escape(dateTime.format(formatArgs[0]));
 		}
 		protected formatTime (params: agGrid.ValueFormatterParams<any, any>, propName: string, parserArgs: string[] | null, formatArgs: string[] | null): string {
 			if (parserArgs == null || parserArgs.length === 0) parserArgs = this.localesConfig.parserArgsTime;
 			var dateTime: moment.Moment = moment.parseZone(params.data[propName], parserArgs[parserArgs.length - 1]);
 			dateTime.add((dateTime.utcOffset() * 60) + this.serverConfig.timeZoneOffset, 's');
 			if (formatArgs == null || formatArgs.length === 0) formatArgs = this.localesConfig.formatArgsTime;
-			return dateTime.format(formatArgs[0]);
+			return this.escape(dateTime.format(formatArgs[0]));
+		}
+		protected escape (text: string): string {
+			if (text == null) return '';
+			return text.replace(/&/g, '&amp;')
+				.replace(/</g, '&lt;')
+				.replace(/>/g, '&gt;')
+				.replace(/"/g, '&quot;')
+				.replace(/'/g, '&#039;');
 		}
 	}
 }

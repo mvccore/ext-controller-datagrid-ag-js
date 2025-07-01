@@ -26,5 +26,6 @@ declare namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Columns {
         protected formatDate(params: agGrid.ValueFormatterParams<any, any>, propName: string, parserArgs: string[] | null, formatArgs: string[] | null): string;
         protected formatDateTime(params: agGrid.ValueFormatterParams<any, any>, propName: string, parserArgs: string[] | null, formatArgs: string[] | null): string;
         protected formatTime(params: agGrid.ValueFormatterParams<any, any>, propName: string, parserArgs: string[] | null, formatArgs: string[] | null): string;
+        protected escape(text: string): string;
     }
 }
