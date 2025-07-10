@@ -223,7 +223,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Columns {
 		}
 		protected escape (text: string): string {
 			if (text == null) return '';
-			return text.replace(/&/g, '&amp;')
+			return String(text).replace(/&/g, '&amp;')
 				.replace(/</g, '&lt;')
 				.replace(/>/g, '&gt;')
 				.replace(/"/g, '&quot;')
