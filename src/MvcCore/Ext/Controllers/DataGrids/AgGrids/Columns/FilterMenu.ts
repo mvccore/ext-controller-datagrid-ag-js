@@ -266,8 +266,10 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Columns {
 			return this;
 		}
 		protected destroySection (index: number, sectionElms: Interfaces.FilterMenus.Sections.IElements): this {
-			var sectionElms = this.elms.sections[index],
-				sectionHandlers = this.sectionHandlers[index];
+			var sectionElms = this.elms.sections[index];
+			if (this.sectionHandlers[index] == null) 
+				return this;
+			var sectionHandlers = this.sectionHandlers[index];
 			if (sectionHandlers.handleTypeChange != null)
 				sectionElms.typeSelect.removeEventListener(
 					'change', sectionHandlers.handleTypeChange as any
