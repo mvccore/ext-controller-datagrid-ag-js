@@ -7,6 +7,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Options {
 		protected eventsManager: AgGrids.EventsManager;
 		protected helpers: AgGrids.Tools.Helpers;
 		protected agOptions: agGrid.GridOptions<any>;
+		protected getRowId: ((data: any) => string) | null;
 		
 		public constructor (grid: AgGrid) {
 			this.Static = new.target;
@@ -14,6 +15,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Options {
 			this.optionsManager = grid.GetOptionsManager();
 			this.eventsManager = grid.GetEvents();
 			this.helpers = grid.GetHelpers();
+			this.getRowId = null;
 		}
 
 		public SetAgOptions (options: agGrid.GridOptions<any>): this {
@@ -23,9 +25,15 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Options {
 		public GetAgOptions (): agGrid.GridOptions<any> {
 			return this.agOptions;
 		}
+		public GetRowId (data: any): string {
+			if (this.getRowId == null)
+				throw new Error(`There is no id column configured. Use primary key or unique key attribute.`);
+			return this.getRowId(data);
+		}
 
 		public Init (): this {
 			this
+				.initRowIdComplation()
 				.initBases()
 				.initRowSelection()
 				.initEvents();
@@ -41,8 +49,14 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Options {
 				suppressColumnVirtualisation: true,
 				debounceVerticalScrollbar: true,
 				alwaysShowVerticalScroll: true,
-				suppressCellFocus: true,
+				suppressCellFocus: true
 			};
+			if (this.getRowId != null) {
+				this.agOptions.getRowId = (params: agGrid.GetRowIdParams<any, any>) : string => {
+					///@ts-ignore
+					return this.getRowId(params.data);
+				};
+			}
 			if (this.helpers.IsChromeBrowser())
 				this.agOptions.suppressAnimationFrame = true;
 			this.agOptions.localeText = this.grid.GetTranslator().GetStore();
@@ -62,6 +76,35 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Options {
 				if ((rowSel & Enums.RowSelection.ROW_SELECTION_NOT_DESELECT) != 0) {
 					this.agOptions.suppressRowDeselection = true;
 				}
+			}
+			return this;
+		}
+		protected initRowIdComplation (): this {
+			var serverConfig = this.grid.GetServerConfig(),
+				columns = serverConfig.columns,
+				column: AgGrids.Interfaces.IServerConfigs.IColumn,
+				columnIdsSeparator = serverConfig.columnIdsSeparator,
+				idColsPropNames: string[] = [];
+			for (var columnName in columns) {
+				column = columns[columnName];
+				if (!column.idColumn) continue;
+				idColsPropNames.push(column.propName);
+			}
+			if (idColsPropNames.length > 0) {
+				this.getRowId = (data: any): string => {
+					var idColPropName: string,
+						idColsValue: string | null,
+						idColsValues: string[] = [];
+					for (var i = 0, l = idColsPropNames.length; i < l; i++) {
+						idColPropName = idColsPropNames[i];
+						idColsValue = data[idColPropName];
+						idColsValue = idColsValue == null
+							? ''
+							: String(idColsValue);
+						idColsValues.push(idColsValue);
+					}
+					return idColsValues.join(columnIdsSeparator);
+				};
 			}
 			return this;
 		}

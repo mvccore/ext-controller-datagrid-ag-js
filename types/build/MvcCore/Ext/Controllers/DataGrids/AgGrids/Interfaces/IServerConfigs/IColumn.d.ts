@@ -6,6 +6,7 @@ declare namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Interfaces.IServerCo
         types: string[];
         parserArgs: any[];
         formatArgs: any[];
+        idColumn: boolean | null;
         cssClasses: string[];
         filter: number | false;
         sort: number | boolean;

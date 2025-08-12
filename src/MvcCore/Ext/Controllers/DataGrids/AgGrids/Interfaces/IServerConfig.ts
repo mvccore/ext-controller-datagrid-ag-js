@@ -6,6 +6,7 @@ declare namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Interfaces {
 		columns: {
 			[columnUrlName: string]: IServerConfigs.IColumn;
 		};
+		columnIdsSeparator: string;
 		locales: IServerConfigs.ILocales;
 		urlSegments: IServerConfigs.IUrlSegment;
 		filterOperatorPrefixes: Map<Enums.Operator, string>;
