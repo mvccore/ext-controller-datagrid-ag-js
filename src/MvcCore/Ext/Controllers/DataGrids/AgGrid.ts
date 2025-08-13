@@ -1,4 +1,5 @@
 namespace MvcCore.Ext.Controllers.DataGrids {
+	import ClientPageMode = AgGrids.Enums.ClientPageMode;
 	export class AgGrid {
 		public static Classes: AgGrids.Interfaces.IClasses = {
 			Columns: {
@@ -286,6 +287,10 @@ namespace MvcCore.Ext.Controllers.DataGrids {
 				return document.title;
 			var [stateData, , page, count] = this.dataSource.GetLastHistory();
 			return this.dataSource.CompleteDocumentTitle(stateData, page, count);
+		}
+		public UpdateRows (rowsData: any[]): this {
+			this.dataSource.UpdateRows(rowsData);
+			return this;
 		}
 
 		protected initSubClasses (): this {

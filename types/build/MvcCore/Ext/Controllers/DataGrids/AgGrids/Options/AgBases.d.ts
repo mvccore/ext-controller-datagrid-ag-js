@@ -10,6 +10,7 @@ declare namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Options {
         constructor(grid: AgGrid);
         SetAgOptions(options: agGrid.GridOptions<any>): this;
         GetAgOptions(): agGrid.GridOptions<any>;
+        GetRowsIniquelyIdentified(): boolean;
         GetRowId(data: any): string;
         Init(): this;
         protected initBases(): this;

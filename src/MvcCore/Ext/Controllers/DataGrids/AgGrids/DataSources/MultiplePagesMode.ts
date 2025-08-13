@@ -69,6 +69,14 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.DataSources {
 			}
 			return this;
 		}
+		public UpdateRows (rowsData: any[]): this {
+			if (this.cache.GetEnabled())
+				this.cache.Update(rowsData);
+			this.grid.GetGridApi().applyTransaction({
+				update: rowsData
+			});
+			return this;
+		}
 		protected handleResponse (reqData: Interfaces.Ajax.IReqRawObj, changeUrl: boolean, cacheKey: string, cached: boolean, rawResponse: AgGrids.Interfaces.Ajax.IResponse): void {
 			var response: AgGrids.Interfaces.Ajax.IResponse;
 			if (cached) {

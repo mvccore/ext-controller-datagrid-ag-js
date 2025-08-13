@@ -25,6 +25,9 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Options {
 		public GetAgOptions (): agGrid.GridOptions<any> {
 			return this.agOptions;
 		}
+		public GetRowsIniquelyIdentified (): boolean {
+			return this.getRowId != null;
+		}
 		public GetRowId (data: any): string {
 			if (this.getRowId == null)
 				throw new Error(`There is no id column configured. Use primary key or unique key attribute.`);
@@ -90,7 +93,15 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Options {
 				if (!column.idColumn) continue;
 				idColsPropNames.push(column.propName);
 			}
-			if (idColsPropNames.length > 0) {
+			if (idColsPropNames.length === 1) {
+				var idColPropName = idColsPropNames[0];
+				this.getRowId = (data: any): string => {
+					var idColsValue = data[idColPropName];
+					return idColsValue == null
+						? ''
+						: String(idColsValue);
+				};
+			} else if (idColsPropNames.length > 1) {
 				this.getRowId = (data: any): string => {
 					var idColPropName: string,
 						idColsValue: string | null,

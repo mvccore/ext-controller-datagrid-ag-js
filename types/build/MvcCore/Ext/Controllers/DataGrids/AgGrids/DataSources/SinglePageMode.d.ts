@@ -10,6 +10,7 @@ declare namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.DataSources {
         protected initLocationHref: string;
         protected scrolled: boolean;
         SetBodyScrolled(scrolled: boolean): this;
+        UpdateRows(rowsData: any[]): this;
         constructor(grid: AgGrid);
         protected initPageReqDataAndCache(): void;
         /** Callback the grid calls that you implement to fetch rows from the server. */

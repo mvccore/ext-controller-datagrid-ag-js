@@ -16,12 +16,18 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.DataSources {
 			this.scrolled = scrolled;
 			return this;
 		}
+		public UpdateRows (rowsData: any[]): this {
+			if (this.cache.GetEnabled())
+				this.cache.Update(rowsData);
+			this.grid.GetGridApi().refreshInfiniteCache();
+			return this;
+		}
 
 		public constructor (grid: AgGrid) {
 			super(grid);
 			this.scrolled = false;
 			this.pageLoadedState = 0;
-			this.initDataCache = this.grid.GetServerConfig().clientMaxRowsInCache > 0;
+			this.initDataCache = this.grid.GetServerConfig().clientCache;
 			this.requestCounter = 0;
 			this.initLocationHref = location.href;
 
@@ -39,7 +45,10 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.DataSources {
 		protected initPageReqDataAndCache (): void {
 			super.initPageReqDataAndCache();
 			this.cache.SetEnabled(true);
-			this.cache.Add(this.cache.Key(this.pageReqData), <Interfaces.Ajax.IResponse>{});
+			this.cache.Add(this.cache.Key(this.pageReqData), <Interfaces.Ajax.IResponse>{
+				data: this.initialData.data,
+				dataCount: this.initialData.data.length
+			});
 		}
 		/** Callback the grid calls that you implement to fetch rows from the server. */
 		public getRows (params: agGrid.IGetRowsParams): void {
@@ -185,6 +194,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.DataSources {
 			}
 
 			var cacheKey = this.cache.Key(reqData);
+			this.cache.Add(cacheKey, response);
 			if (this.changeUrlSwitches.has(cacheKey) && this.changeUrlSwitches.get(cacheKey)) {
 				this.changeUrlSwitches.delete(cacheKey);
 			} else {

@@ -31,6 +31,8 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 
 		public abstract ExecRequest (reqData: Interfaces.Ajax.IReqRawObj, changeUrl: boolean): this;
 
+		public abstract UpdateRows (rowsData: any[]): this;
+
 		public GetCache (): DataSources.Cache {
 			return this.cache;
 		}

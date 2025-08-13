@@ -32,6 +32,7 @@ declare namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Interfaces {
 		clientChangeHistory: boolean;
 		clientTitleTemplate?: string;
 		clientRequestBlockSize: number;
+		clientCache: boolean;
 		clientRowBuffer: number;
 		clientMaxRowsInCache: number;
 		clientRowBufferMax: number;

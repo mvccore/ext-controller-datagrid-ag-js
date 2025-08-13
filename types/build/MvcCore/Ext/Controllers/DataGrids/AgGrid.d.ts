@@ -78,6 +78,7 @@ declare namespace MvcCore.Ext.Controllers.DataGrids {
         RemoveEventListener<TEventName extends keyof AgGrids.Interfaces.IHandlersMap>(eventName: TEventName, handler: (e: AgGrids.Interfaces.IHandlersMap[TEventName]) => void): this;
         ExecChange(offset?: number | false | null, sorting?: AgGrids.Types.SortItem[] | false | null, filtering?: Map<string, Map<AgGrids.Enums.Operator, string[]>> | false | null): this;
         GetDocumentTitle(): string;
+        UpdateRows(rowsData: any[]): this;
         protected initSubClasses(): this;
         protected initServerConfig(serverConfig: AgGrids.Interfaces.IServerConfig): this;
         protected initTranslator(): this;
