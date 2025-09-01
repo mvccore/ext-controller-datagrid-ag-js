@@ -37,6 +37,7 @@ declare global {
 		interface RowDataUpdatedEvent<TData = any> extends AgGridAll.RowDataUpdatedEvent<TData> {}
 		interface RowDataTransaction<TData = any> extends AgGridAll.RowDataTransaction<TData> {}
 		interface GridOptions<TData = any> extends AgGridAll.GridOptions<TData> {}
+		interface GetRowIdParams<TData = any, TContext = any> extends AgGridAll.GetRowIdParams<TData, TContext> {}
 		interface GridApi<TData = any> extends AgGridAll.GridApi<TData> {}
 		interface ColDef<TData = any> extends AgGridAll.ColDef<TData> {}
 		interface ColGroupDef<TData = any> extends AgGridAll.ColGroupDef<TData> {}
