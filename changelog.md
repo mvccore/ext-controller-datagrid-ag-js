@@ -1,2 +1,2 @@
-### Updated
-- AgGrid generated types.
+### Fixed
+- AgGrid generic types.

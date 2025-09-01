@@ -55,7 +55,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Options {
 				suppressCellFocus: true
 			};
 			if (this.getRowId != null) {
-				this.agOptions.getRowId = (params: agGrid.GetRowIdParams<any, any>) : string => {
+				this.agOptions.getRowId = (params: agGrid.GetRowIdParams<any>) : string => {
 					///@ts-ignore
 					return this.getRowId(params.data);
 				};
