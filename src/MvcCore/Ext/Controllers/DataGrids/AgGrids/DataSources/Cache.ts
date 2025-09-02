@@ -2,25 +2,45 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.DataSources {
 	export class Cache {
 		public Static: typeof Cache;
 
+		protected helpers: AgGrids.Tools.Helpers;
 		protected enabled: boolean;
 		protected maxRows: number;
-		protected store: Map<string, Interfaces.Ajax.IResponse>;
-		protected keys: string[];
+		protected store: Map<string, [number, Interfaces.Ajax.IResponse]>;
+		protected reqDataKeys: string[];
 		protected rowsCount: number;;
 		protected agBaseOptions: Options.AgBases;
-		protected rows: Map<string, any>;
-		protected rowsIniquelyIdentified: boolean
+		protected rowIds2StoreIds: Map<string, [number, number]>;
+		protected storeIds2Keys: Map<number, string>;
+		protected storeIdsCounter: number;
+		protected rowsIniquelyIdentified: boolean;
+		protected cacheBlockSize: number;
 		public constructor (grid: AgGrid) {
+			this.helpers = grid.GetHelpers();
 			var serverConfig = grid.GetServerConfig();
 			this.enabled = serverConfig.clientCache;
 			this.maxRows = serverConfig.clientMaxRowsInCache ?? 0;
-			this.store = new Map<string, Interfaces.Ajax.IResponse>();
+			this.store = new Map<string, [number, Interfaces.Ajax.IResponse]>();
 			this.agBaseOptions = grid.GetOptionsManager().GetAgBases();
+			this.cacheBlockSize = this.agBaseOptions.GetAgOptions().cacheBlockSize;
 			this.rowsIniquelyIdentified = this.agBaseOptions.GetRowsIniquelyIdentified();
-			if (this.rowsIniquelyIdentified)
-				this.rows = new Map<string, any>();
-			this.keys = [];
+			if (this.rowsIniquelyIdentified) {
+				this.rowIds2StoreIds = new Map<string, [number, number]>();
+				this.storeIds2Keys = new Map<number, string>();
+			}
+			this.storeIdsCounter = 0;
+			this.reqDataKeys = [];
 			this.rowsCount = 0;
+		}
+		public Purge (): this {
+			this.store = new Map<string, [number, Interfaces.Ajax.IResponse]>();
+			if (this.rowsIniquelyIdentified) {
+				this.rowIds2StoreIds = new Map<string, [number, number]>();
+				this.storeIds2Keys = new Map<number, string>();
+				this.storeIdsCounter = 0;
+			}
+			this.reqDataKeys = [];
+			this.rowsCount = 0;
+			return this;
 		}
 		public GetEnabled (): boolean {
 			return this.enabled;
@@ -29,47 +49,35 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.DataSources {
 			this.enabled = enabled;
 			return this;
 		}
-		public Key (obj: any): string {
-			return MD5(JSON.stringify(obj));
+		public Key (reqData: Interfaces.Ajax.IReqRawObj): string {
+			return MD5(JSON.stringify(reqData));
 		}
-		public Has (key: string): boolean {
+		public Has (reqDataKey: string): boolean {
 			if (!this.enabled) return false;
-			return this.store.has(key);
+			return this.store.has(reqDataKey);
 		}
-		public Get (key: string): Interfaces.Ajax.IResponse {
-			var response = this.store.get(key);
-			if (this.rowsIniquelyIdentified) {
-				// replace ids with real records
-				var rowId: string,
-					data: any[] = [];
-				for (var i = 0, l = response.data.length; i < l; i++) {
-					rowId = response.data[i];
-					data.push(this.rows.get(rowId));
-				}
-				response.data = data;
-			}
+		public Get (reqDataKey: string): Interfaces.Ajax.IResponse {
+			var [, response] = this.store.get(reqDataKey);
 			return response;
 		}
-		public Add (key: string, response: Interfaces.Ajax.IResponse): this {
+		public Add (reqDataKey: string, response: Interfaces.Ajax.IResponse): this {
 			if (!this.enabled)
 				return this;
+			var storeId = this.storeIdsCounter++;
 			if (this.rowsIniquelyIdentified) {
-				// replace real records with ids
+				this.storeIds2Keys.set(storeId, reqDataKey);
 				var row: any,
-					rowId: string,
-					data: string[] = [];
+					rowId: string;
 				for (var i = 0, l = response.data.length; i < l; i++) {
 					row = response.data[i];
 					rowId = this.agBaseOptions.GetRowId(row);
-					data.push(rowId);
-					this.rows.set(rowId, row);
+					this.rowIds2StoreIds.set(rowId, [storeId, i]);
 				}
-				response.data = data;
 			}
-			this.store.set(key, response);
-			this.keys.push(key);
+			this.store.set(reqDataKey, [storeId, response]);
+			this.reqDataKeys.push(reqDataKey);
 			this.rowsCount += response.dataCount;
-			while (this.rowsCount > this.maxRows && this.maxRows > 0)
+			while (this.rowsCount + this.cacheBlockSize >= this.maxRows && this.maxRows > 0)
 				this.removeOldestRecord();
 			return this;
 		}
@@ -77,11 +85,26 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.DataSources {
 			if (this.rowsIniquelyIdentified) {
 				var newRow: any,
 					oldRow: any,
-					rowId: string;
+					rowId: string,
+					storeId: number,
+					index: number,
+					storeKey: string,
+					response: Interfaces.Ajax.IResponse;
 				for (var i = 0, l = rowsData.length; i < l; i++) {
 					newRow = rowsData[i];
 					rowId = this.agBaseOptions.GetRowId(newRow);
-					oldRow = this.rows.get(rowId);
+					if (!this.rowIds2StoreIds.has(rowId)) 
+						continue;
+					[storeId, index] = this.rowIds2StoreIds.get(rowId);
+					if (!this.storeIds2Keys.has(storeId)) 
+						continue;
+					storeKey = this.storeIds2Keys.get(storeId);
+					if (!this.store.has(storeKey)) 
+						continue;
+					[, response] = this.store.get(storeKey);
+					if (index >= response.data.length) 
+						continue;
+					oldRow = response.data[index];
 					if (oldRow != null)
 						Object.assign(oldRow, newRow);
 				}
@@ -89,19 +112,23 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.DataSources {
 			return this;
 		}
 		protected removeOldestRecord (): this {
-			var oldestKey = this.keys.shift();
+			var oldestKey = this.reqDataKeys.shift();
 			if (this.store.has(oldestKey)) {
+				var [storeId, response] = this.store.get(oldestKey);
+				
 				if (this.rowsIniquelyIdentified) {
-					// remove real row records
-					var storeRecord = this.store.get(oldestKey),
-						rowId: string;
-					for (var i = 0, l = storeRecord.data.length; i < l; i++) {
-						rowId = storeRecord.data[i];
-						if (this.rows.has(rowId))
-							this.rows.delete(rowId);
+					if (this.storeIds2Keys.has(storeId))
+						this.storeIds2Keys.delete(storeId);
+					var rowId: string,
+						row: any;
+					for (var i = 0, l = response.data.length; i < l; i++) {
+						row = response.data[i];
+						rowId = this.agBaseOptions.GetRowId(row);
+						if (this.rowIds2StoreIds.has(rowId))
+							this.rowIds2StoreIds.delete(rowId);
 					}
 				}
-				var dataCount = this.store.get(oldestKey).dataCount;
+				var dataCount = response.dataCount;
 				this.store.delete(oldestKey);
 				this.rowsCount -= dataCount;
 			}
