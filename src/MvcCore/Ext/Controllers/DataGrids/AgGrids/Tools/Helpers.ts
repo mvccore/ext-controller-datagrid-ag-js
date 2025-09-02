@@ -332,9 +332,9 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Tools {
 			if (!sources.length) 
 				return target;
 			var source = sources.shift();
-			if (this.isObject(target) && this.isObject(source)) {
+			if (this.isObjectAndNotArray(target) && this.isObjectAndNotArray(source)) {
 				for (var key in source) {
-					if (this.isObject(source[key])) {
+					if (this.isObjectAndNotArray(source[key])) {
 						if (!target[key]) 
 							Object.assign(target, { [key]: {} });
 						this.MergeObjectsRecursively(target[key], source[key]);
@@ -356,8 +356,16 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Tools {
 				configColumn.parserArgs = parserArgsArr;
 			}
 		}
-		protected isObject (item: any): boolean {
-			return (item && typeof item === 'object' && !Array.isArray(item));
+		protected isObjectAndNotArray (item: any): boolean {
+			return this.isObject(item) && !this.isArray(item);
+		}
+		protected isObject (obj: any): boolean {
+			return obj != null && typeof(obj) == 'object';
+		}
+		protected isArray (obj: any): boolean {
+			if (Array.isArray != null) 
+				return Array.isArray(obj);
+			return Object.prototype.toString.apply(obj).match(/^\[object ([a-zA-Z0-9]*)Array\]$/g) != null;
 		}
 	}
 }

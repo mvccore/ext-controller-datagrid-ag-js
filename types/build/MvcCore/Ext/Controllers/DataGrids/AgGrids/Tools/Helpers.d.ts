@@ -34,6 +34,8 @@ declare namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.Tools {
         static Trim(str: string, charlist: string): string;
         MergeObjectsRecursively(target: any, ...sources: any[]): any;
         protected normalizeColumnParserArgs(configColumn: Interfaces.IServerConfigs.IColumn): void;
-        protected isObject(item: any): boolean;
+        protected isObjectAndNotArray(item: any): boolean;
+        protected isObject(obj: any): boolean;
+        protected isArray(obj: any): boolean;
     }
 }
