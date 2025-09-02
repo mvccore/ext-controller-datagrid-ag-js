@@ -63,12 +63,24 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.EventsManagers {
 			if (!exec) 
 				return false;
 			this.handleRefreshResponseCallback = this.handleRefreshResponse.bind(this, refreshAnchor, loadingCls);
-			var dataSourceCache = this.grid.GetDataSource().GetCache();
-			dataSourceCache.SetEnabled(false);
+			var cache = this.grid.GetDataSource().GetCache();
+			if (cache.GetEnabled()) 
+				cache.Purge();
 			this.AddEventListener('modelUpdate', this.handleRefreshResponseCallback);
 			this.HandleExecChange();
-			dataSourceCache.SetEnabled(true);
 			return true;
+		}
+		public ExecuteRefresh (): this {
+			this.FireHandlers("beforeRefresh", new EventsManagers.Events.Base());
+			this.handleRefreshResponseCallback = (e: Events.ModelUpdate) => {
+				this.FireHandlers("refresh", new EventsManagers.Events.Base());
+			};
+			var cache = this.grid.GetDataSource().GetCache();
+			if (cache.GetEnabled()) 
+				cache.Purge();
+			this.AddEventListener('modelUpdate', this.handleRefreshResponseCallback);
+			this.HandleExecChange();
+			return this;
 		}
 		protected handleRefreshResponse (): void {
 			super.handleRefreshResponse();

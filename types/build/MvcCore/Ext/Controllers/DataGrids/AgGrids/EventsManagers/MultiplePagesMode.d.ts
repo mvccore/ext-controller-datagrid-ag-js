@@ -12,6 +12,7 @@ declare namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.EventsManagers {
         AddPagingEvents(): this;
         RemovePagingEvents(): this;
         protected handleRefreshClick(refreshAnchor: HTMLAnchorElement, loadingCls: string, e: MouseEvent): boolean;
+        ExecuteRefresh(): this;
         protected handleRefreshResponse(): void;
         protected handleCountScalesClick(countAfter: number, e: MouseEvent): void;
         protected handlePagingClick(offsetAfter: number, e: MouseEvent): void;

@@ -3,9 +3,11 @@ declare namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.EventsManagers {
         Static: typeof SinglePageMode;
         protected grid: AgGrid;
         protected refreshOffsets: number[];
+        protected refresh: boolean;
         constructor(grid: AgGrid);
         HandleBodyScroll(event: agGrid.BodyScrollEvent<any>): void;
         HandleResponseLoaded(response: AgGrids.Interfaces.Ajax.IResponse, selectFirstRow?: boolean): void;
         protected handleRefreshClick(refreshAnchor: HTMLAnchorElement, loadingCls: string, e: MouseEvent): boolean;
+        ExecuteRefresh(): this;
     }
 }

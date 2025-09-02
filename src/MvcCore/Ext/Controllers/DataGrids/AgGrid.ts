@@ -292,6 +292,10 @@ namespace MvcCore.Ext.Controllers.DataGrids {
 			this.dataSource.UpdateRows(rowsData);
 			return this;
 		}
+		public Refresh (): this {
+			this.eventsManager.ExecuteRefresh();
+			return this;
+		}
 
 		protected initSubClasses (): this {
 			var extendedClasses = this.Static.Classes,

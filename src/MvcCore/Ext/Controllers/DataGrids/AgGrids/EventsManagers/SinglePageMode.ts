@@ -3,6 +3,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.EventsManagers {
 		public Static: typeof SinglePageMode;
 		protected grid: AgGrid;
 		protected refreshOffsets: number[] = [];
+		protected refresh: boolean = false;
 		public constructor (grid: AgGrid) {
 			super(grid);
 		}
@@ -14,7 +15,10 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.EventsManagers {
 		}
 		public HandleResponseLoaded (response: AgGrids.Interfaces.Ajax.IResponse, selectFirstRow: boolean = false): void {
 			super.HandleResponseLoaded(response, selectFirstRow);
-			if (this.refreshOffsets.length > 0) {
+			if (this.refresh) {
+				this.refresh = false;
+				this.FireHandlers("refresh", new EventsManagers.Events.Base());
+			} else if (this.refreshOffsets.length > 0) {
 				var offsetIndex = this.refreshOffsets.indexOf(response.offset);
 				if (offsetIndex !== -1)
 					this.refreshOffsets.splice(offsetIndex, 1);
@@ -41,8 +45,22 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids.EventsManagers {
 				for (var i = start, l = end; i < l; i += limit)
 					this.refreshOffsets.push(i);
 			}
+			var cache = this.grid.GetDataSource().GetCache();
+			if (cache.GetEnabled()) 
+				cache.Purge();
 			this.grid.GetOptionsManager().GetAgOptions().api.purgeInfiniteCache();
 			return true;
 		}
+		public ExecuteRefresh (): this {
+			this.refresh = true;
+			this.refreshOffsets = [];
+			this.FireHandlers("beforeRefresh", new EventsManagers.Events.Base());
+			var cache = this.grid.GetDataSource().GetCache();
+			if (cache.GetEnabled()) 
+				cache.Purge();
+			this.grid.GetOptionsManager().GetAgOptions().api.purgeInfiniteCache();
+			return this;
+		}
+		
 	}
 }

@@ -79,6 +79,7 @@ declare namespace MvcCore.Ext.Controllers.DataGrids {
         ExecChange(offset?: number | false | null, sorting?: AgGrids.Types.SortItem[] | false | null, filtering?: Map<string, Map<AgGrids.Enums.Operator, string[]>> | false | null): this;
         GetDocumentTitle(): string;
         UpdateRows(rowsData: any[]): this;
+        Refresh(): this;
         protected initSubClasses(): this;
         protected initServerConfig(serverConfig: AgGrids.Interfaces.IServerConfig): this;
         protected initTranslator(): this;

@@ -475,7 +475,7 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 				refreshAnchor = optsMgr.GetElements().refreshAnchor,
 				loadingCls = optsMgr.Static.SELECTORS.BOTTOM_CONTROLS.REFRESH_ANCHOR_LOADING_CLS;
 			if (refreshAnchor != null)
-				refreshAnchor.addEventListener('click', e => {this.handleRefreshClick(refreshAnchor, loadingCls, e);});
+				refreshAnchor.addEventListener('click', e => this.handleRefreshClick(refreshAnchor, loadingCls, e));
 			return this;
 		}
 		public AddUrlChangeEvent (): this {
@@ -707,6 +707,9 @@ namespace MvcCore.Ext.Controllers.DataGrids.AgGrids {
 
 			if (selectFirstRow)
 				this.SelectRowByIndex(0);
+		}
+		public ExecuteRefresh (): this {
+			return this;
 		}
 
 		protected firefiltering (filteringBefore: Map<string, Map<Enums.Operator, string[]>>, filteringAfter: Map<string, Map<Enums.Operator, string[]>>): this {
